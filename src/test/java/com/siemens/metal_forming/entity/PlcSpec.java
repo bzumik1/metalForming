@@ -86,15 +86,6 @@ public class PlcSpec {
                 assertThat(violations).isNotEmpty();
             }
         }
-
-        @Test @DisplayName("is invalid when curve is null")
-        void isInvalidWhenCurveIsNull(){
-            Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
-            assertThat(violations
-                    .stream()
-                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("motorCurve"))
-                    .findFirst()).isNotEmpty();
-        }
     }
 
 

@@ -6,4 +6,5 @@ import org.junit.jupiter.api.Test;
 
 @DisplayName("<= Point of Torque and Speed Specification =>")
 public class PointOfTorqueAndSpeedSpec {
+
 }
