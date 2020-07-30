@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -9,7 +8,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 
-@Getter @Setter
+@Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity @Table(name = "plc")
 public class Plc {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
