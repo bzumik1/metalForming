@@ -3,6 +3,8 @@ package com.siemens.metal_forming.repository;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.PointOfTorqueAndSpeed;
+import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.PersistenceException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,6 +39,9 @@ public class PlcRepositorySpec {
     private CurveRepository curveRepository;
 
     @Autowired
+    private ToolRepository toolRepository;
+
+    @Autowired
     private PointOfTorqueAndSpeedRepository pointOfTorqueAndSpeedRepository;
 
     private Plc plcWithAllAttributes;
@@ -43,24 +50,30 @@ public class PlcRepositorySpec {
     @BeforeEach
     void initializePlc(){
         plcWithAllAttributes = new Plc();
-        Curve curve = new Curve();
+        Curve motorCurve = new Curve();
         for(int i=0; i<100; i++){
-            curve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+            motorCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
         }
-        plcWithAllAttributes.setMotorCurve(curve);
+        Set<Tool> tools = new HashSet<>();
+        for(int i=0; i<10; i++){
+            Tool tool = new Tool();
+            tool.setToolId(i);
+            tool.setToolStatus(ToolStatusType.AUTODETECTED);
+            Curve referenceCurve = new Curve();
+            for(int j=0; i<100; i++){
+                referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+            }
+            tool.setReferenceCurve(referenceCurve);
+            tools.add(tool);
+        }
+
+        plcWithAllAttributes.setMotorCurve(motorCurve);
         plcWithAllAttributes.setIpAddress("192.168.1.1");
+        plcWithAllAttributes.setTools(tools);
     }
 
     @Nested @DisplayName("cascade") @DataJpaTest
     class cascade{
-        @Test @DisplayName("when PLC is stored then stores also curve")
-        void storesAlsoCurve(){
-            Plc plcStoredInDb = plcRepository.save(plcWithAllAttributes);
-            Optional<Plc> plcInDb = plcRepository.findById(plcStoredInDb.getId());
-
-            assertThat(plcInDb).isPresent();
-            assertThat(plcInDb.get().getMotorCurve().getPoints()).isNotEmpty();
-        }
 
 
         @Test @DisplayName("when PLC is deleted also curve is deleted")
@@ -80,6 +93,30 @@ public class PlcRepositorySpec {
                     = pointOfTorqueAndSpeedRepository.findAll();
 
             assertThat(points).isEmpty();
+        }
+
+        @Test @DisplayName("when PLC is deleted also tools aredeleted")
+        void deletesAlsoTools(){
+            Plc plc = plcRepository.save(plcWithAllAttributes);
+            entityManager.flush();
+
+            plcRepository.deleteById(plc.getId());
+            List<Tool> tools
+                    = toolRepository.findAll();
+
+            assertThat(tools).isEmpty();
+        }
+
+        @Test @DisplayName("when PLC is deleted also reference curves of all tools are deleted")
+        void deleteAlsoReferenceCurvesOfTools(){
+            Plc plc = plcRepository.save(plcWithAllAttributes);
+            entityManager.flush();
+
+            plcRepository.deleteById(plc.getId());
+            List<Curve> curves
+                    = curveRepository.findAll();
+
+            assertThat(curves).isEmpty();
         }
     }
 

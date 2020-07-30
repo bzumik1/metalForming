@@ -20,29 +20,26 @@ public class Tool {
     @Column(name = "tool_id", nullable = false)
     Integer toolId;
 
-    @NotNull
-    @Column(name = "number_of_reference_cycles", nullable = false)
+    @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;
 
-    @NotNull
-    @Column(name = "stop_reaction", nullable = false) @Enumerated(EnumType.STRING)
+    @Column(name = "stop_reaction") @Enumerated(EnumType.STRING)
     StopReactionType stopReaction;
 
     @NotNull
     @Column(name = "automatic_monitoring", nullable = false)
-    Boolean automaticMonitoring;
+    Boolean automaticMonitoring = false;
 
-    @NotNull
-    @Column(name = "max_speed_operation", nullable = false)
+    @Column(name = "max_speed_operation")
     Integer maxSpeedOperation;
 
     @NotNull
     @Column(name = "tool_status", nullable = false) @Enumerated(EnumType.STRING)
     ToolStatusType toolStatus;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "reference_curve_id")
-    ReferenceCurve referenceCurve;
+    Curve referenceCurve;
 
 
 

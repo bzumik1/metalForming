@@ -6,6 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.Set;
 
 
 @Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder
@@ -25,4 +26,8 @@ public class Plc {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "curve_id")
     Curve motorCurve;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "plc_id")
+    Set<Tool> tools;
 }
