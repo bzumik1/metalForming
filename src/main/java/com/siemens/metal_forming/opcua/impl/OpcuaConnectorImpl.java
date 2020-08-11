@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @Component @Slf4j
 public class OpcuaConnectorImpl implements OpcuaConnector {
@@ -22,15 +23,34 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
 
     public OpcuaClient connectPlc(Plc plc){
         String ipAddress = plc.getIpAddress();
-            OpcuaClient opcuaClient = clientProvider.createClient(ipAddress);
+
+        Optional<OpcuaClient> oldOpcuaClient = Optional.ofNullable(opcuaClients.get(ipAddress));
+
+        if(oldOpcuaClient.isEmpty()){
+            OpcuaClient opcuaClient = clientProvider.createClient(ipAddress); //Throws OpcuaConnectionException
             opcuaClient.connect();
             opcuaClients.put(ipAddress, opcuaClient);
             return opcuaClient;
+        } else {
+            log.warn("OPC UA client for plc with IP address {} already exist, existing one is returned", plc.getIpAddress());
+            return oldOpcuaClient.get();
+        }
     }
 
+
     public void disconnectPlc(Plc plc){
-        OpcuaClient opcuaClient = opcuaClients.get(plc.getIpAddress());
-        opcuaClient.disconnect().thenRun(() -> opcuaClients.remove(plc.getIpAddress()));
+        Optional<OpcuaClient> oldOpcuaClient = Optional.ofNullable(opcuaClients.get(plc.getIpAddress()));
+
+        if(oldOpcuaClient.isPresent()){
+            try {
+                oldOpcuaClient.get().disconnect().get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            opcuaClients.remove(plc.getIpAddress());
+        } else {
+            log.warn("OPC UA client for plc with IP address {} did not exist",plc.getIpAddress());
+        }
     }
 
     public OpcuaClient getClient(Plc plc){

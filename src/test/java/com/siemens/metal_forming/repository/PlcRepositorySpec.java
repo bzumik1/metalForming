@@ -1,9 +1,6 @@
 package com.siemens.metal_forming.repository;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.PointOfTorqueAndSpeed;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +41,9 @@ public class PlcRepositorySpec {
     @Autowired
     private PointOfTorqueAndSpeedRepository pointOfTorqueAndSpeedRepository;
 
+    @Autowired
+    private ConnectionRepository connectionRepository;
+
     private Plc plcWithAllAttributes;
 
 
@@ -60,7 +60,7 @@ public class PlcRepositorySpec {
             tool.setToolId(i);
             tool.setToolStatus(ToolStatusType.AUTODETECTED);
             Curve referenceCurve = new Curve();
-            for(int j=0; i<100; i++){
+            for(int j=0; j<100; j++){
                 referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
             }
             tool.setReferenceCurve(referenceCurve);
@@ -69,14 +69,16 @@ public class PlcRepositorySpec {
 
         plcWithAllAttributes.setMotorCurve(motorCurve);
         plcWithAllAttributes.setIpAddress("192.168.1.1");
+        plcWithAllAttributes.markAsConnected();
         plcWithAllAttributes.setTools(tools);
+        plcWithAllAttributes.setCurrentTool(0);
     }
 
     @Nested @DisplayName("cascade") @DataJpaTest
     class cascade{
 
 
-        @Test @DisplayName("when PLC is deleted also curve is deleted")
+        @Test @DisplayName("when PLC is deleted also MotorCurve is deleted")
         void deletesAlsoCurve(){
             Plc plc = plcRepository.save(plcWithAllAttributes);
             plcRepository.deleteById(plc.getId());
@@ -95,7 +97,7 @@ public class PlcRepositorySpec {
             assertThat(points).isEmpty();
         }
 
-        @Test @DisplayName("when PLC is deleted also tools aredeleted")
+        @Test @DisplayName("when PLC is deleted also tools are deleted")
         void deletesAlsoTools(){
             Plc plc = plcRepository.save(plcWithAllAttributes);
             entityManager.flush();
@@ -117,6 +119,18 @@ public class PlcRepositorySpec {
                     = curveRepository.findAll();
 
             assertThat(curves).isEmpty();
+        }
+
+        @Test @DisplayName("when PLC is deleted also connection is deleted")
+        void deleteAlsoConnection(){
+            Plc plc = plcRepository.save(plcWithAllAttributes);
+            entityManager.flush();
+
+            plcRepository.deleteById(plc.getId());
+            List<Connection> connections
+                    = connectionRepository.findAll();
+
+            assertThat(connections).isEmpty();
         }
     }
 

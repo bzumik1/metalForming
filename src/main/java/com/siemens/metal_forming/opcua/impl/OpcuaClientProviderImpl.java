@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.opcua.impl;
 
+import com.siemens.metal_forming.exception.OpcuaClientException;
+import com.siemens.metal_forming.exception.OpcuaConnectionException;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaClientProvider;
 import com.siemens.metal_forming.opcua.OpcuaConfiguration;
@@ -15,6 +17,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -30,26 +33,32 @@ public class OpcuaClientProviderImpl implements OpcuaClientProvider {
 
     @Override
     public OpcuaClient createClient(String ipAddress){
-        try{
-            //This will get all endpoints
-            List<EndpointDescription> endpoints = DiscoveryClient.getEndpoints(createUrl(ipAddress)).get();
+        //This will get all endpoints
+        List<EndpointDescription> endpoints;
+        try {
+            endpoints = DiscoveryClient.getEndpoints(createUrl(ipAddress)).get();
+        } catch (InterruptedException | ExecutionException e){
+            log.warn("OPC UA connection could not be established: " + e.getMessage());
+            throw new OpcuaConnectionException();
+        }
 
+        try{
             //Select endpoint
-            EndpointDescription oneOfEndpoints = endpoints.stream().filter(endpointDescription -> endpointDescription.getSecurityMode().equals(MessageSecurityMode.None)).findFirst().get();
+            EndpointDescription endpointWithoutSecurity = endpoints.stream().filter(endpointDescription -> endpointDescription.getSecurityMode().equals(MessageSecurityMode.None)).findFirst().get();
 
             //select endpoint and configure connection
             OpcUaClientConfig opcUaConfiguration = OpcUaClientConfig.builder()
-                    .setEndpoint(oneOfEndpoints)
+                    .setEndpoint(endpointWithoutSecurity)
                     .setApplicationName(LocalizedText.english(opcuaConfiguration.getApplicationName()))
                     .setRequestTimeout(uint(opcuaConfiguration.getPort()))
                     .build();
 
             UaStackClient stackClient = UaStackClient.create(opcUaConfiguration);
             return new OpcuaClientImpl(opcUaConfiguration,stackClient,ipAddress);
-        }catch (InterruptedException | ExecutionException | UaException e){
+        }catch (UaException e){
             log.warn("OPC UA client for plc with ip {} could not be created: {}",ipAddress,e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Something went wrong");
+            throw new OpcuaClientException();
         }
 
     }

@@ -37,7 +37,7 @@ public class Tool {
     @Column(name = "tool_status", nullable = false) @Enumerated(EnumType.STRING)
     ToolStatusType toolStatus;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reference_curve_id")
     Curve referenceCurve;
 
