@@ -15,9 +15,9 @@ public interface PlcService {
 
     Plc create(Plc plc);
 
-    boolean deletePlcById(Long id);
+    void deletePlcById(Long id);
 
-    boolean updatePlcById(Long id, Plc updatedPlc);
+    void updatePlcById(Long id, Plc updatedPlc);
 
     void changeCurrentTool(String ipAddress,int toolId);
 

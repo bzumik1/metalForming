@@ -1,11 +1,13 @@
 package com.siemens.metal_forming.opcua.impl;
 
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.exception.OpcuaConnectionException;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaClientProvider;
 import com.siemens.metal_forming.opcua.OpcuaConnector;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -17,7 +19,7 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
     private final OpcuaClientProvider clientProvider;
     private final HashMap<String, OpcuaClient> opcuaClients = new HashMap<>();
 
-    public OpcuaConnectorImpl(@Autowired OpcuaClientProvider clientProvider) {
+    public OpcuaConnectorImpl(@Autowired @Qualifier("OpcuaClientProviderMock") OpcuaClientProvider clientProvider) {
         this.clientProvider = clientProvider;
     }
 
@@ -28,7 +30,12 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
 
         if(oldOpcuaClient.isEmpty()){
             OpcuaClient opcuaClient = clientProvider.createClient(ipAddress); //Throws OpcuaConnectionException
-            opcuaClient.connect();
+            try {
+                opcuaClient.connect().get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                throw new OpcuaConnectionException();
+            }
             opcuaClients.put(ipAddress, opcuaClient);
             return opcuaClient;
         } else {

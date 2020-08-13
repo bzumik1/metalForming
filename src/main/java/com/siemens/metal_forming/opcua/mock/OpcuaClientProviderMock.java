@@ -1,4 +1,5 @@
-package com.siemens.metal_forming.opcua.impl;
+package com.siemens.metal_forming.opcua.mock;
+
 
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.abst.OpcuaClientProviderAbstract;
@@ -9,22 +10,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-@Component("OpcuaClientProviderImpl") //@ConditionalOnProperty(name = "settings-opcua", havingValue = "false", matchIfMissing = true)
+@Component("OpcuaClientProviderMock")// @ConditionalOnProperty(name = "settings-opcua", havingValue = "true")
 @Slf4j
-public class OpcuaClientProviderImpl extends OpcuaClientProviderAbstract {
+public class OpcuaClientProviderMock extends OpcuaClientProviderAbstract {
 
-    public OpcuaClientProviderImpl(@Autowired OpcuaConfigurationImpl opcuaConfiguration) {
+    public OpcuaClientProviderMock(@Autowired OpcuaConfigurationMock opcuaConfiguration) {
         super();
         super.setOpcuaConfiguration(opcuaConfiguration);
     }
 
     @Override
     public String createUrl(String ipAddress) {
-        return "opc.tcp://"+ipAddress+":"+ super.getOpcuaConfiguration().getPort();
+        return ((OpcuaConfigurationMock)super.getOpcuaConfiguration()).getServer();
     }
 
     @Override
     public OpcuaClient CreateNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress) {
-        return new OpcuaClientImpl(config,stackClient,ipAddress);
+        return new OpcuaClientMock(config,stackClient,ipAddress);
     }
 }

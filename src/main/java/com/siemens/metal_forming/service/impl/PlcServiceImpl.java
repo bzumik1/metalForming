@@ -43,7 +43,7 @@ public class PlcServiceImpl implements PlcService {
     @Override
     public Plc create(Plc plc) {
         try {
-            OpcuaClient opcuaClient = opcuaConnector.connectPlc(plc);
+            opcuaConnector.connectPlc(plc);
             plc.markAsConnected();
         } catch (OpcuaConnectionException e){
             log.warn("newly created PLC could not be connected");
@@ -54,19 +54,30 @@ public class PlcServiceImpl implements PlcService {
     }
 
     @Override
-    public boolean deletePlcById(Long id) {
-        return false;
+    public void deletePlcById(Long id) {
+        Optional<Plc> oldPlc = plcRepository.findById(id);
+        if(oldPlc.isPresent()){
+            opcuaConnector.disconnectPlc(oldPlc.get());
+            plcRepository.deleteById(id);
+        } else {
+            throw new PlcNotFoundException();
+        }
     }
 
     @Override
-    public boolean updatePlcById(Long id, Plc updatedPlc) {
+    public void updatePlcById(Long id, Plc updatedPlc) {
         updatedPlc.setId(id);
         Optional<Plc> plcInDB = plcRepository.findById(id);
         if(plcInDB.isPresent()){
-            plcRepository.save(updatedPlc);
-            return true;
+            if(!plcInDB.get().getIpAddress().equals(updatedPlc.getIpAddress())){
+                opcuaConnector.disconnectPlc(plcInDB.get());
+                create(updatedPlc);
+            }else{
+                plcRepository.save(updatedPlc);
+            }
+        } else {
+            throw new PlcNotFoundException();
         }
-        return false;
     }
 
     @Override
