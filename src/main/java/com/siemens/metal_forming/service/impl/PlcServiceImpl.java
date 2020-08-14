@@ -32,12 +32,12 @@ public class PlcServiceImpl implements PlcService {
 
     @Override
     public Optional<Plc> findById(Long id) {
-        return Optional.empty();
+        return plcRepository.findById(id);
     }
 
     @Override
     public Optional<Plc> findByIpAddress(String ipAddress) {
-        return Optional.empty();
+        return plcRepository.findByIpAddress(ipAddress);
     }
 
     @Override

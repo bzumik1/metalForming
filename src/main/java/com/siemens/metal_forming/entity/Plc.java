@@ -30,6 +30,11 @@ public class Plc {
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "hardware_information_id")
+    final HardwareInformation hardwareInformation = new HardwareInformation();
+
+    @NotNull
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "connection_id", nullable = false)
     final Connection connection = new Connection();
 

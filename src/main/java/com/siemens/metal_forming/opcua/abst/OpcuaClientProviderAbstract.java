@@ -4,8 +4,7 @@ import com.siemens.metal_forming.exception.OpcuaClientException;
 import com.siemens.metal_forming.exception.OpcuaConnectionException;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaClientProvider;
-import com.siemens.metal_forming.opcua.OpcuaConfiguration;
-import com.siemens.metal_forming.opcua.impl.OpcuaClientImpl;
+import com.siemens.metal_forming.opcua.configuration.OpcuaConfiguration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +15,6 @@ import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -53,7 +49,7 @@ public abstract class OpcuaClientProviderAbstract implements OpcuaClientProvider
                     .build();
 
             UaStackClient stackClient = UaStackClient.create(opcUaConfiguration);
-            return new OpcuaClientImpl(opcUaConfiguration,stackClient,ipAddress);
+            return createNewClient(opcUaConfiguration,stackClient,ipAddress);
         }catch (UaException e){
             log.warn("OPC UA client for plc with ip {} could not be created: {}",ipAddress,e.getMessage());
             e.printStackTrace();
@@ -63,5 +59,5 @@ public abstract class OpcuaClientProviderAbstract implements OpcuaClientProvider
     }
 
     public abstract String createUrl(String ipAddress);
-    public abstract OpcuaClient CreateNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress);
+    public abstract OpcuaClient createNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress);
 }

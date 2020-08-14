@@ -3,11 +3,11 @@ package com.siemens.metal_forming.opcua.mock;
 
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.abst.OpcuaClientProviderAbstract;
+import com.siemens.metal_forming.opcua.configuration.OpcuaConfigurationMock;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component("OpcuaClientProviderMock")// @ConditionalOnProperty(name = "settings-opcua", havingValue = "true")
@@ -25,7 +25,7 @@ public class OpcuaClientProviderMock extends OpcuaClientProviderAbstract {
     }
 
     @Override
-    public OpcuaClient CreateNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress) {
+    public OpcuaClient createNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress) {
         return new OpcuaClientMock(config,stackClient,ipAddress);
     }
 }

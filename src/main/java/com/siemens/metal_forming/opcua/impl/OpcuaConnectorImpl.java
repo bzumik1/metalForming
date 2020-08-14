@@ -32,6 +32,7 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
             OpcuaClient opcuaClient = clientProvider.createClient(ipAddress); //Throws OpcuaConnectionException
             try {
                 opcuaClient.connect().get();
+                opcuaClient.subscribeAll(); //TODO add test for this!
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 throw new OpcuaConnectionException();

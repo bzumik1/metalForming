@@ -212,5 +212,52 @@ class PlcServiceSpec {
 
     }
 
+    @Nested @DisplayName("FIND BY ID")
+    class findById{
+        @Test @DisplayName("if PLC is not found in DB returns empty optional")
+        void ifPlcIsNotInDbReturnsEmptyOptional(){
+            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThat(plcService.findById(1L)).isEmpty();
+
+        }
+
+        @Test @DisplayName("if PLC is  in DB returns optional of plc")
+        void ifPlcIsInDbReturnsOptionalOfPlc(){
+            Plc plc = new Plc();
+            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(plc));
+
+            Optional<Plc> plcInDb = plcService.findById(1L);
+            assertThat(plcInDb).isNotEmpty();
+            assertThat(plcInDb.get()).isEqualTo(plc);
+        }
+
+
+    }
+
+    @Nested @DisplayName("FIND BY IP ADDRESS")
+    class findByIpAddress{
+        private final static String mockIpAddress = "192.168.0.1";
+        @Test @DisplayName("if PLC is not found in DB returns empty optional")
+        void ifPlcIsNotInDbReturnsEmptyOptional(){
+            Mockito.when(plcRepository.findByIpAddress(mockIpAddress)).thenReturn(Optional.empty());
+
+            assertThat(plcService.findByIpAddress(mockIpAddress)).isEmpty();
+
+        }
+
+        @Test @DisplayName("if PLC is  in DB returns optional of plc")
+        void ifPlcIsInDbReturnsOptionalOfPlc(){
+            Plc plc = new Plc();
+            Mockito.when(plcRepository.findByIpAddress(mockIpAddress)).thenReturn(Optional.of(plc));
+
+            Optional<Plc> plcInDb = plcService.findByIpAddress(mockIpAddress);
+            assertThat(plcInDb).isNotEmpty();
+            assertThat(plcInDb.get()).isEqualTo(plc);
+        }
+
+
+    }
+
 
 }

@@ -19,8 +19,9 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-
-@DisplayName("<= Plc Repository Specification =>")
+//TODO make tests independent (when new attribute is added to entyty ony one test will not work)
+//TODO move nested attributes to own repository specification
+@DisplayName("<= PLC REPOSITORY SPECIFICATION =>")
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 public class PlcRepositorySpec {
@@ -36,6 +37,9 @@ public class PlcRepositorySpec {
 
     @Autowired
     private ToolRepository toolRepository;
+
+    @Autowired
+    private HardwareInformationRepository hardwareInformationRepository;
 
     @Autowired
     private PointOfTorqueAndSpeedRepository pointOfTorqueAndSpeedRepository;
@@ -66,6 +70,8 @@ public class PlcRepositorySpec {
             tools.add(tool);
         }
 
+        plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 8370938");
+        plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW V1.2");
         plcWithAllAttributes.setMotorCurve(motorCurve);
         plcWithAllAttributes.setIpAddress("192.168.1.1");
         plcWithAllAttributes.markAsConnected();
@@ -73,17 +79,26 @@ public class PlcRepositorySpec {
         plcWithAllAttributes.setCurrentTool(0);
     }
 
-    @Nested @DisplayName("cascade") @DataJpaTest
+    @Nested @DisplayName("CASCADING") @DataJpaTest
     class cascade{
 
 
-        @Test @DisplayName("when PLC is deleted also MotorCurve is deleted")
+        @Test @DisplayName("when PLC is deleted also motorCurve is deleted")
         void deletesAlsoCurve(){
             Plc plc = plcRepository.save(plcWithAllAttributes);
             plcRepository.deleteById(plc.getId());
             Optional<Curve> curveInDb = curveRepository.findById(plc.getMotorCurve().getId());
 
             assertThat(curveInDb).isNotPresent();
+        }
+
+        @Test @DisplayName("when PLC is deleted also hardwareInformation are deleted")
+        void deletesAlsoHardwareInformation(){
+            Plc plc = plcRepository.save(plcWithAllAttributes);
+            plcRepository.deleteById(plc.getId());
+            Optional<HardwareInformation> hardwareInformationInDb = hardwareInformationRepository.findById(plc.getHardwareInformation().getId());
+
+            assertThat(hardwareInformationInDb).isNotPresent();
         }
 
         @Test @DisplayName("when PLC is deleted also curve and all its points are deleted")
@@ -135,7 +150,7 @@ public class PlcRepositorySpec {
 
 
 
-    @Nested @DisplayName("constrains") @DataJpaTest
+    @Nested @DisplayName("CONSTRAINS") @DataJpaTest
     class validation{
         @Test @DisplayName("PLC with address \"null\" can not be stored")
         void storePlcWithNullIpAddress(){

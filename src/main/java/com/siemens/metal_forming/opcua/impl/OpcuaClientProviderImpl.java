@@ -2,11 +2,11 @@ package com.siemens.metal_forming.opcua.impl;
 
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.abst.OpcuaClientProviderAbstract;
+import com.siemens.metal_forming.opcua.configuration.OpcuaConfigurationImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component("OpcuaClientProviderImpl") //@ConditionalOnProperty(name = "settings-opcua", havingValue = "false", matchIfMissing = true)
@@ -24,7 +24,7 @@ public class OpcuaClientProviderImpl extends OpcuaClientProviderAbstract {
     }
 
     @Override
-    public OpcuaClient CreateNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress) {
+    public OpcuaClient createNewClient(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress) {
         return new OpcuaClientImpl(config,stackClient,ipAddress);
     }
 }

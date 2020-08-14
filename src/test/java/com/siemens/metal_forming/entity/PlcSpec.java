@@ -36,6 +36,11 @@ public class PlcSpec {
             assertThat(plc.getTools()).isNotNull();
         }
 
+        @Test @DisplayName("is always created with empty hardwareInformations")
+        void isAlwaysCreatedWithEmptyHardwareInformation(){
+            assertThat(plc.getHardwareInformation()).isNotNull();
+        }
+
         @Test @DisplayName("is created with connection where status is FAILED and lastUpdate is now")
         void isCreatedWithConnection(){
             long acceptedTimeDifferenceInMillis = 1000;
