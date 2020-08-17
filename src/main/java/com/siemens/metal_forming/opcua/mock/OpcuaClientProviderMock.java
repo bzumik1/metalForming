@@ -8,9 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-@Component("OpcuaClientProviderMock")// @ConditionalOnProperty(name = "settings-opcua", havingValue = "true")
+@Component("OpcuaClientProviderMock")
+@ConditionalOnProperty(
+        value="opcua.mock-opcua",
+        havingValue = "true")
 @Slf4j
 public class OpcuaClientProviderMock extends OpcuaClientProviderAbstract {
 
