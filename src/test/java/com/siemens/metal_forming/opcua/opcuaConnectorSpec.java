@@ -32,6 +32,7 @@ public class opcuaConnectorSpec {
 
         //rules
         Mockito.when(plc.getIpAddress()).thenReturn(mockIpAddress);
+        Mockito.when(opcuaClient.connect()).thenReturn(CompletableFuture.completedFuture(null));
     }
 
     @Nested @DisplayName("CONNECTING PLC")
