@@ -19,7 +19,7 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
     private final OpcuaClientProvider clientProvider;
     private final HashMap<String, OpcuaClient> opcuaClients = new HashMap<>();
 
-    public OpcuaConnectorImpl(@Autowired OpcuaClientProvider clientProvider) {
+    public OpcuaConnectorImpl(@Autowired OpcuaClientProvider clientProvider) { //Correct implementation is selected based on application.properties
         this.clientProvider = clientProvider;
     }
 

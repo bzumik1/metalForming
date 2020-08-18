@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.ToolNotFoundException;
 import lombok.*;
@@ -13,7 +14,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "plc")
 public class Plc {
