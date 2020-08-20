@@ -23,7 +23,6 @@ import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateReq
 import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -83,7 +82,7 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
             log.info("Updating serial number of plc with IP address {} from \"{}\" to \"{}\"",ipAddress,plcInDd.get().getId(),serialNumber);
             plcInDd.get().markAsConnected();
             plcInDd.get().getHardwareInformation().setSerialNumber(serialNumber);
-            plcService.updatePlcById(plcInDd.get().getId(),plcInDd.get());
+            plcService.updateById(plcInDd.get().getId(),plcInDd.get());
 
         }else {
             log.warn("Serial number of plc with IP address {} could not be updated because plc was not found in database",ipAddress);
@@ -101,7 +100,7 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
             log.info("Updating firmware number of plc with IP address {} from \"{}\" to \"{}\"",ipAddress,plcInDd.get().getId(),firmwareNumber);
             plcInDd.get().markAsConnected();
             plcInDd.get().getHardwareInformation().setFirmwareNumber(firmwareNumber);
-            plcService.updatePlcById(plcInDd.get().getId(),plcInDd.get());
+            plcService.updateById(plcInDd.get().getId(),plcInDd.get());
 
         }else {
             log.warn("Firmware number of plc with IP address {} could not be updated because plc was not found in database",ipAddress);

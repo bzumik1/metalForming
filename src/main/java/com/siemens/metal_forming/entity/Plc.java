@@ -2,7 +2,7 @@ package com.siemens.metal_forming.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
-import com.siemens.metal_forming.exception.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,14 +15,17 @@ import java.util.Optional;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder @FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "plc")
 public class Plc {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @NotBlank(message = "Name must be filled")
+    @Column(nullable = false, unique = true)
+    String name;
 
-    @NotBlank(message = "IP address can not be blank")
+    @NotBlank(message = "IP address must be filled")
     @Pattern(regexp = "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\." +
                       "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])",
             message = "IP address must be in correct format")

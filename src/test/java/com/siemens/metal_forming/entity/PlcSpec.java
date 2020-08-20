@@ -2,7 +2,7 @@ package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
-import com.siemens.metal_forming.exception.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import org.junit.jupiter.api.*;
 
 import javax.validation.ConstraintViolation;
@@ -155,6 +155,26 @@ public class PlcSpec {
             assertThat(violations
                     .stream()
                     .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("currentTool"))
+                    .findFirst()).isNotEmpty();
+        }
+
+        @Test @DisplayName("is invalid when name is null")
+        void isInvalidWhenNameIsNull(){
+            plc.setName(null);
+            Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+            assertThat(violations
+                    .stream()
+                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
+                    .findFirst()).isNotEmpty();
+        }
+
+        @Test @DisplayName("is invalid when name is empty string")
+        void isInvalidWhenNameIsEmptyString(){
+            plc.setName("");
+            Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+            assertThat(violations
+                    .stream()
+                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
                     .findFirst()).isNotEmpty();
         }
     }

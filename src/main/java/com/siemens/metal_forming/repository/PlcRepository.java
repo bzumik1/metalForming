@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface PlcRepository extends JpaRepository<Plc,Long> {
     Optional<Plc> findByIpAddress(String ipAddress);
+    boolean existsByIpAddress(String ipAddress);
+    boolean existsByName(String name);
 }

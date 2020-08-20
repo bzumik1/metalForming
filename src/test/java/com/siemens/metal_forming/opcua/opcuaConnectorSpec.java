@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.opcua;
 
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.exception.OpcuaConnectionException;
+import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.opcua.impl.OpcuaConnectorImpl;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;

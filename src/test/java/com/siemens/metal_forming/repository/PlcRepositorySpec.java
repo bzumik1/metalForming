@@ -11,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.PersistenceException;
+import javax.validation.ConstraintViolationException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -47,40 +48,43 @@ public class PlcRepositorySpec {
     @Autowired
     private ConnectionRepository connectionRepository;
 
-    private Plc plcWithAllAttributes;
 
 
-    @BeforeEach
-    void initializePlc(){
-        plcWithAllAttributes = new Plc();
-        Curve motorCurve = new Curve();
-        for(int i=0; i<100; i++){
-            motorCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
-        }
-        Set<Tool> tools = new HashSet<>();
-        for(int i=0; i<10; i++){
-            Tool tool = new Tool();
-            tool.setToolId(i);
-            tool.setToolStatus(ToolStatusType.AUTODETECTED);
-            Curve referenceCurve = new Curve();
-            for(int j=0; j<100; j++){
-                referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
-            }
-            tool.setReferenceCurve(referenceCurve);
-            tools.add(tool);
-        }
 
-        plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 8370938");
-        plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW V1.2");
-        plcWithAllAttributes.setMotorCurve(motorCurve);
-        plcWithAllAttributes.setIpAddress("192.168.1.1");
-        plcWithAllAttributes.markAsConnected();
-        plcWithAllAttributes.setTools(tools);
-        plcWithAllAttributes.setCurrentTool(0);
-    }
 
     @Nested @DisplayName("CASCADING") @DataJpaTest
-    class cascade{
+    class Cascade{
+        private Plc plcWithAllAttributes;
+
+        @BeforeEach
+        void initializeForCascading(){
+            plcWithAllAttributes = new Plc();
+            Curve motorCurve = new Curve();
+            for(int i=0; i<100; i++){
+                motorCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+            }
+            Set<Tool> tools = new HashSet<>();
+            for(int i=0; i<10; i++){
+                Tool tool = new Tool();
+                tool.setToolId(i);
+                tool.setToolStatus(ToolStatusType.AUTODETECTED);
+                Curve referenceCurve = new Curve();
+                for(int j=0; j<100; j++){
+                    referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+                }
+                tool.setReferenceCurve(referenceCurve);
+                tools.add(tool);
+            }
+
+            plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 8370938");
+            plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW V1.2");
+            plcWithAllAttributes.setMotorCurve(motorCurve);
+            plcWithAllAttributes.setIpAddress("192.168.1.1");
+            plcWithAllAttributes.markAsConnected();
+            plcWithAllAttributes.setTools(tools);
+            plcWithAllAttributes.setCurrentTool(0);
+            plcWithAllAttributes.setName("name");
+        }
 
 
         @Test @DisplayName("when PLC is deleted also motorCurve is deleted")
@@ -149,25 +153,75 @@ public class PlcRepositorySpec {
     }
 
 
-
     @Nested @DisplayName("CONSTRAINS") @DataJpaTest
-    class validation{
-        @Test @DisplayName("PLC with address \"null\" can not be stored")
-        void storePlcWithNullIpAddress(){
-            Plc plc = new Plc();
-            assertThrows(DataIntegrityViolationException.class,() -> plcRepository.save(plc));
+    class Validation{
+        @Nested @DisplayName("IP ADDRESS") @DataJpaTest
+        class IpAddress{
+            @Test @DisplayName("throws exception when ipAddress is \"null\"")
+            void storePlcWithNullIpAddress(){
+                Plc plc = new Plc();
+
+                plcRepository.save(plc);
+                assertThrows(ConstraintViolationException.class,() -> entityManager.flush());
+            }
+
+            @Test @DisplayName("throws exception when ipAddress is empty string")
+            void throwsErrorWhenIpAddressIsEmpty(){
+                Plc plc = Plc.builder().ipAddress("").name("name").build();
+
+                plcRepository.save(plc);
+                assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
+            }
+
+            @Test @DisplayName("throws exception when ipAddress is in incorrect format")
+            void throwsErrorWhenIpAddressIsInIncorrectFormat(){
+                Plc plc = Plc.builder().ipAddress("192.168.0.300").name("name").build();
+
+                plcRepository.save(plc);
+                assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
+            }
+
+            @Test @DisplayName("throws exception when two PLCs with same IP address are stored into database")
+            void ipAddressIsUnique(){
+                Plc plc1 = Plc.builder().ipAddress("192.168.0.1").name("name1").build();
+                Plc plc2 = Plc.builder().ipAddress("192.168.0.1").name("name2").build();
+
+                plcRepository.save(plc1);
+                plcRepository.save(plc2);
+                assertThrows(PersistenceException.class,() -> entityManager.flush());
+            }
+
+
         }
 
-        @Test @DisplayName("two PLCs with same IP Address can not be stored into database")
-        void ipAddressIsUnique(){
-            Plc plc1 = new Plc();
-            plc1.setIpAddress("192.168.1.7");
-            Plc plc2 = new Plc();
-            plc2.setIpAddress("192.168.1.7");
+        @Nested @DisplayName("NAME") @DataJpaTest
+        class Name{
+            @Test @DisplayName("throws exception when name is \"null\"")
+            void throwsErrorWhenNameIsNull(){
+                Plc plc = Plc.builder().ipAddress("192.168.0.1").build();
 
-            plcRepository.save(plc1);
-            plcRepository.save(plc2);
-            assertThrows(PersistenceException.class,() -> entityManager.flush());
+                plcRepository.save(plc);
+                assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
+            }
+
+            @Test @DisplayName("throws exception when name is empty string")
+            void throwsErrorWhenNameIsEmpty(){
+                Plc plc = Plc.builder().ipAddress("192.168.0.1").name("").build();
+
+                plcRepository.save(plc);
+                assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
+            }
+
+            @Test @DisplayName("throws exception when two PLCs with same name are stored into database")
+            void nameIsUnique(){
+                Plc plc1 = Plc.builder().ipAddress("192.168.0.1").name("sameName").build();
+                Plc plc2 = Plc.builder().ipAddress("192.168.0.2").name("sameName").build();
+
+                plcRepository.save(plc1);
+                plcRepository.save(plc2);
+                assertThrows(PersistenceException.class,() -> entityManager.flush());
+            }
+
         }
     }
 

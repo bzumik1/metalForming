@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.opcua.abst;
 
-import com.siemens.metal_forming.exception.OpcuaClientException;
-import com.siemens.metal_forming.exception.OpcuaConnectionException;
+import com.siemens.metal_forming.exception.exceptions.OpcuaClientException;
+import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaClientProvider;
 import com.siemens.metal_forming.opcua.configuration.OpcuaConfiguration;

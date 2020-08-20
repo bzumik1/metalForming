@@ -1,13 +1,12 @@
 package com.siemens.metal_forming.opcua.impl;
 
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.exception.OpcuaConnectionException;
+import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaClientProvider;
 import com.siemens.metal_forming.opcua.OpcuaConnector;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

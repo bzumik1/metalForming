@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @SpringBootTest(classes = MetalFormingApplication.class)
@@ -51,7 +50,7 @@ public class opcuaTest {
         }
 
         System.out.println("first 10 seconds are out");
-        plcService.deletePlcById(plcInDb2.getId());
+        plcService.deleteById(plcInDb2.getId());
 
 
 
