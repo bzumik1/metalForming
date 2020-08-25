@@ -45,7 +45,7 @@ public class PlcSpec {
         void isCreatedWithConnection(){
             long acceptedTimeDifferenceInMillis = 1000;
 
-            long connectionMillis = plc.getConnection().getLastStatusUpdate().getTime();
+            long connectionMillis = plc.getConnection().getLastStatusChange().getTime();
             long currentMillis = System.currentTimeMillis();
 
             assertThat(plc.getConnection()).isNotNull();
@@ -58,26 +58,36 @@ public class PlcSpec {
     class connection{
         @Test @DisplayName("connection of plc is set to CONNECTED with last update \"now\" when markAsConnected method is called")
         void markAsConnectedTest(){
-            plc.getConnection().getLastStatusUpdate().setTime(1);
+            plc.getConnection().getLastStatusChange().setTime(1);
 
             plc.markAsConnected();
 
             assertThat(plc.getConnection()).isNotNull();
             assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
-            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusUpdate().getTime())))
+            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusChange().getTime())))
                     .isLessThan(1000); //time difference in ms
         }
 
         @Test @DisplayName("connection of plc is set to DISCONNECTED with last update \"now\" when markAsDisconnected method is called")
         void markAsDisconnectedTest(){
-            plc.getConnection().getLastStatusUpdate().setTime(1); //sets random time
+            plc.getConnection().getLastStatusChange().setTime(1); //sets random time
 
             plc.markAsDisconnected();
 
 
             assertThat(plc.getConnection()).isNotNull();
             assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
-            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusUpdate().getTime())))
+            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusChange().getTime())))
+                    .isLessThan(1000); //time difference in ms
+
+        }
+
+        @Test @DisplayName("updates connection status and set last update to \"now\"")
+        void updatesConnectionStatusAndSetLastUpdateToNow(){
+            plc.setConnectionStatus(ConnectionStatus.CONNECTED);
+
+            assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
+            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusChange().getTime())))
                     .isLessThan(1000); //time difference in ms
 
         }

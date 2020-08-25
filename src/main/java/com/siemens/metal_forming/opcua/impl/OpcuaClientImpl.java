@@ -31,10 +31,5 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
         return CompletableFuture.completedFuture("FW REAL PLC");
     }
 
-    @Override
-    public CompletableFuture<Void> subscribeAll() {
-        return null;
-    }
-
 
 }

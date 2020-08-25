@@ -6,6 +6,8 @@ import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaClientProvider;
 import com.siemens.metal_forming.opcua.OpcuaConnector;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.milo.opcua.sdk.client.SessionActivityListener;
+import org.eclipse.milo.opcua.sdk.client.api.ServiceFaultListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,13 +31,6 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
 
         if(oldOpcuaClient.isEmpty()){
             OpcuaClient opcuaClient = clientProvider.createClient(ipAddress); //Throws OpcuaConnectionException
-            try {
-                opcuaClient.connect().get();
-                opcuaClient.subscribeAll(); //TODO add test for this!
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-                throw new OpcuaConnectionException();
-            }
             opcuaClients.put(ipAddress, opcuaClient);
             return opcuaClient;
         } else {

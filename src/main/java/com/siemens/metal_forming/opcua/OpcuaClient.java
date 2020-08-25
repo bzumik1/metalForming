@@ -7,5 +7,4 @@ import java.util.concurrent.CompletableFuture;
 public interface OpcuaClient extends UaClient {
     CompletableFuture<String> readSerialNumber();
     CompletableFuture<String> readFirmwareNumber();
-    CompletableFuture<Void> subscribeAll();
 }

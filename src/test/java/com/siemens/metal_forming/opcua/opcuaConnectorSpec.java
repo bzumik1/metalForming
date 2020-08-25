@@ -38,15 +38,6 @@ public class opcuaConnectorSpec {
     @Nested @DisplayName("CONNECTING PLC")
     class connectingPlc{
 
-        @Test @DisplayName("after connecting PLC connects newly created client")
-        void connectAfterPlcIsAdded(){
-            Mockito.when(opcuaClientProvider.createClient(mockIpAddress)).thenReturn(opcuaClient);
-
-            opcuaConnector.connectPlc(plc);
-
-            Mockito.verify(opcuaClient,Mockito.times(1)).connect();
-        }
-
         @Test @DisplayName("when PLC is already connected then new client is not created")
         void whenPlcIsAlreadyConnectedNewClientIsNotCreated(){
             Mockito.when(opcuaClientProvider.createClient(mockIpAddress)).thenReturn(opcuaClient);

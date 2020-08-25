@@ -29,7 +29,7 @@ public class ConnectionSpec {
         void isCreatedWithCurrentTimestamp(){
             long acceptedTimeDifferenceInMillis = 1000;
 
-            long connectionMillis = connection.getLastStatusUpdate().getTime();
+            long connectionMillis = connection.getLastStatusChange().getTime();
             long currentMillis = System.currentTimeMillis();
 
             assertThat(Math.abs((connectionMillis-currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
@@ -48,17 +48,17 @@ public class ConnectionSpec {
     void updateTimeSetsTimestampToCurrentTime(){
         connection.updateTimestamp();
         Timestamp timestamp = new Timestamp(System.currentTimeMillis()); //needs to be first line
-        assertThat(connection.getLastStatusUpdate()).isEqualTo(timestamp);
+        assertThat(connection.getLastStatusChange()).isEqualTo(timestamp);
     }
 
     @Test @DisplayName("method setStatus set status and last lastStatusUpdate to current time")
     void setStatusMethodChangeLastStatusUpdate(){
-        connection.getLastStatusUpdate().setTime(0);
+        connection.getLastStatusChange().setTime(0);
         connection.setStatus(ConnectionStatus.CONNECTED);
         Timestamp timestamp = new Timestamp(System.currentTimeMillis()); //needs to be first line
 
         assertThat(connection.getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
-        assertThat(connection.getLastStatusUpdate()).isEqualTo(timestamp);
+        assertThat(connection.getLastStatusChange()).isEqualTo(timestamp);
     }
 
     @Test @DisplayName("constructor with status attribute set status")

@@ -1,9 +1,11 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
+import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaConnector;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.PlcService;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 @Service @Slf4j
 public class PlcServiceImpl implements PlcService {
@@ -45,11 +49,15 @@ public class PlcServiceImpl implements PlcService {
     public Plc create(Plc plc) {
         hasUniqueAttributes(plc);
         try {
-            opcuaConnector.connectPlc(plc);
+            OpcuaClient client = opcuaConnector.connectPlc(plc);
             plc.markAsConnected();
+            plc.getHardwareInformation().setSerialNumber(client.readSerialNumber().get());
+            plc.getHardwareInformation().setFirmwareNumber(client.readFirmwareNumber().get());
         } catch (OpcuaConnectionException e){
             log.warn("Newly created PLC could not be connected");
             plc.markAsDisconnected();
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn("HardwareInformation could not be updated: {}",e.getMessage());
         }
 
         return plcRepository.save(plc);
@@ -104,5 +112,23 @@ public class PlcServiceImpl implements PlcService {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
         plc.setCurrentTool(toolId);
         plcRepository.save(plc);
+    }
+
+    @Override
+    public Plc updateByIpAddress(String ipAddress, Consumer<Plc> updatePlc) {
+        Optional<Plc> plcInDb = plcRepository.findByIpAddress(ipAddress);
+        if(plcInDb.isPresent()){
+            Plc plc = plcInDb.get();
+            final Plc oldPlc = plc.toBuilder().build();
+            updatePlc.accept(plc);
+            //if plc has different IP address then it needs to be reconnected
+            if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
+                opcuaConnector.disconnectPlc(oldPlc);
+                opcuaConnector.connectPlc(plc);
+            }
+            return plcRepository.save(plc);
+        } else {
+            throw new PlcNotFoundException("Plc with given IP address "+ipAddress+" was not in database");
+        }
     }
 }

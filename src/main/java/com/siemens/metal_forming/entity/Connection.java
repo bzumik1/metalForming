@@ -23,8 +23,8 @@ public class Connection {
     Long id;
 
     @NotNull
-    @Column(name = "last_status_update", nullable = false)
-    final Timestamp lastStatusUpdate = new Timestamp(System.currentTimeMillis());
+    @Column(name = "last_status_change", nullable = false)
+    final Timestamp lastStatusChange = new Timestamp(System.currentTimeMillis());
 
     @NotNull
     @Column(name = "status", nullable = false)
@@ -36,7 +36,7 @@ public class Connection {
     }
 
     public void updateTimestamp(){
-        lastStatusUpdate.setTime(System.currentTimeMillis());
+        lastStatusChange.setTime(System.currentTimeMillis());
     }
 
 

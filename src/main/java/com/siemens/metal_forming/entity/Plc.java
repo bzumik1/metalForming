@@ -66,4 +66,8 @@ public class Plc {
     public void markAsDisconnected(){
         connection.setStatus(ConnectionStatus.DISCONNECTED);
     }
+
+    public void setConnectionStatus(ConnectionStatus connectionStatus){
+        connection.setStatus(connectionStatus);
+    }
 }

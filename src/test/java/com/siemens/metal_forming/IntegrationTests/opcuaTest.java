@@ -30,35 +30,52 @@ public class opcuaTest {
         String ipAddress = "192.168.0.1";
         String ipAddress2 = "192.168.0.2";
 
-        Plc plc = Plc.builder().ipAddress(ipAddress).build();
-        Plc plc2 = Plc.builder().ipAddress(ipAddress2).build();
+        String name = "name";
+        String name2 = "name2";
+
+        Plc plc = Plc.builder().ipAddress(ipAddress).name(name).build();
+        Plc plc2 = Plc.builder().ipAddress(ipAddress2).name(name2).build();
 
         Plc plcInDb = plcService.create(plc);
         Plc plcInDb2 = plcService.create(plc2);
 
         OpcuaClient opcuaClient = opcuaConnector.getClient(plc);
         System.out.println("\n\n\n\n");
-        System.out.println("Serial number of PLC is: "+opcuaClient.readSerialNumber().handle((sn,ex) -> sn).get());
-        System.out.println("Firmware number of PLC is: "+opcuaClient.readFirmwareNumber().get());
+        //System.out.println("Serial number of PLC is: "+opcuaClient.readSerialNumber().handle((sn,ex) -> sn).get());
+        //System.out.println("Firmware number of PLC is: "+opcuaClient.readFirmwareNumber().get());
         System.out.println("\n\n\n\n");
 
-        //Time to read values 10s
+        System.out.println("Starting first few seconds");
+        for(int i=0;i<60;i++){
+            try {
+                Thread.sleep(1000);
+                System.out.println("Current time: "+i+"s");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        System.out.println("Manual part");
+       // System.out.println(opcuaClient.readFirmwareNumber().get());
         try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
+            //opcuaClient.connect().get();
+        }catch (Exception e){
             e.printStackTrace();
         }
 
-        System.out.println("first 10 seconds are out");
-        plcService.deleteById(plcInDb2.getId());
+
+       // opcuaClient.subscribeAll();
 
 
-
-        //Time to read values 1000s
-        try {
-            Thread.sleep(1000000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        System.out.println("Starting second block");
+        for(int i=0;i<1000;i++){
+            try {
+                Thread.sleep(1000);
+                System.out.println("Current time: "+i+"s");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

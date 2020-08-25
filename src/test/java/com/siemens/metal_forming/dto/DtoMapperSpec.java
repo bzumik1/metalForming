@@ -41,7 +41,7 @@ public class DtoMapperSpec {
             softAssertions.assertThat(plcDto.getHardwareInformation().getFirmwareNumber()).isEqualTo(plcWithAllAttributes.getHardwareInformation().getFirmwareNumber());
             softAssertions.assertThat(plcDto.getHardwareInformation().getSerialNumber()).isEqualTo(plcWithAllAttributes.getHardwareInformation().getSerialNumber());
             softAssertions.assertThat(plcDto.getConnection().getStatus()).isEqualTo(plcWithAllAttributes.getConnection().getStatus());
-            softAssertions.assertThat(plcDto.getConnection().getLastStatusUpdate()).isEqualTo(plcWithAllAttributes.getConnection().getLastStatusUpdate());
+            softAssertions.assertThat(plcDto.getConnection().getLastStatusChange()).isEqualTo(plcWithAllAttributes.getConnection().getLastStatusChange());
             softAssertions.assertThat(plcDto.getName()).isEqualTo(plcWithAllAttributes.getName());
             softAssertions.assertAll();
         }

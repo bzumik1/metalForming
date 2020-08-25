@@ -10,6 +10,6 @@ import java.sql.Timestamp;
 
 @Value @Builder
 public class ConnectionDto {
-    Timestamp lastStatusUpdate;
+    Timestamp lastStatusChange;
     ConnectionStatus status;
 }
