@@ -22,6 +22,18 @@ public enum PlcDto {;
             @NotBlank(message = "Name must be filled")
             String name;
         }
+
+        @Value @Builder(toBuilder = true)
+        public static class Update{
+            @NotBlank(message = "IP address must be filled")
+            @Pattern(regexp = "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\." +
+                    "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])",
+                    message = "IP address must be in correct format")
+            String ipAddress;
+
+            @NotBlank(message = "Name must be filled")
+            String name;
+        }
     }
 
     public enum Response{;

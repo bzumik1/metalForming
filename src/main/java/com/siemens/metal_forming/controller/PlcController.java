@@ -5,8 +5,6 @@ import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.service.PlcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +33,11 @@ public class PlcController {
     public ResponseEntity<PlcDto.Response.Overview> createPlc(@Valid @RequestBody PlcDto.Request.Create plcDto){
         Plc plc = dtoMapper.toPlc(plcDto);
         return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.create(plc)), HttpStatus.CREATED);
+    }
+
+    @PutMapping(path = "/{id}")
+    public ResponseEntity<PlcDto.Response.Overview> updatePlc(@PathVariable Long id, @Valid @RequestBody PlcDto.Request.Update plcDto){
+        return null;
     }
 
     @DeleteMapping(path = "/{id}")
