@@ -42,7 +42,7 @@ class PlcServiceSpec {
     }
 
     @Nested @DisplayName("UPDATE PLC BY ID")
-    class updatePlcById{
+    class UpdatePlcById{
         Plc upgradedPlc;
         Plc oldPlc;
         @BeforeEach
@@ -108,7 +108,7 @@ class PlcServiceSpec {
     }
 
     @Nested @DisplayName("CHANGE CURRENT TOOL")
-    class changeCurrentTool{
+    class ChangeCurrentTool{
 
         @Test @DisplayName("if plc with given ip address is not found return throws exception")
         void ifPlcIsNotFoundThrowsException(){
@@ -246,7 +246,7 @@ class PlcServiceSpec {
     }
 
     @Nested @DisplayName("DELETE PLC BY ID")
-    class deletePlcById{
+    class DeletePlcById{
         @Test @DisplayName("deletes plc from database when exists")
         void deletesPlcFromDatabase(){
             Plc oldPlc = new Plc();
@@ -281,7 +281,7 @@ class PlcServiceSpec {
     }
 
     @Nested @DisplayName("FIND BY ID")
-    class findById{
+    class FindById{
         @Test @DisplayName("if PLC is not found in DB returns empty optional")
         void ifPlcIsNotInDbReturnsEmptyOptional(){
             Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.empty());
@@ -304,7 +304,7 @@ class PlcServiceSpec {
     }
 
     @Nested @DisplayName("FIND BY IP ADDRESS")
-    class findByIpAddress{
+    class FindByIpAddress{
         private final static String mockIpAddress = "192.168.0.1";
         @Test @DisplayName("if PLC is not found in DB returns empty optional")
         void ifPlcIsNotInDbReturnsEmptyOptional(){
@@ -328,7 +328,7 @@ class PlcServiceSpec {
     }
 
     @Nested @DisplayName("FIND ALL")
-    class findAll{
+    class FindAll{
         @Test @DisplayName("triggers plcRepository.findAll()")
         void triggersPlcRepository(){
             plcService.findAll();
