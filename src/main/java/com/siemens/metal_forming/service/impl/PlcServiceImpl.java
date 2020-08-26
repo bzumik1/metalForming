@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -113,6 +114,11 @@ public class PlcServiceImpl implements PlcService {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
         plc.setCurrentTool(toolId);
         plcRepository.save(plc);
+    }
+
+    @Override
+    public Tool addToolById(Tool tool) {
+        return null;
     }
 
     @Override

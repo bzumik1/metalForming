@@ -20,6 +20,7 @@ public class OpcuaConnectorImpl implements OpcuaConnector {
     private final OpcuaClientProvider clientProvider;
     private final HashMap<String, OpcuaClient> opcuaClients = new HashMap<>();
 
+    /** @noinspection SpringJavaInjectionPointsAutowiringInspection*/
     public OpcuaConnectorImpl(@Autowired OpcuaClientProvider clientProvider) { //Correct implementation is selected based on application.properties
         this.clientProvider = clientProvider;
     }

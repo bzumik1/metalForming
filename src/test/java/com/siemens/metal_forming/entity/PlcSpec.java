@@ -2,6 +2,7 @@ package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import org.junit.jupiter.api.*;
 
@@ -31,9 +32,14 @@ public class PlcSpec {
 
     @Nested @DisplayName("NEW PLC")
     class newPlc{
-        @Test @DisplayName("is always created with empty set of tools")
-        void isAlwaysCreatedWithEmptySetOfTools(){
+        @Test @DisplayName("is always created with empty set of tools (constructor)")
+        void isAlwaysCreatedWithEmptySetOfToolsConstructor(){
             assertThat(plc.getTools()).isNotNull();
+        }
+
+        @Test @DisplayName("is always created with empty set of tools (builder)")
+        void isAlwaysCreatedWithEmptySetOfToolsBuilder(){
+            assertThat(Plc.builder().build().getTools()).isNotNull();
         }
 
         @Test @DisplayName("is always created with empty hardwareInformations")
@@ -93,8 +99,6 @@ public class PlcSpec {
         }
 
     }
-
-
 
     @Nested @DisplayName("VALIDATION")
     class validation{
@@ -221,6 +225,39 @@ public class PlcSpec {
             Tool toolToBeSetAsFutureCurrentTool = plc.getTools().stream().filter(tool -> tool.getToolId() == toolId).findAny().get();
             plc.setCurrentTool(toolId);
             assertThat(plc.getCurrentTool()).isEqualTo(toolToBeSetAsFutureCurrentTool);
+        }
+    }
+
+    @Nested @DisplayName("SET TOOLS")
+    class setTools{
+        @BeforeEach
+        void initializePlcWithAttributesNeededForCurrentTool(){
+            for(int i=0; i<10; i++){
+                Tool tool = new Tool();
+                tool.setToolId(i);
+                tool.setToolStatus(ToolStatusType.AUTODETECTED);
+                Curve referenceCurve = new Curve();
+                for(int j=0; j<100; j++){
+                    referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+                }
+                tool.setReferenceCurve(referenceCurve);
+                plc.getTools().add(tool);
+            }
+        }
+
+        @Test @DisplayName("old tools are replaced with new ones")
+        void oldToolsAreReplacedWithNewOnes(){
+            Set<Tool> newTools = new HashSet<>();
+            newTools.add(new Tool());
+
+            assertThat(plc.getTools().size()).isNotEqualTo(newTools.size());
+            plc.setTools(newTools);
+            assertThat(plc.getTools().size()).isEqualTo(newTools.size());
+        }
+
+        @Test @DisplayName("throws exception when null is entered as parameter")
+        void throwsExceptionWhenNullIsProvided(){
+            assertThrows(InvalidToolsException.class,()-> plc.setTools(null));
         }
     }
 

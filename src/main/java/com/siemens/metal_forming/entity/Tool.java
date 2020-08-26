@@ -2,16 +2,14 @@ package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity
+@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder
+@Entity @Table(name = "tools")
 public class Tool {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
@@ -19,6 +17,8 @@ public class Tool {
     @NotNull
     @Column(name = "tool_id", nullable = false)
     Integer toolId;
+
+    String name;
 
     @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;

@@ -2,21 +2,24 @@ package com.siemens.metal_forming.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity @Table(name = "plc")
+@Entity @Table(name = "plcs")
 public class Plc {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
@@ -52,7 +55,7 @@ public class Plc {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "plc_id")
-    Set<Tool> tools = new HashSet<>();
+    final Set<Tool> tools = new HashSet<>();
 
     public void setCurrentTool(int toolId){
         Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolId().equals(toolId)).findFirst();
@@ -69,5 +72,13 @@ public class Plc {
 
     public void setConnectionStatus(ConnectionStatus connectionStatus){
         connection.setStatus(connectionStatus);
+    }
+
+    public void setTools(@NotNull Collection<Tool> tools){
+        if(tools == null){
+            throw new InvalidToolsException();
+        }
+        this.tools.clear();
+        this.tools.addAll(tools);
     }
 }

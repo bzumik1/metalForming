@@ -8,7 +8,7 @@ import javax.persistence.*;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity
+@Entity @Table(name = "hardware_information")
 public class HardwareInformation {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

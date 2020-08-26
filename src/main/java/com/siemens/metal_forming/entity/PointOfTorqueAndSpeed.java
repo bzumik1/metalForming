@@ -9,7 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Getter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity
+@Entity @Table(name = "points_of_torque_and_speed")
 public class PointOfTorqueAndSpeed {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;

@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 
 @Getter @Setter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity
+@Entity @Table(name = "connections")
 public class Connection {
 
     public Connection(ConnectionStatus connectionStatus){

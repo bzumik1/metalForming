@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity @Table(name = "curve")
+@Entity @Table(name = "curves")
 public class Curve {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;

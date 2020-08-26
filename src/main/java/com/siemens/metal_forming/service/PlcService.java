@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,8 @@ public interface PlcService {
     Plc updateById(Long id, Consumer<Plc> toUpdate);
 
     void changeCurrentTool(String ipAddress,int toolId);
+
+    Tool addToolById(Tool tool);
 
 
 
