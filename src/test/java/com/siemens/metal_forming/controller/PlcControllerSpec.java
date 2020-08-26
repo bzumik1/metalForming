@@ -12,6 +12,7 @@ import com.siemens.metal_forming.service.PlcService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -96,7 +98,7 @@ public class PlcControllerSpec {
         PlcDto.Request.Create validPlcDto;
 
         @BeforeEach
-        void initializeForValidPlc(){
+        void initialize(){
             validPlcDto = PlcDto.Request.Create.builder().ipAddress("192.168.0.1").name("name").build();
         }
 
@@ -203,6 +205,113 @@ public class PlcControllerSpec {
                 String invalidPlcJson = objectMapper.writeValueAsString(invalidPlcDto);
 
                 MvcResult mvcResult = mvc.perform(post(path)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidPlcJson))
+                        .andReturn();
+
+                assertThat(mvcResult.getResponse().getContentAsString())
+                        .contains("Name must be filled")
+                        .contains("IP address must be filled")
+                        .contains("BAD_REQUEST");
+            }
+        }
+    }
+
+    @Nested @DisplayName("UPDATE PLC")
+    class UpdatePlc{
+        PlcDto.Request.Update validPlcDto;
+        final String updatePath = path+"/{id}";
+
+        @BeforeEach
+        void initialize(){
+            validPlcDto = PlcDto.Request.Update.builder().ipAddress("192.168.0.1").name("name").build();
+        }
+
+        @Nested @DisplayName("VALID PLC")
+        class ValidPlc{
+            String validPlcDtoJson;
+
+            @BeforeEach
+            void initializeForValidPlc() throws JsonProcessingException {
+                validPlcDtoJson = objectMapper.writeValueAsString(validPlcDto);
+            }
+
+            @Test @DisplayName("triggers plcService.updateById() when PLC was valid")
+            void triggersPlcServiceWhenValid() throws Exception {
+                mvc.perform(put(updatePath,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPlcDtoJson));
+
+                Mockito.verify(plcService,Mockito.times(1))
+                        .updateById(any(Long.class),any(Consumer.class));
+            }
+
+            @Test @DisplayName("returns 200 Ok when everything was ok")
+            void returnsCreatedWhenEverythingWasOk() throws Exception {
+                mvc.perform(put(updatePath,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPlcDtoJson))
+                        .andExpect(status().isOk());
+            }
+
+            @Test @DisplayName("returns 409 Conflict when PLC with same IP address already exists")
+            void returnsConflictWhenPlcWithSameIpAddressAlreadyExists() throws Exception {
+                Mockito.when(plcService.updateById(any(Long.class),any(Consumer.class))).thenThrow(new PlcUniqueConstrainException("Plc with given IP address "+ validPlcDto.getIpAddress()+" already exists"));
+
+                mvc.perform(put(updatePath,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPlcDtoJson))
+                        .andExpect(status().isConflict());
+            }
+
+            @Test @DisplayName("returns correct body with api exception when PLC already exists")
+            void returnsCorrectBodyWithApiExceptionWhenPlcAlreadyExists() throws Exception {
+                Mockito.when(plcService.updateById(any(Long.class),any(Consumer.class))).thenThrow(new PlcUniqueConstrainException("Plc with given IP address "+ validPlcDto.getIpAddress()+" already exists"));
+
+                MvcResult mvcResult = mvc.perform(put(updatePath,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPlcDtoJson))
+                        .andReturn();
+
+                assertThat(mvcResult.getResponse().getContentAsString())
+                        .contains("Plc with given IP address 192.168.0.1 already exists")
+                        .contains("CONFLICT");
+            }
+
+            @Test @DisplayName("triggers DtoMapper and transforms updated plc to proper DTO")
+            void triggersDtoMapper() throws Exception {
+                Plc plcToReturn = new Plc();
+                Mockito.when(plcService.updateById(any(Long.class),any(Consumer.class))).thenReturn(plcToReturn);
+
+
+                mvc.perform(put(updatePath,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPlcDtoJson));
+
+                Mockito.verify(dtoMapper,times(1)).toPlcDtoOverview(any(Plc.class));
+            }
+        }
+
+
+        @Nested @DisplayName("INVALID PLC")
+        class InvalidPlc{
+            @Test @DisplayName("returns 400 Bad Request when PLC is invalid")
+            void returnsBadRequestWhenPlcIsInvalid() throws Exception {
+                PlcDto.Request.Update invalidPlcDto = validPlcDto.toBuilder().name(null).build();
+                String invalidPlcJson = objectMapper.writeValueAsString(invalidPlcDto);
+
+                mvc.perform(put(path+"/{id}",1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidPlcJson))
+                        .andExpect(status().isBadRequest());
+            }
+
+            @Test @DisplayName("returns correct body with api exception when PLC is invalid")
+            void returnsCorrectBodyWithApiExceptionWhenPlcIsInvalid() throws Exception {
+                PlcDto.Request.Update invalidPlcDto = validPlcDto.toBuilder().name(null).ipAddress(null).build();
+                String invalidPlcJson = objectMapper.writeValueAsString(invalidPlcDto);
+
+                MvcResult mvcResult = mvc.perform(put(path+"/{id}",1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidPlcJson))
                         .andReturn();

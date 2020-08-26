@@ -12,6 +12,7 @@ public interface DtoMapper {
 
     PlcDto.Response.Overview toPlcDtoOverview(Plc plc);
 
+
     @Mapping(target = "tools", ignore = true)
     @Mapping(target = "motorCurve", ignore = true)
     @Mapping(target = "id", ignore = true)

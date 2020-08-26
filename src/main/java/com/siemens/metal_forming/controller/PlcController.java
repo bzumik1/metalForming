@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @RestController
@@ -37,7 +38,11 @@ public class PlcController {
 
     @PutMapping(path = "/{id}")
     public ResponseEntity<PlcDto.Response.Overview> updatePlc(@PathVariable Long id, @Valid @RequestBody PlcDto.Request.Update plcDto){
-        return null;
+        Consumer<Plc> attributesToUpdate = plc -> {
+            plc.setName(plcDto.getName());
+            plc.setIpAddress(plcDto.getIpAddress());
+        };
+        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.updateById(id,attributesToUpdate)),HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/{id}")

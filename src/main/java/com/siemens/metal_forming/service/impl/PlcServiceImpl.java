@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Service @Slf4j
 public class PlcServiceImpl implements PlcService {
@@ -118,17 +119,32 @@ public class PlcServiceImpl implements PlcService {
     public Plc updateByIpAddress(String ipAddress, Consumer<Plc> updatePlc) {
         Optional<Plc> plcInDb = plcRepository.findByIpAddress(ipAddress);
         if(plcInDb.isPresent()){
-            Plc plc = plcInDb.get();
-            final Plc oldPlc = plc.toBuilder().build();
-            updatePlc.accept(plc);
-            //if plc has different IP address then it needs to be reconnected
-            if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
-                opcuaConnector.disconnectPlc(oldPlc);
-                opcuaConnector.connectPlc(plc);
-            }
-            return plcRepository.save(plc);
+            return update(plcInDb.get(),updatePlc);
         } else {
             throw new PlcNotFoundException("Plc with given IP address "+ipAddress+" was not in database");
         }
     }
+
+    @Override
+    public Plc updateById(Long id, Consumer<Plc> updatePlc) {
+        Optional<Plc> plcInDb = plcRepository.findById(id);
+        if(plcInDb.isPresent()){
+            return update(plcInDb.get(),updatePlc);
+        } else {
+            throw new PlcNotFoundException("Plc with given id "+id+" was not in database");
+        }
+    }
+
+    private Plc update(Plc plc, Consumer<Plc> updatePlc){
+        final Plc oldPlc = plc.toBuilder().build();
+        updatePlc.accept(plc);
+        //if plc has different IP address then it needs to be reconnected
+        if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
+            opcuaConnector.disconnectPlc(oldPlc);
+            create(plc);
+        }
+        return plcRepository.save(plc);
+    }
+
+
 }

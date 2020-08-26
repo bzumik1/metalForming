@@ -24,6 +24,8 @@ public interface PlcService {
 
     Plc updateByIpAddress(String ipAddress, Consumer<Plc> toUpdate);
 
+    Plc updateById(Long id, Consumer<Plc> toUpdate);
+
     void changeCurrentTool(String ipAddress,int toolId);
 
 
