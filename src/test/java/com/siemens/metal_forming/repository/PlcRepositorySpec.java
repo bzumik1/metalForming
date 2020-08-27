@@ -66,7 +66,7 @@ public class PlcRepositorySpec {
             Set<Tool> tools = new HashSet<>();
             for(int i=0; i<10; i++){
                 Tool tool = new Tool();
-                tool.setToolId(i);
+                tool.setToolNumber(i);
                 tool.setToolStatus(ToolStatusType.AUTODETECTED);
                 Curve referenceCurve = new Curve();
                 for(int j=0; j<100; j++){

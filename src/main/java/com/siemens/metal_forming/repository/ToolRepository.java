@@ -10,11 +10,10 @@ import java.util.Optional;
 
 @Repository
 public interface ToolRepository extends JpaRepository<Tool, Long> {
-    /** @noinspection SqlResolve*/
     @Query(value = "SELECT * FROM tools WHERE plc_id = ?1", nativeQuery = true)
     List<Tool> findAllByPlcId(Long plcId);
 
-    /** @noinspection SqlResolve*/
-    @Query(value = "SELECT * FROM tools WHERE plc_id = ?1 AND tool_id = ?2", nativeQuery = true)
-    Optional<Tool> findByPlcIdAndToolId(Long plcId, Integer toolId);
+
+    @Query(value = "SELECT * FROM tools WHERE plc_id = ?1 AND tool_number = ?2", nativeQuery = true)
+    Optional<Tool> findByPlcIdAndToolNumber(Long plcId, Integer toolNumber);
 }

@@ -58,7 +58,7 @@ public class Plc {
     final Set<Tool> tools = new HashSet<>();
 
     public void setCurrentTool(int toolId){
-        Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolId().equals(toolId)).findFirst();
+        Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolNumber().equals(toolId)).findFirst();
         currentTool = newCurrentTool.orElseThrow(ToolNotFoundException::new);
     }
 

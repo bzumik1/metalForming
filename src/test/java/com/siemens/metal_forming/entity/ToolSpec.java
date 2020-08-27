@@ -32,7 +32,7 @@ public class ToolSpec {
         @Test @DisplayName("is invalid when toolId is null")
         void invalidWhenToolIdIsNull(){
             Tool tool = new Tool();
-            tool.setToolId(null);
+            tool.setToolNumber(null);
             Set<ConstraintViolation<Tool>> violations = validator.validate(tool);
             assertThat(violations.stream()
                     .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("toolId"))

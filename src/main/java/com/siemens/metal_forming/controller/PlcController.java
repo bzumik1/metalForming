@@ -4,6 +4,7 @@ import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.service.PlcService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@Tag(name = "PLCs")
 @RestController
 @RequestMapping(path = "/plcs")
 public class PlcController {
@@ -36,17 +38,17 @@ public class PlcController {
         return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.create(plc)), HttpStatus.CREATED);
     }
 
-    @PutMapping(path = "/{id}")
-    public ResponseEntity<PlcDto.Response.Overview> updatePlc(@PathVariable Long id, @Valid @RequestBody PlcDto.Request.Update plcDto){
+    @PutMapping(path = "/{plcId}")
+    public ResponseEntity<PlcDto.Response.Overview> updatePlc(@PathVariable Long plcId, @Valid @RequestBody PlcDto.Request.Update plcDto){
         Consumer<Plc> attributesToUpdate = plc -> {
             plc.setName(plcDto.getName());
             plc.setIpAddress(plcDto.getIpAddress());
         };
-        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.updateById(id,attributesToUpdate)),HttpStatus.OK);
+        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.updateById(plcId,attributesToUpdate)),HttpStatus.OK);
     }
 
-    @DeleteMapping(path = "/{id}")
-    public void deletePlcById(@PathVariable Long id){
-        plcService.deleteById(id);
+    @DeleteMapping(path = "/{plcId}")
+    public void deletePlcById(@PathVariable Long plcId){
+        plcService.deleteById(plcId);
     }
 }

@@ -15,8 +15,8 @@ public class Tool {
     Long id;
 
     @NotNull
-    @Column(name = "tool_id", nullable = false)
-    Integer toolId;
+    @Column(name = "tool_number", nullable = false)
+    Integer toolNumber;
 
     String name;
 

@@ -200,7 +200,7 @@ public class PlcSpec {
             Set<Tool> tools = new HashSet<>();
             for(int i=0; i<10; i++){
                 Tool tool = new Tool();
-                tool.setToolId(i);
+                tool.setToolNumber(i);
                 tool.setToolStatus(ToolStatusType.AUTODETECTED);
                 Curve referenceCurve = new Curve();
                 for(int j=0; j<100; j++){
@@ -222,7 +222,7 @@ public class PlcSpec {
         @Test @DisplayName("sets correct currentTool based on toolId")
         void setsCorrectCurrentTool(){
             int toolId = 5;
-            Tool toolToBeSetAsFutureCurrentTool = plc.getTools().stream().filter(tool -> tool.getToolId() == toolId).findAny().get();
+            Tool toolToBeSetAsFutureCurrentTool = plc.getTools().stream().filter(tool -> tool.getToolNumber() == toolId).findAny().get();
             plc.setCurrentTool(toolId);
             assertThat(plc.getCurrentTool()).isEqualTo(toolToBeSetAsFutureCurrentTool);
         }
@@ -234,7 +234,7 @@ public class PlcSpec {
         void initializePlcWithAttributesNeededForCurrentTool(){
             for(int i=0; i<10; i++){
                 Tool tool = new Tool();
-                tool.setToolId(i);
+                tool.setToolNumber(i);
                 tool.setToolStatus(ToolStatusType.AUTODETECTED);
                 Curve referenceCurve = new Curve();
                 for(int j=0; j<100; j++){

@@ -1,6 +1,9 @@
 package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.enumerated.StopReactionType;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,28 +14,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("<= DTO MAPPER SPECIFICATION =>")
 public class DtoMapperSpec {
-    private DtoMapper mapper;
+    private DtoMapper dtoMapper;
     @BeforeEach
     void initialize(){
-        mapper = DtoMapper.INSTANCE;
+        dtoMapper = DtoMapper.INSTANCE;
     }
 
 
 
     @Nested @DisplayName("TO DTO")
     class ToDto{
-        private Plc plcWithAllAttributes;
-
-        @BeforeEach
-        void initializeForToDto(){
-            plcWithAllAttributes = Plc.builder().ipAddress("192.168.0.1").id(1L).name("name").build();
-            plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW 1.4a");
-            plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 12KDJ3JJDSS");
-        }
 
         @Test @DisplayName("transforms Plc to PlcDto.Response.Overview correctly")
         void transformsPlcToPlcDtoResponseOverviewCorrectly(){
-            PlcDto.Response.Overview plcDto = mapper.toPlcDtoOverview(plcWithAllAttributes);
+            Plc plcWithAllAttributes = Plc.builder().ipAddress("192.168.0.1").id(1L).name("name").build();
+            plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW 1.4a");
+            plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 12KDJ3JJDSS");
+
+            PlcDto.Response.Overview plcDto = dtoMapper.toPlcDtoOverview(plcWithAllAttributes);
 
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(plcDto).isNotNull();
@@ -45,6 +44,34 @@ public class DtoMapperSpec {
             softAssertions.assertThat(plcDto.getName()).isEqualTo(plcWithAllAttributes.getName());
             softAssertions.assertAll();
         }
+
+        @Test @DisplayName("transforms Tool to ToolDto.Response.Overview correctly")
+        void transformsToolToToolDtoResponseOverviewCorrectly(){
+            Tool toolWithAllAttributes = Tool.builder()
+                    .id(1L)
+                    .toolNumber(1)
+                    .name("name")
+                    .toolStatus(ToolStatusType.AUTODETECTED)
+                    .automaticMonitoring(true)
+                    .maxSpeedOperation(10)
+                    .numberOfReferenceCycles(10)
+                    .referenceCurve(null)
+                    .stopReaction(StopReactionType.IMMEDIATE)
+                    .build();
+
+            ToolDto.Response.Overview toolDto = dtoMapper.toToolDtoOverview(toolWithAllAttributes);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(toolDto.getId()).as("id").isEqualTo(toolWithAllAttributes.getId());
+            softAssertions.assertThat(toolDto.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
+            softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getName());
+            softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());
+            softAssertions.assertThat(toolDto.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
+            softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
+            softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
+            softAssertions.assertThat(toolDto.getToolStatus()).as("toolStatus").isEqualTo(toolWithAllAttributes.getToolStatus());
+            softAssertions.assertAll();
+        }
     }
 
     @Nested @DisplayName("FROM DTO")
@@ -52,7 +79,7 @@ public class DtoMapperSpec {
         @Test @DisplayName("transforms PlcDto.Request.Create to Plc correctly")
         void transformsPlcDtoRequestCreateToPlcCorrectly(){
             PlcDto.Request.Create plcDto = PlcDto.Request.Create.builder().ipAddress("192.168.0.1").name("name").build();
-            Plc plc = mapper.toPlc(plcDto);
+            Plc plc = dtoMapper.toPlc(plcDto);
 
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(plc.getIpAddress()).isEqualTo(plcDto.getIpAddress());

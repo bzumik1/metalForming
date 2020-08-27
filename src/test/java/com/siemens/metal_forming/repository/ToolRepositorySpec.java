@@ -35,11 +35,11 @@ public class ToolRepositorySpec {
             //Database setup
             plc1 = Plc.builder().ipAddress("192.168.0.1").name("name").build();
             for(int i = 0;i<4;i++){
-                plc1.getTools().add(Tool.builder().toolId(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
+                plc1.getTools().add(Tool.builder().toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
             }
             plc2 = Plc.builder().ipAddress("192.168.0.2").name("name2").build();
             for(int i = 0;i<5;i++){
-                plc2.getTools().add(Tool.builder().toolId(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
+                plc2.getTools().add(Tool.builder().toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
             }
             plc1 = plcRepository.save(plc1);
             plc2 = plcRepository.save(plc2);
@@ -50,12 +50,12 @@ public class ToolRepositorySpec {
             assertThat(toolRepository.findAllByPlcId(plc1.getId()).size()).isEqualTo(plc1.getTools().size());
         }
 
-        @Test @DisplayName("find tool by plc id and tool id")
+        @Test @DisplayName("find tool by plc id and toolNumber")
         void findToolByPlcIdAndToolId(){
             Tool randomTool = plc1.getTools().stream().findFirst().get();
-            Tool foundTool = toolRepository.findByPlcIdAndToolId(plc1.getId(),randomTool.getToolId()).get();
+            Tool foundTool = toolRepository.findByPlcIdAndToolNumber(plc1.getId(),randomTool.getToolNumber()).get();
 
-            assertThat(foundTool.getToolId()).isEqualTo(randomTool.getToolId());
+            assertThat(foundTool.getToolNumber()).isEqualTo(randomTool.getToolNumber());
         }
     }
 

@@ -14,8 +14,8 @@ public enum ToolDto {;
     public enum Request{;
         @Value @Builder(toBuilder = true)
         public static class Create{
-            @NotNull(message = "Tool ID must be filled")
-            Integer toolId;
+            @NotNull(message = "Tool number must be filled")
+            Integer toolNumber;
 
             String name;
 
@@ -28,7 +28,7 @@ public enum ToolDto {;
             StopReactionType stopReaction;
 
             @NotNull(message = "Automatic monitoring must be filled")
-            Boolean automaticMonitoring = false;
+            Boolean automaticMonitoring;
         }
 
         @Value @Builder(toBuilder = true)
@@ -40,12 +40,13 @@ public enum ToolDto {;
     public enum Response{;
         @Value @Builder(toBuilder = true)
         public static class Overview{
-            Integer toolId;
+            Long id;
+            Integer toolNumber;
             String name;
             Integer numberOfReferenceCycles;
             StopReactionType stopReaction;
-            boolean referenceCurveIsCalculated;
-            boolean automaticMonitoring = false;
+            Boolean referenceCurveIsCalculated;
+            Boolean automaticMonitoring;
             ToolStatusType toolStatus;
         }
 
