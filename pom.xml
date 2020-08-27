@@ -69,6 +69,7 @@
 			<artifactId>postgresql</artifactId>
 		</dependency>
 
+		<!--ANNOTATION PROCESSOR - PREVENTS BOILERPLATE-->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -83,6 +84,14 @@
 			<version>0.4.1</version>
 		</dependency>
 
+		<!-- API DOCUMENTATION -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.4.4</version>
+		</dependency>
+
+		<!--DTO MAPPING-->
 		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>

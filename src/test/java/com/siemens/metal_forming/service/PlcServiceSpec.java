@@ -527,7 +527,10 @@ class PlcServiceSpec {
 
     @Nested @DisplayName("ADD TOOL")
     class AddTool{
-        @Test @DisplayName("throw")
+        @Test @DisplayName("throw") @Disabled
+        void thr(){
+
+        }
     }
 
 }
