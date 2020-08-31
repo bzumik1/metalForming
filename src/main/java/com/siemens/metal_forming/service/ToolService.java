@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ToolService {
     List<Tool> findAll(Long plcId);
+    void deleteByPlcIdAndToolId(Long plcId, Long toolId);
 }

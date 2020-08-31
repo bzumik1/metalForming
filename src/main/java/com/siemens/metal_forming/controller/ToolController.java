@@ -2,17 +2,16 @@ package com.siemens.metal_forming.controller;
 
 import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.ToolDto;
+import com.siemens.metal_forming.dto.ToolDto.Request.Create;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.service.ToolService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,8 +30,18 @@ public class ToolController {
     }
 
     @GetMapping
-    ResponseEntity<List<ToolDto.Response.Overview>> getAllTools(@PathVariable Long plcId){
+    public ResponseEntity<List<ToolDto.Response.Overview>> getAllTools(@PathVariable Long plcId){
         return ResponseEntity.ok(toolService.findAll(plcId).stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList()));
+    }
+
+    @PostMapping
+    public ResponseEntity<ToolDto.Response.Overview> createTool(@PathVariable Long plcId,@Valid @RequestBody Create tool){
+        return null;
+    }
+
+    @DeleteMapping(path = "/{toolId}")
+    public void deleteToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId){
+        toolService.deleteByPlcIdAndToolId(plcId,toolId);
     }
 
 }

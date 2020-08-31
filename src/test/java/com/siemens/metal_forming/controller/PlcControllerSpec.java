@@ -333,7 +333,7 @@ public class PlcControllerSpec {
             Mockito.verify(plcService,Mockito.times(1)).deleteById(1L);
         }
 
-        @Test @DisplayName("returns 200 Ok when everithing was ok")
+        @Test @DisplayName("returns 200 Ok when everything was ok")
         void returnsOkWhenEverythingWasOk() throws Exception {
             mvc.perform(delete(path+"/{id}",1L))
                     .andExpect(status().isOk());

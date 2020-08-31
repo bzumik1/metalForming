@@ -86,6 +86,27 @@ public class DtoMapperSpec {
             softAssertions.assertThat(plc.getName()).isEqualTo(plcDto.getName());
             softAssertions.assertAll();
         }
+
+        @Test @DisplayName("transforms ToolDto.Request.Create to Plc correctly")
+        void transformsToolDtoRequestCreateToToolCorrectly(){
+            ToolDto.Request.Create toolDto = ToolDto.Request.Create.builder()
+                    .toolNumber(1)
+                    .automaticMonitoring(true)
+                    .name("name")
+                    .numberOfReferenceCycles(10)
+                    .stopReaction(StopReactionType.IMMEDIATE)
+                    .build();
+
+            Tool tool = dtoMapper.toTool(toolDto);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(tool.getToolNumber()).as("toolNumber").isEqualTo(toolDto.getToolNumber());
+            softAssertions.assertThat(tool.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolDto.getAutomaticMonitoring());
+            softAssertions.assertThat(tool.getName()).as("name").isEqualTo(toolDto.getName());
+            softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
+            softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
+            softAssertions.assertAll();
+        }
     }
 
 

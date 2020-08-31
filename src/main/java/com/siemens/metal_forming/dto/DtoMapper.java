@@ -24,6 +24,8 @@ public interface DtoMapper {
     @Mapping(target = "currentTool",ignore = true)
     Plc toPlc(PlcDto.Request.Create plcDto);
 
+    Tool toTool(ToolDto.Request.Create toolDto);
+
     default boolean toReferenceCurveIsCalculated(Curve referenceCurve){
         return referenceCurve!=null;
     }
