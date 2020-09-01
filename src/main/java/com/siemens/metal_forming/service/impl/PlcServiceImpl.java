@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,17 +34,24 @@ public class PlcServiceImpl implements PlcService {
     }
 
     @Override
+    public void checkIfExistsOrThrowException(Long id) {
+        if (!plcRepository.existsById(id)){
+            throw new PlcNotFoundException(id);
+        }
+    }
+
+    @Override
     public List<Plc> findAll() {
         return plcRepository.findAll();
     }
 
     @Override
-    public Optional<Plc> findById(Long id) {
+    public Optional<Plc> find(Long id) {
         return plcRepository.findById(id);
     }
 
     @Override
-    public Optional<Plc> findByIpAddress(String ipAddress) {
+    public Optional<Plc> find(String ipAddress) {
         return plcRepository.findByIpAddress(ipAddress);
     }
 
@@ -83,7 +91,7 @@ public class PlcServiceImpl implements PlcService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void delete(Long id) {
         Optional<Plc> oldPlc = plcRepository.findById(id);
         if(oldPlc.isPresent()){
             opcuaConnector.disconnectPlc(oldPlc.get());
@@ -94,15 +102,15 @@ public class PlcServiceImpl implements PlcService {
     }
 
     @Override
-    public void updateById(Long id, Plc updatedPlc) {
-        updatedPlc.setId(id);
-        Optional<Plc> plcInDB = plcRepository.findById(id);
-        if(plcInDB.isPresent()){
-            if(!plcInDB.get().getIpAddress().equals(updatedPlc.getIpAddress())){
-                opcuaConnector.disconnectPlc(plcInDB.get());
-                create(updatedPlc);
+    public Plc replace(Long id, Plc newPlc) {
+        newPlc.setId(id);
+        Optional<Plc> plcInDb = plcRepository.findById(id);
+        if(plcInDb.isPresent()){
+            if(!plcInDb.get().getIpAddress().equals(newPlc.getIpAddress())){
+                opcuaConnector.disconnectPlc(plcInDb.get());
+                return create(newPlc);
             }else{
-                plcRepository.save(updatedPlc);
+                return plcRepository.save(newPlc);
             }
         } else {
             throw new PlcNotFoundException(id);
@@ -110,19 +118,15 @@ public class PlcServiceImpl implements PlcService {
     }
 
     @Override
-    public void changeCurrentTool(String ipAddress, int toolId) {
+    public void changeCurrentTool(String ipAddress, int toolNumber) {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
-        plc.setCurrentTool(toolId);
+        plc.setCurrentTool(toolNumber);
         plcRepository.save(plc);
     }
 
+    @Transactional
     @Override
-    public Tool addToolById(Tool tool) {
-        return null;
-    }
-
-    @Override
-    public Plc updateByIpAddress(String ipAddress, Consumer<Plc> updatePlc) {
+    public Plc update(String ipAddress, Consumer<Plc> updatePlc) {
         Optional<Plc> plcInDb = plcRepository.findByIpAddress(ipAddress);
         if(plcInDb.isPresent()){
             return update(plcInDb.get(),updatePlc);
@@ -131,8 +135,9 @@ public class PlcServiceImpl implements PlcService {
         }
     }
 
+    @Transactional
     @Override
-    public Plc updateById(Long id, Consumer<Plc> updatePlc) {
+    public Plc update(Long id, Consumer<Plc> updatePlc) {
         Optional<Plc> plcInDb = plcRepository.findById(id);
         if(plcInDb.isPresent()){
             return update(plcInDb.get(),updatePlc);

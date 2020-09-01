@@ -105,6 +105,7 @@ public class DtoMapperSpec {
             softAssertions.assertThat(tool.getName()).as("name").isEqualTo(toolDto.getName());
             softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
             softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
+            softAssertions.assertThat(tool.getToolStatus()).as("toolStatus").isEqualTo(toolDto.getToolStatus());
             softAssertions.assertAll();
         }
     }

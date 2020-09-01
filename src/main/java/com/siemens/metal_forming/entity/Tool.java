@@ -8,12 +8,14 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity @Table(name = "tools")
-public class Tool {
+public class Tool{
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @EqualsAndHashCode.Include
     @NotNull
     @Column(name = "tool_number", nullable = false)
     Integer toolNumber;
@@ -40,13 +42,4 @@ public class Tool {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reference_curve_id")
     Curve referenceCurve;
-
-
-
-
-
-
-
-
-
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.validation.annotation.Validated;
@@ -74,11 +75,35 @@ public class Plc {
         connection.setStatus(connectionStatus);
     }
 
-    public void setTools(@NotNull Collection<Tool> tools){
+    public void setTools(@NotNull Set<Tool> tools){
         if(tools == null){
             throw new InvalidToolsException();
         }
         this.tools.clear();
         this.tools.addAll(tools);
+    }
+
+    public void addTool(Tool tool){
+        if(!tools.add(tool)){
+            throw new ToolUniqueConstrainException(tool.getToolNumber());
+        }
+    }
+
+    public Tool getTool(int toolNumber){
+        return tools.stream()
+                .filter(tool -> tool.getToolNumber().equals(toolNumber))
+                .findAny()
+                .orElseThrow(() -> new ToolNotFoundException(toolNumber));
+    }
+
+    public Tool getTool(long toolId){
+        return tools.stream()
+                .filter(tool -> tool.getId().equals(toolId))
+                .findAny()
+                .orElseThrow(() -> new ToolNotFoundException(toolId));
+    }
+
+    public boolean removeTool(Tool tool){
+        return tools.remove(tool);
     }
 }

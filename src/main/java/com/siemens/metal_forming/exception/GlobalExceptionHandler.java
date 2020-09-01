@@ -3,6 +3,7 @@ package com.siemens.metal_forming.exception;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
 import com.siemens.metal_forming.exception.exceptionsApi.ApiException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -69,8 +70,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiException,apiException.getStatus());
     }
 
-    @ExceptionHandler({PlcUniqueConstrainException.class})
-    protected ResponseEntity<Object> handlePlcUniqueConstrainException(PlcUniqueConstrainException ex){
+    @ExceptionHandler({PlcUniqueConstrainException.class, ToolUniqueConstrainException.class})
+    protected ResponseEntity<Object> handlePlcUniqueConstrainException(RuntimeException ex){
         ApiException apiException = ApiException.builder().message(ex.getMessage()).status(HttpStatus.CONFLICT).build();
 
         return new ResponseEntity<>(apiException,apiException.getStatus());

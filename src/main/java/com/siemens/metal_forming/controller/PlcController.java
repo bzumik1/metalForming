@@ -44,11 +44,11 @@ public class PlcController {
             plc.setName(plcDto.getName());
             plc.setIpAddress(plcDto.getIpAddress());
         };
-        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.updateById(plcId,attributesToUpdate)),HttpStatus.OK);
+        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.update(plcId,attributesToUpdate)),HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/{plcId}")
     public void deletePlcById(@PathVariable Long plcId){
-        plcService.deleteById(plcId);
+        plcService.delete(plcId);
     }
 }

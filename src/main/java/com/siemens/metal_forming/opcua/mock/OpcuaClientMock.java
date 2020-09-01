@@ -2,7 +2,6 @@ package com.siemens.metal_forming.opcua.mock;
 
 import com.siemens.metal_forming.SpringContext;
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.configuration.OpcuaConfigurationMock;
 import com.siemens.metal_forming.service.PlcService;
@@ -19,9 +18,7 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
-import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -31,9 +28,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateReq
 import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -59,13 +54,13 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
             @Override
             public void onSessionActive(UaSession session) {
                 log.info("Connecting PLC with IP address {}",ipAddress);
-                plcService.updateByIpAddress(ipAddress, Plc::markAsConnected);
+                plcService.update(ipAddress, Plc::markAsConnected);
             }
 
             @Override
             public void onSessionInactive(UaSession session) {
                 log.info("Disconnecting PLC with IP address {}",ipAddress);
-                plcService.updateByIpAddress(ipAddress, Plc::markAsDisconnected);
+                plcService.update(ipAddress, Plc::markAsDisconnected);
             }
         });
 
@@ -121,7 +116,7 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
         String serialNumber = "SN 12345_"+opcuaInteger;
 
         log.debug("Serial number of plc with IP address {} has changed to \"{}\"",ipAddress,serialNumber);
-        plcService.updateByIpAddress(ipAddress,plc ->
+        plcService.update(ipAddress, plc ->
                     {log.debug("Updating serial number of plc with IP address {} from \"{}\" to \"{}\"",ipAddress,plc.getHardwareInformation().getSerialNumber(),serialNumber);
                         plc.getHardwareInformation().setSerialNumber(serialNumber);});
     }
@@ -131,7 +126,7 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
         String firmwareNumber = "FW V1."+opcuaInteger;
 
         log.debug("Firmware number of plc with IP address {} has changed to \"{}\"",ipAddress,firmwareNumber);
-        plcService.updateByIpAddress(ipAddress,plc ->
+        plcService.update(ipAddress, plc ->
         {log.debug("Updating firmware number of plc with IP address {} from \"{}\" to \"{}\"",ipAddress,plc.getHardwareInformation().getFirmwareNumber(),firmwareNumber);
             plc.getHardwareInformation().setFirmwareNumber(firmwareNumber);});
     }

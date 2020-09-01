@@ -11,25 +11,25 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public interface PlcService {
+    void checkIfExistsOrThrowException(Long id);
+
     List<Plc> findAll();
 
-    Optional<Plc> findById(Long id);
+    Optional<Plc> find(Long id);
 
-    Optional<Plc> findByIpAddress(String ipAddress);
+    Optional<Plc> find(String ipAddress);
 
     Plc create(Plc plc);
 
-    void deleteById(Long id);
+    void delete(Long id);
 
-    void updateById(Long id, Plc updatedPlc);
+    Plc replace(Long id, Plc updatedPlc);
 
-    Plc updateByIpAddress(String ipAddress, Consumer<Plc> toUpdate);
+    Plc update(String ipAddress, Consumer<Plc> toUpdate);
 
-    Plc updateById(Long id, Consumer<Plc> toUpdate);
+    Plc update(Long id, Consumer<Plc> toUpdate);
 
     void changeCurrentTool(String ipAddress,int toolId);
-
-    Tool addToolById(Tool tool);
 
 
 

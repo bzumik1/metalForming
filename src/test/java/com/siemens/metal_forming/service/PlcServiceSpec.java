@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.service;
 
-import com.siemens.metal_forming.entity.Connection;
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -14,14 +14,10 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,77 +29,113 @@ class PlcServiceSpec {
     private PlcRepository plcRepository;
     private OpcuaConnector opcuaConnector;
 
+    //VARIABLES USED IN TESTS
+    private final Long idOfExistingPlc = 1L;
+    private final Long idOfNonExistentPlc = 2L;
+
+    private final String ipOfExistingPlc = "192.168.0.1";
+    private final String ipOfNotExistentPlc = "192.168.0.2";
+
+    private final int toolNumberOfExistingTool = 1;
+
+    private final String nameOfExistingPlc = "nameOfExistingPlc";
+
+    private Plc plcInDb;
+    private Plc newPlc;
+
     @BeforeEach
     void initialize() {
+        //INITIALIZE MOCKS
         plcRepository = Mockito.mock(PlcRepository.class);
         opcuaConnector = Mockito.mock(OpcuaConnector.class);
-
         plcService = new PlcServiceImpl(plcRepository, opcuaConnector);
+
+        //INITIALIZE VARIABLES
+        plcInDb = Mockito.spy(Plc.builder().ipAddress(ipOfExistingPlc).name(nameOfExistingPlc).build());
+        plcInDb.addTool(Tool.builder().toolNumber(toolNumberOfExistingTool).build());
+        newPlc = Plc.builder().ipAddress(ipOfNotExistentPlc).build();
+
+        //PLC REPOSITORY DEFAULT BEHAVIOUR
+        Mockito.when(plcRepository.save(any(Plc.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    static class SetBehaviour {
+        static void correctlyConnectsOverOpcUa(OpcuaConnector opcuaConnector){
+            OpcuaClient client = Mockito.mock(OpcuaClient.class);
+            Mockito.when(client.readSerialNumber()).thenReturn(CompletableFuture.completedFuture("SN"));
+            Mockito.when(client.readFirmwareNumber()).thenReturn(CompletableFuture.completedFuture("FW"));
+            Mockito.when(opcuaConnector.connectPlc(any(Plc.class))).thenReturn(client);
+        }
+    }
+
+    @Nested @DisplayName("CHECK IF EXISTS OR THROWS EXCEPTION")
+    class CheckIfExistsOrThrowsException{
+        @Test @DisplayName("throws PlcNotFoundException if PLC does not exist in database")
+        void throwsExceptionWhenPlcDoesNotExist(){
+            Mockito.when(plcRepository.existsById(idOfNonExistentPlc)).thenReturn(false);
+
+            assertThrows(PlcNotFoundException.class,() -> plcService.checkIfExistsOrThrowException(idOfNonExistentPlc));
+        }
     }
 
     @Nested @DisplayName("UPDATE PLC BY ID")
     class UpdatePlcById{
-        Plc upgradedPlc;
-        Plc oldPlc;
-        @BeforeEach
-        void initializeForUpdatePlcById(){
-            upgradedPlc = Plc.builder().ipAddress("192.168.0.2").build();
-            oldPlc = Plc.builder().ipAddress("192.168.0.1").build();
-        }
-
         @Test @DisplayName("throws PlcNotFoundException if PLC is not found in database")
         void ifPlcIsNotFoundReturnFalse(){
-            //Mock
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.empty());
+            Mockito.when(plcRepository.findById(idOfNonExistentPlc)).thenReturn(Optional.empty());
 
-            Plc updatedPlc = Plc.builder().ipAddress("192.168.1.1").build();
-            assertThrows(PlcNotFoundException.class,() -> plcService.updateById(1L, updatedPlc));
+            assertThrows(PlcNotFoundException.class,() -> plcService.replace(1L, newPlc));
         }
 
-        @Test @DisplayName("replaces id of updated PLC by the id inputted into the method")
-        void idIsReplaced(){
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
+        @Nested @DisplayName("PLC EXISTS AND CONNECTION OVER OPC UA IS SUCCESSFUL")
+        class ConnectionOverOpcUaIsSuccessful {
+            @BeforeEach
+            void initializeForConnectionOverOpcUaIsSuccessful(){
+                SetBehaviour.correctlyConnectsOverOpcUa(opcuaConnector);
+                Mockito.when(plcRepository.findById(idOfExistingPlc)).thenReturn(Optional.of(plcInDb));
+            }
 
-            plcService.updateById(1L,upgradedPlc);
-            assertThat(upgradedPlc.getId()).isEqualTo(1L);
+            @Test @DisplayName("replaces id of updated PLC by the id inputted into the method")
+            void idIsReplaced(){
+                Plc updatedPlc = plcService.replace(idOfExistingPlc, newPlc);
+
+                assertThat(updatedPlc.getId()).isEqualTo(idOfExistingPlc);
+            }
+
+            @Test @DisplayName("saves updated PLCto DB")
+            void newPlcIsSavedToDb(){
+                plcService.replace(idOfExistingPlc, newPlc);
+
+                Mockito.verify(plcRepository,Mockito.times(1)).save(newPlc);
+            }
+
+            @Test @DisplayName("updates client if ip of updated plc is different")
+            void updatesClientWhenPlcIsUpdated(){
+                plcService.replace(idOfExistingPlc, newPlc);
+
+                Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcInDb);
+                Mockito.verify(opcuaConnector,Mockito.times(1)).connectPlc(newPlc);
+            }
+
+            @Test @DisplayName("sets PLC status to CONNECTED when OPC UA connection was established")
+            void setsCorrectConnectionStatusWhenConnectionWasEstablished(){
+                Plc updatedPlc = plcService.replace(idOfExistingPlc, newPlc);
+
+                assertThat(updatedPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
+            }
+
+
         }
 
-        @Test @DisplayName("saves updated PLCto DB")
-        void newPlcIsSavedToDb(){
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
-
-            plcService.updateById(1L,upgradedPlc);
-            Mockito.verify(plcRepository,Mockito.times(1)).save(upgradedPlc);
-        }
-
-        @Test @DisplayName("updates client if ip of updated plc is different")
-        void updatesClientWhenPlcIsUpdated(){
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
-
-            plcService.updateById(1L, upgradedPlc);
-
-            Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(oldPlc);
-            Mockito.verify(opcuaConnector,Mockito.times(1)).connectPlc(upgradedPlc);
-        }
-
-        @Test @DisplayName("sets PLC status to DISCONNECTED when OPC UA connection can not be established")
+        @Test @DisplayName("sets PLC status to DISCONNECTED when OPC UA connection could not be established")
         void setsCorrectConnectionStatusWhenConnectionCouldNotBeEstablished(){
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
+            newPlc.markAsConnected();
+            Mockito.when(plcRepository.findById(idOfExistingPlc)).thenReturn(Optional.of(plcInDb));
+            Mockito.when(opcuaConnector.connectPlc(newPlc)).thenThrow(new OpcuaConnectionException());
 
-            plcService.updateById(1L,upgradedPlc);
+            plcService.replace(idOfExistingPlc, newPlc);
 
-            assertThat(upgradedPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
-        }
-
-        @Test @DisplayName("sets PLC status to CONNECTED when OPC UA connection was established")
-        void setsCorrectConnectionStatusWhenConnectionWasEstablished(){
-            upgradedPlc.markAsConnected();
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
-            Mockito.when(opcuaConnector.connectPlc(upgradedPlc)).thenThrow(new OpcuaConnectionException());
-
-            plcService.updateById(1L,upgradedPlc);
-
-            assertThat(upgradedPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+            assertThat(newPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
         }
     }
 
@@ -113,55 +145,43 @@ class PlcServiceSpec {
         @Test @DisplayName("if plc with given ip address is not found return throws exception")
         void ifPlcIsNotFoundThrowsException(){
             //Mock
-            Mockito.when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.empty());
+            Mockito.when(plcRepository.findByIpAddress(ipOfNotExistentPlc)).thenReturn(Optional.empty());
 
-            assertThrows(PlcNotFoundException.class, () -> plcService.changeCurrentTool("192.168.0.1",1));
+            assertThrows(PlcNotFoundException.class, () -> plcService.changeCurrentTool(ipOfNotExistentPlc, toolNumberOfExistingTool));
         }
 
-        @Test @DisplayName("set new currentTool")
-        void setNewCurrentTool(){
-            String ipAddress = "192.168.0.1";
-            int newCurrentToolId = 1;
-            //Mock
-            Optional<Plc> plcInDb = Optional.of(Mockito.mock(Plc.class));
-            Mockito.when(plcRepository.findByIpAddress(ipAddress)).thenReturn(plcInDb);
+        @Nested @DisplayName("PLC IS IN DATABASE")
+        class PlcIsInDatabase{
+            @BeforeEach
+            void initializeForPlcIsInDatabase(){
+                Mockito.when(plcRepository.findByIpAddress(ipOfExistingPlc)).thenReturn(Optional.of(plcInDb));
+            }
 
+            @Test @DisplayName("set new currentTool")
+            void setNewCurrentTool(){
+                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
 
-            plcService.changeCurrentTool("192.168.0.1",newCurrentToolId);
-            Mockito.verify(plcInDb.get(),Mockito.times(1)).setCurrentTool(newCurrentToolId);
+                Mockito.verify(plcInDb,Mockito.times(1)).setCurrentTool(toolNumberOfExistingTool);
+            }
+
+            @Test @DisplayName("updates plc in database")
+            void updatesPlcInDatabase(){
+                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
+
+                Mockito.verify(plcRepository,Mockito.times(1)).save(plcInDb);
+            }
         }
 
-        @Test @DisplayName("updates plc in database")
-        void updatesPlcInDatabase(){
-            String ipAddress = "192.168.0.1";
-            //Mock
-            Optional<Plc> plcInDb = Optional.of(Mockito.mock(Plc.class));
-            Mockito.when(plcRepository.findByIpAddress(ipAddress)).thenReturn(plcInDb);
 
-
-            plcService.changeCurrentTool("192.168.0.1",1);
-            Mockito.verify(plcRepository,Mockito.times(1)).save(plcInDb.get());
-        }
     }
 
     @Nested @DisplayName("CREATE PLC")
     class CreatePlc{
-        Plc newPlc;
-
-        @BeforeEach
-        void initializeForCreatePlc(){
-            newPlc = new Plc();
-        }
-
         @Nested @DisplayName("PLC IS CONNECTED")
         class PlcIsConnected{
             @BeforeEach
             void initializeForPlcIsConnected(){
-                OpcuaClient client = Mockito.mock(OpcuaClient.class);
-                Mockito.when(opcuaConnector.connectPlc(newPlc)).thenReturn(client);
-                Mockito.doReturn(CompletableFuture.completedFuture("SN 111")).when(client).readSerialNumber();
-                Mockito.doReturn(CompletableFuture.completedFuture("FW 111")).when(client).readFirmwareNumber();
-                Mockito.when(plcRepository.save(any(Plc.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                SetBehaviour.correctlyConnectsOverOpcUa(opcuaConnector);
             }
 
             @Test @DisplayName("stores PLC to database")
@@ -191,14 +211,14 @@ class PlcServiceSpec {
                 void updatesSerialNumber(){
                     Plc createdPlc = plcService.create(newPlc);
 
-                    assertThat(createdPlc.getHardwareInformation().getSerialNumber()).isEqualTo("SN 111");
+                    assertThat(createdPlc.getHardwareInformation().getSerialNumber()).isEqualTo("SN");
                 }
 
                 @Test @DisplayName("updates firmware number")
                 void updatesFirmwareNumber(){
                     Plc createdPlc = plcService.create(newPlc);
 
-                    assertThat(createdPlc.getHardwareInformation().getFirmwareNumber()).isEqualTo("FW 111");
+                    assertThat(createdPlc.getHardwareInformation().getFirmwareNumber()).isEqualTo("FW");
                 }
             }
         }
@@ -207,31 +227,25 @@ class PlcServiceSpec {
         class UniqueViolation{
             @Test @DisplayName("throws PlcUniqueConstrainViolationException when PLC has same IP address as one of PLCs in database")
             void throwsExceptionWhenIpAddressIsNotUnique(){
-                Plc plc = Plc.builder().ipAddress("192.168.0.1").build();
-                Mockito.when(plcRepository.existsByIpAddress(plc.getIpAddress())).thenReturn(true);
+                Mockito.when(plcRepository.existsByIpAddress(ipOfExistingPlc)).thenReturn(true);
 
-                assertThrows(PlcUniqueConstrainException.class,() -> plcService.create(plc));
+                assertThrows(PlcUniqueConstrainException.class,() -> plcService.create(plcInDb));
             }
 
             @Test @DisplayName("throws PlcUniqueConstrainViolationException when PLC has same name as one of PLCs in database")
             void throwsExceptionWhenNameIsNotUnique(){
-                Plc plc = Plc.builder().ipAddress("192.168.0.1").name("name").build();
-                Mockito.when(plcRepository.existsByName(plc.getName())).thenReturn(true);
+                Mockito.when(plcRepository.existsByName(nameOfExistingPlc)).thenReturn(true);
 
-                assertThrows(PlcUniqueConstrainException.class,() -> plcService.create(plc));
+                assertThrows(PlcUniqueConstrainException.class,() -> plcService.create(plcInDb));
             }
 
             @Test @DisplayName("throws PlcUniqueConstrainViolationException with correct message when PLC has same name and ip as one of PLCs in database")
             void throwsExceptionWhenNameAnIpAreNotUnique(){
-                Plc plc = Plc.builder().ipAddress("192.168.0.1").name("name").build();
-                Mockito.when(plcRepository.existsByName(plc.getName())).thenReturn(true);
-                Mockito.when(plcRepository.existsByIpAddress(plc.getIpAddress())).thenReturn(true);
+                Mockito.when(plcRepository.existsByName(nameOfExistingPlc)).thenReturn(true);
+                Mockito.when(plcRepository.existsByIpAddress(ipOfExistingPlc)).thenReturn(true);
 
-                try {
-                    plcService.create(plc);
-                } catch (PlcUniqueConstrainException ex){
-                    assertThat(ex.getMessage()).contains("IP address").contains("name");
-                }
+                String message = assertThrows(PlcUniqueConstrainException.class, () -> plcService.create(plcInDb)).getMessage();
+                assertThat(message).contains("IP address").contains("name");
             }
         }
 
@@ -247,35 +261,37 @@ class PlcServiceSpec {
 
     @Nested @DisplayName("DELETE PLC BY ID")
     class DeletePlcById{
-        @Test @DisplayName("deletes plc from database when exists")
-        void deletesPlcFromDatabase(){
-            Plc oldPlc = new Plc();
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
-            Mockito.when(plcRepository.existsById(1L)).thenReturn(true);
+        @Nested @DisplayName("PLC EXISTS IN DATABASE")
+        class PlcExistsInDatabase{
+            @BeforeEach
+            void initializeForPlcExistsInDatabase(){
+                Mockito.when(plcRepository.findById(idOfExistingPlc)).thenReturn(Optional.of(plcInDb));
+                Mockito.when(plcRepository.existsById(idOfExistingPlc)).thenReturn(true);
+            }
+            @Test @DisplayName("deletes plc from database when exists")
+            void deletesPlcFromDatabase(){
+                plcService.delete(idOfExistingPlc);
 
-            plcService.deleteById(1L);
+                Mockito.verify(plcRepository,Mockito.times(1)).deleteById(idOfExistingPlc);
+            }
 
-            Mockito.verify(plcRepository,Mockito.times(1)).deleteById(1L);
+            @Test @DisplayName("disconnects PLC from OPC UA when PLC exists")
+            void disconnectsPlcFromOpcuaWhenPlcExists(){
+                plcService.delete(idOfExistingPlc);
+
+                Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcInDb);
+            }
         }
 
         @Test @DisplayName("throws PlcNotFoundException when PLC doesn't exist")
         void throwsPlcNotFoundExceptionWhenPlcDoesNotExist(){
-            Mockito.when(plcRepository.existsById(1L)).thenReturn(false);
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.empty());
-            Mockito.doThrow(new EmptyResultDataAccessException(1)).when(plcRepository).deleteById(1L);
+            Mockito.when(plcRepository.existsById(idOfNonExistentPlc)).thenReturn(false);
+            Mockito.when(plcRepository.findById(idOfNonExistentPlc)).thenReturn(Optional.empty());
 
-            assertThrows(PlcNotFoundException.class,() -> plcService.deleteById(1L));
+            assertThrows(PlcNotFoundException.class,() -> plcService.delete(idOfNonExistentPlc));
         }
 
-        @Test @DisplayName("disconnects PLC from OPC UA when PLC exists")
-        void disconnectsPlcFromOpcuaWhenPlcExists(){
-            Plc oldPlc = new Plc();
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(oldPlc));
 
-            plcService.deleteById(1L);
-
-            Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(oldPlc);
-        }
 
 
     }
@@ -284,47 +300,39 @@ class PlcServiceSpec {
     class FindById{
         @Test @DisplayName("if PLC is not found in DB returns empty optional")
         void ifPlcIsNotInDbReturnsEmptyOptional(){
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.empty());
+            Mockito.when(plcRepository.findById(idOfNonExistentPlc)).thenReturn(Optional.empty());
 
-            assertThat(plcService.findById(1L)).isEmpty();
+            assertThat(plcService.find(idOfNonExistentPlc)).isEmpty();
 
         }
 
         @Test @DisplayName("if PLC is  in DB returns optional of plc")
         void ifPlcIsInDbReturnsOptionalOfPlc(){
-            Plc plc = new Plc();
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.of(plc));
+            Mockito.when(plcRepository.findById(idOfExistingPlc)).thenReturn(Optional.of(plcInDb));
 
-            Optional<Plc> plcInDb = plcService.findById(1L);
-            assertThat(plcInDb).isNotEmpty();
-            assertThat(plcInDb.get()).isEqualTo(plc);
+            Optional<Plc> foundPlc = plcService.find(1L);
+            assertThat(foundPlc).isNotEmpty();
+            assertThat(foundPlc.get()).isEqualTo(plcInDb);
         }
-
-
     }
 
     @Nested @DisplayName("FIND BY IP ADDRESS")
     class FindByIpAddress{
-        private final static String mockIpAddress = "192.168.0.1";
         @Test @DisplayName("if PLC is not found in DB returns empty optional")
         void ifPlcIsNotInDbReturnsEmptyOptional(){
-            Mockito.when(plcRepository.findByIpAddress(mockIpAddress)).thenReturn(Optional.empty());
+            Mockito.when(plcRepository.findByIpAddress(ipOfNotExistentPlc)).thenReturn(Optional.empty());
 
-            assertThat(plcService.findByIpAddress(mockIpAddress)).isEmpty();
-
+            assertThat(plcService.find(ipOfNotExistentPlc)).isEmpty();
         }
 
         @Test @DisplayName("if PLC is  in DB returns optional of plc")
         void ifPlcIsInDbReturnsOptionalOfPlc(){
-            Plc plc = new Plc();
-            Mockito.when(plcRepository.findByIpAddress(mockIpAddress)).thenReturn(Optional.of(plc));
+            Mockito.when(plcRepository.findByIpAddress(ipOfExistingPlc)).thenReturn(Optional.of(plcInDb));
 
-            Optional<Plc> plcInDb = plcService.findByIpAddress(mockIpAddress);
-            assertThat(plcInDb).isNotEmpty();
-            assertThat(plcInDb.get()).isEqualTo(plc);
+            Optional<Plc> foundPlc = plcService.find(ipOfExistingPlc);
+            assertThat(foundPlc).isNotEmpty();
+            assertThat(foundPlc.get()).isEqualTo(plcInDb);
         }
-
-
     }
 
     @Nested @DisplayName("FIND ALL")
@@ -341,22 +349,17 @@ class PlcServiceSpec {
     class UpdatePlcsAttributeByIpAddress{
         @Nested @DisplayName("PLC IS IN DB")
         class PlcIsInDb{
-            Plc plcInDb;
             ArgumentCaptor<Plc> plcCaptor;
             @BeforeEach
             void initializeForPlcIsInDb(){
-                plcInDb = Plc.builder().ipAddress("192.168.0.1").name("oldName").id(1L).build();
-                Mockito.when(plcRepository.findByIpAddress(plcInDb.getIpAddress())).thenReturn(Optional.of(plcInDb));
+                Mockito.when(plcRepository.findByIpAddress(ipOfExistingPlc)).thenReturn(Optional.of(plcInDb));
 
                 plcCaptor = ArgumentCaptor.forClass(Plc.class);
-
-
             }
 
             @Test @DisplayName("updates one attribute (connection status) of PLC")
             void updatesOneAttribute(){
-                plcService.updateByIpAddress("192.168.0.1",plc -> plc.setConnectionStatus(ConnectionStatus.CONNECTED));
-
+                plcService.update(ipOfExistingPlc, plc -> plc.setConnectionStatus(ConnectionStatus.CONNECTED));
                 Mockito.verify(plcRepository).save(plcCaptor.capture());
 
                 assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
@@ -365,9 +368,10 @@ class PlcServiceSpec {
             @Test @DisplayName("updates multiple attributes (name, connection) of PLC")
             void updatesMultipleAttributes(){
 
-                plcService.updateByIpAddress("192.168.0.1",plc ->
-                {plc.setName("newName");
-                    plc.markAsConnected();});
+                plcService.update(ipOfExistingPlc, plc -> {
+                    plc.setName("newName");
+                    plc.markAsConnected();
+                });
 
                 Mockito.verify(plcRepository).save(plcCaptor.capture());
 
@@ -379,16 +383,14 @@ class PlcServiceSpec {
 
             @Test @DisplayName("stores updated PLC in DB")
             void storesUpdatedPlcInDb(){
-                plcService.updateByIpAddress("192.168.0.1",plc -> {});
+                plcService.update(ipOfExistingPlc, plc -> {});
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(plcCaptor.capture());
+                Mockito.verify(plcRepository,Mockito.times(1)).save(any(Plc.class));
             }
 
             @Test @DisplayName("returns updated PLC")
             void returnsUpdatedPlc(){
-                Mockito.when(plcRepository.save(any(Plc.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-                Plc updatedPlc = plcService.updateByIpAddress("192.168.0.1",plc -> plc.setName("newName"));
+                Plc updatedPlc = plcService.update(ipOfExistingPlc, plc -> plc.setName("newName"));
 
                 SoftAssertions softAssertions = new SoftAssertions();
                 softAssertions.assertThat(updatedPlc.getName()).isEqualTo("newName");
@@ -399,36 +401,21 @@ class PlcServiceSpec {
 
             @Test @DisplayName("reconnects PLC when IP address changes")
             void reconnectsPlcWhenIpAddressChanges(){
+                SetBehaviour.correctlyConnectsOverOpcUa(opcuaConnector);
 
-                plcService.updateByIpAddress("192.168.0.1",plc -> plc.setIpAddress("192.168.0.2"));
+                plcService.update(ipOfExistingPlc, plc -> plc.setIpAddress("192.168.0.2"));
 
                 Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.1");
                 Mockito.verify(opcuaConnector,Mockito.times(1)).connectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.2");
-
-            }
-
-            @Test @DisplayName("updates whole PLC") @Disabled
-            void updatesWholePlc(){
-                final Plc updatedPlc = plcInDb.toBuilder().name("newName").build();
-
-                plcService.updateByIpAddress("192.168.0.1",plc -> plc = updatedPlc);
-
-                Mockito.verify(plcRepository).save(plcCaptor.capture());
-
-                SoftAssertions softAssertions = new SoftAssertions();
-                softAssertions.assertThat(plcCaptor.getValue().getName()).isEqualTo(updatedPlc.getName());
-                softAssertions.assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo(updatedPlc.getIpAddress());
-                softAssertions.assertThat(plcCaptor.getValue().getId()).isEqualTo(updatedPlc.getId());
-                softAssertions.assertAll();
             }
         }
 
         @Test @DisplayName("throws PlcNotFoundException when PLC is not in DB")
         void throwsExceptionWhenIsNotInDb(){
-            Mockito.when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.empty());
-            assertThrows(PlcNotFoundException.class, () -> plcService.updateByIpAddress("192.168.0.1",plc -> {}));
+            Mockito.when(plcRepository.findByIpAddress(ipOfNotExistentPlc)).thenReturn(Optional.empty());
+            assertThrows(PlcNotFoundException.class, () -> plcService.update(ipOfNotExistentPlc, plc -> {}));
         }
     }
 
@@ -436,19 +423,17 @@ class PlcServiceSpec {
     class UpdatePlcsAttributeById{
         @Nested @DisplayName("PLC IS IN DB")
         class PlcIsInDb{
-            Plc plcInDb;
             ArgumentCaptor<Plc> plcCaptor;
             @BeforeEach
             void initializeForPlcIsInDb(){
-                plcInDb = Plc.builder().id(1L).ipAddress("192.168.0.1").name("oldName").id(1L).build();
-                Mockito.when(plcRepository.findById(plcInDb.getId())).thenReturn(Optional.of(plcInDb));
+                Mockito.when(plcRepository.findById(idOfExistingPlc)).thenReturn(Optional.of(plcInDb));
 
                 plcCaptor = ArgumentCaptor.forClass(Plc.class);
             }
 
             @Test @DisplayName("updates one attribute (connection status) of PLC")
             void updatesOneAttribute(){
-                plcService.updateById(plcInDb.getId(),plc -> plc.setConnectionStatus(ConnectionStatus.CONNECTED));
+                plcService.update(idOfExistingPlc, plc -> plc.setConnectionStatus(ConnectionStatus.CONNECTED));
 
                 Mockito.verify(plcRepository).save(plcCaptor.capture());
 
@@ -458,9 +443,10 @@ class PlcServiceSpec {
             @Test @DisplayName("updates multiple attributes (name, connection) of PLC")
             void updatesMultipleAttributes(){
 
-                plcService.updateById(plcInDb.getId(),plc ->
-                {plc.setName("newName");
-                    plc.markAsConnected();});
+                plcService.update(idOfExistingPlc, plc -> {
+                    plc.setName("newName");
+                    plc.markAsConnected();
+                });
 
                 Mockito.verify(plcRepository).save(plcCaptor.capture());
 
@@ -472,16 +458,14 @@ class PlcServiceSpec {
 
             @Test @DisplayName("stores updated PLC in DB")
             void storesUpdatedPlcInDb(){
-                plcService.updateById(plcInDb.getId(),plc -> {});
+                plcService.update(idOfExistingPlc, plc -> {});
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(plcCaptor.capture());
+                Mockito.verify(plcRepository,Mockito.times(1)).save(plcInDb);
             }
 
             @Test @DisplayName("returns updated PLC")
             void returnsUpdatedPlc(){
-                Mockito.when(plcRepository.save(any(Plc.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-                Plc updatedPlc = plcService.updateById(plcInDb.getId(),plc -> plc.setName("newName"));
+                Plc updatedPlc = plcService.update(idOfExistingPlc, plc -> plc.setName("newName"));
 
                 SoftAssertions softAssertions = new SoftAssertions();
                 softAssertions.assertThat(updatedPlc.getName()).isEqualTo("newName");
@@ -492,8 +476,9 @@ class PlcServiceSpec {
 
             @Test @DisplayName("reconnects PLC when IP address changes")
             void reconnectsPlcWhenIpAddressChanges(){
+                SetBehaviour.correctlyConnectsOverOpcUa(opcuaConnector);
 
-                plcService.updateById(plcInDb.getId(),plc -> plc.setIpAddress("192.168.0.2"));
+                plcService.update(idOfExistingPlc, plc -> plc.setIpAddress("192.168.0.2"));
 
                 Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.1");
@@ -501,36 +486,12 @@ class PlcServiceSpec {
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.2");
 
             }
-
-            @Test @DisplayName("updates whole PLC") @Disabled
-            void updatesWholePlc(){
-                final Plc updatedPlc = plcInDb.toBuilder().name("newName").build();
-
-                plcService.updateById(plcInDb.getId(),plc -> plc = updatedPlc);
-
-                Mockito.verify(plcRepository).save(plcCaptor.capture());
-
-                SoftAssertions softAssertions = new SoftAssertions();
-                softAssertions.assertThat(plcCaptor.getValue().getName()).isEqualTo(updatedPlc.getName());
-                softAssertions.assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo(updatedPlc.getIpAddress());
-                softAssertions.assertThat(plcCaptor.getValue().getId()).isEqualTo(updatedPlc.getId());
-                softAssertions.assertAll();
-            }
         }
 
         @Test @DisplayName("throws PlcNotFoundException when PLC is not in DB")
         void throwsExceptionWhenIsNotInDb(){
-            Mockito.when(plcRepository.findById(1L)).thenReturn(Optional.empty());
-            assertThrows(PlcNotFoundException.class, () -> plcService.updateById(1L,plc -> {}));
+            Mockito.when(plcRepository.findById(idOfNonExistentPlc)).thenReturn(Optional.empty());
+            assertThrows(PlcNotFoundException.class, () -> plcService.update(idOfNonExistentPlc, plc -> {}));
         }
     }
-
-    @Nested @DisplayName("ADD TOOL")
-    class AddTool{
-        @Test @DisplayName("throw") @Disabled
-        void thr(){
-
-        }
-    }
-
 }

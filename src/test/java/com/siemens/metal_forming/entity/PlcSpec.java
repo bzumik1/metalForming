@@ -4,6 +4,7 @@ import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
 import org.junit.jupiter.api.*;
 
 import javax.validation.ConstraintViolation;
@@ -19,19 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("<= PLC SPECIFICATION =>")
 public class PlcSpec {
-    private Validator validator;
+
     private Plc plc;
 
     @BeforeEach
     void initializePlc(){
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        validator = factory.getValidator();
-
         plc = new Plc();
     }
 
     @Nested @DisplayName("NEW PLC")
-    class newPlc{
+    class NewPlc{
         @Test @DisplayName("is always created with empty set of tools (constructor)")
         void isAlwaysCreatedWithEmptySetOfToolsConstructor(){
             assertThat(plc.getTools()).isNotNull();
@@ -61,7 +59,7 @@ public class PlcSpec {
     }
 
     @Nested @DisplayName("CONNECTION")
-    class connection{
+    class Connection{
         @Test @DisplayName("connection of plc is set to CONNECTED with last update \"now\" when markAsConnected method is called")
         void markAsConnectedTest(){
             plc.getConnection().getLastStatusChange().setTime(1);
@@ -100,8 +98,15 @@ public class PlcSpec {
 
     }
 
-    @Nested @DisplayName("VALIDATION")
-    class validation{
+    @Nested @DisplayName("PLC VALIDATION")
+    class PlcValidation{
+        private Validator validator;
+        @BeforeEach
+        void initializeForPlcValidation(){
+            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+            validator = factory.getValidator();
+        }
+
         @Nested @DisplayName("IP address validation")
         class ipAddressValidation{
 
@@ -193,74 +198,113 @@ public class PlcSpec {
         }
     }
 
-    @Nested @DisplayName("SET CURRENT TOOL")
-    class setCurrentTool{
+    @Nested @DisplayName("TOOLS")
+    class Tools{
         @BeforeEach
-        void initializePlcWithAttributesNeededForCurrentTool(){
-            Set<Tool> tools = new HashSet<>();
-            for(int i=0; i<10; i++){
-                Tool tool = new Tool();
-                tool.setToolNumber(i);
-                tool.setToolStatus(ToolStatusType.AUTODETECTED);
-                Curve referenceCurve = new Curve();
-                for(int j=0; j<100; j++){
-                    referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
-                }
-                tool.setReferenceCurve(referenceCurve);
-                tools.add(tool);
+        void initializeForTools(){
+            for(int i=0; i<3; i++){
+                Tool tool = Tool.builder().id((long)i).toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).build();
+                plc.addTool(tool);
+            }
+        }
+        @Nested @DisplayName("SET CURRENT TOOL")
+        class SetCurrentTool{
+            @Test @DisplayName("when toolId is incorrect throws ToolNotFoundException")
+            void whenToolIdIsIncorrectThrowsException(){
+                assertThrows(ToolNotFoundException.class, () -> plc.setCurrentTool(plc.getTools().size()));
             }
 
-            plc.setTools(tools);
-            plc.setCurrentTool(0);
-        }
+            @Test @DisplayName("sets correct currentTool based on toolId")
+            void setsCorrectCurrentTool(){
+                int toolNumber = 2;
+                Tool toolToBeSetAsFutureCurrentTool = plc.getTools()
+                        .stream().filter(tool -> tool.getToolNumber() == toolNumber)
+                        .findAny()
+                        .orElseThrow(()-> new RuntimeException("error in test"));
 
-        @Test @DisplayName("when toolId is incorrect throws ToolNotFoundException")
-        void whenToolIdIsIncorrectThrowsException(){
-            assertThrows(ToolNotFoundException.class, () -> plc.setCurrentTool(11));
-        }
-
-        @Test @DisplayName("sets correct currentTool based on toolId")
-        void setsCorrectCurrentTool(){
-            int toolId = 5;
-            Tool toolToBeSetAsFutureCurrentTool = plc.getTools().stream().filter(tool -> tool.getToolNumber() == toolId).findAny().get();
-            plc.setCurrentTool(toolId);
-            assertThat(plc.getCurrentTool()).isEqualTo(toolToBeSetAsFutureCurrentTool);
-        }
-    }
-
-    @Nested @DisplayName("SET TOOLS")
-    class setTools{
-        @BeforeEach
-        void initializePlcWithAttributesNeededForCurrentTool(){
-            for(int i=0; i<10; i++){
-                Tool tool = new Tool();
-                tool.setToolNumber(i);
-                tool.setToolStatus(ToolStatusType.AUTODETECTED);
-                Curve referenceCurve = new Curve();
-                for(int j=0; j<100; j++){
-                    referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
-                }
-                tool.setReferenceCurve(referenceCurve);
-                plc.getTools().add(tool);
+                plc.setCurrentTool(toolNumber);
+                assertThat(plc.getCurrentTool()).isEqualTo(toolToBeSetAsFutureCurrentTool);
             }
         }
 
-        @Test @DisplayName("old tools are replaced with new ones")
-        void oldToolsAreReplacedWithNewOnes(){
-            Set<Tool> newTools = new HashSet<>();
-            newTools.add(new Tool());
+        @Nested @DisplayName("SET TOOLS")
+        class SetTools{
 
-            assertThat(plc.getTools().size()).isNotEqualTo(newTools.size());
-            plc.setTools(newTools);
-            assertThat(plc.getTools().size()).isEqualTo(newTools.size());
+            @Test @DisplayName("old tools are replaced with new ones")
+            void oldToolsAreReplacedWithNewOnes(){
+                Set<Tool> newTools = new HashSet<>();
+                newTools.add(new Tool());
+
+                assertThat(plc.getTools().size()).isNotEqualTo(newTools.size());
+                plc.setTools(newTools);
+                assertThat(plc.getTools().size()).isEqualTo(newTools.size());
+            }
+
+            @Test @DisplayName("throws exception when null is entered as parameter")
+            void throwsExceptionWhenNullIsProvided(){
+                assertThrows(InvalidToolsException.class,()-> plc.setTools(null));
+            }
         }
 
-        @Test @DisplayName("throws exception when null is entered as parameter")
-        void throwsExceptionWhenNullIsProvided(){
-            assertThrows(InvalidToolsException.class,()-> plc.setTools(null));
+        @Nested @DisplayName("ADD TOOL")
+        class AddTool{
+            @Test @DisplayName("throws ToolUniqueConstrainException when tool is already in PLC's tools")
+            void throwsToolUniqueConstrainExceptionWhenToolIsAlreadyInPlc(){
+                Tool tool2 = Tool.builder().id(1L).toolNumber(1).name("name2").build();
+
+                assertThrows(ToolUniqueConstrainException.class,() -> plc.addTool(tool2));
+            }
+
+            @Test @DisplayName("adds tool if toolNumberIsUnique")
+            void addsToolIfToolNumberIsUnique(){
+                int sizeOfOldTools = plc.getTools().size();
+                Tool tool2 = Tool.builder().id(1L).toolNumber(sizeOfOldTools).name("name").build();
+                plc.addTool(tool2);
+
+                assertThat(plc.getTools().size()).isEqualTo(sizeOfOldTools+1);
+            }
+        }
+
+        @Nested @DisplayName("GET TOOL BY TOOL NUMBER")
+        class GetToolByToolNumber{
+            @Test @DisplayName("returns tool when tool was not found")
+            void returnsToolWhenToolWasFound(){
+                assertThat(plc.getTool(0)).isNotNull();
+            }
+
+            @Test @DisplayName("throws ToolNotFoundException when tool was found")
+            void throwsExceptionWhenToolWasNotFound(){
+                assertThrows(ToolNotFoundException.class,() -> plc.getTool(plc.getTools().size()));
+            }
+        }
+
+        @Nested @DisplayName("GET TOOL BY ID")
+        class GetToolById{
+            @Test @DisplayName("returns tool when tool was not found")
+            void returnsToolWhenToolWasFound(){
+                assertThat(plc.getTool((long)0)).isNotNull();
+            }
+
+            @Test @DisplayName("throws ToolNotFoundException when tool was found")
+            void throwsExceptionWhenToolWasNotFound(){
+                assertThrows(ToolNotFoundException.class,() -> plc.getTool((long)plc.getTools().size()));
+            }
+        }
+
+        @Nested @DisplayName("REMOVE TOOL")
+        class RemoveTool{
+            @Test @DisplayName("return false when tool with same toolNumber was not found")
+            void returnFalseWhenToolWasNotFound(){
+                assertThat(plc.removeTool(Tool.builder().toolNumber(plc.getTools().size()).build())).isEqualTo(false);
+            }
+
+            @Test @DisplayName("removes tool when tool with same toolNumber was found tool")
+            void removesToolWhenToolWithSameToolNumberWasFound(){
+                int oldToolsSize  = plc.getTools().size();
+                plc.removeTool(Tool.builder().toolNumber(0).build());
+
+                assertThat(plc.getTools().size()).isEqualTo(oldToolsSize-1);
+            }
         }
     }
-
-
-
 }

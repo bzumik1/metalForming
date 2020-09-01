@@ -11,15 +11,10 @@ import com.siemens.metal_forming.exception.exceptionsApi.ApiException;
 import com.siemens.metal_forming.service.PlcService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +25,7 @@ import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -66,8 +62,6 @@ public class PlcControllerSpec {
             mvc.perform(get(path)
                 .param("page", "0")
                 .param("size", "10"));
-
-            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
 
             Mockito.verify(plcService,times(1)).findAll();
         }
@@ -130,7 +124,7 @@ public class PlcControllerSpec {
             }
 
             @Test @DisplayName("triggers DtoMapper and transforms incoming DTO to correct PLC")
-            void sendsBackPlcWithId() throws Exception {
+            void transformsIncomingDtoToProperPlc() throws Exception {
                 mvc.perform(post(path)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validPlcDtoJson));
@@ -243,7 +237,7 @@ public class PlcControllerSpec {
                         .content(validPlcDtoJson));
 
                 Mockito.verify(plcService,Mockito.times(1))
-                        .updateById(any(Long.class),any(Consumer.class));
+                        .update(any(Long.class),any());
             }
 
             @Test @DisplayName("returns 200 Ok when everything was ok")
@@ -256,7 +250,7 @@ public class PlcControllerSpec {
 
             @Test @DisplayName("returns 409 Conflict when PLC with same IP address already exists")
             void returnsConflictWhenPlcWithSameIpAddressAlreadyExists() throws Exception {
-                Mockito.when(plcService.updateById(any(Long.class),any(Consumer.class))).thenThrow(new PlcUniqueConstrainException("Plc with given IP address "+ validPlcDto.getIpAddress()+" already exists"));
+                Mockito.when(plcService.update(any(Long.class),any())).thenThrow(new PlcUniqueConstrainException("Plc with given IP address "+ validPlcDto.getIpAddress()+" already exists"));
 
                 mvc.perform(put(updatePath,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -264,9 +258,19 @@ public class PlcControllerSpec {
                         .andExpect(status().isConflict());
             }
 
+            @Test @DisplayName("returns 404 Not found when plc with given id was not found")
+            void returnsNotFoundWhenToolDoesNotExist() throws Exception {
+                Mockito.when(plcService.update(anyLong(),any())).thenThrow(new PlcNotFoundException(2L));
+
+                mvc.perform(put(updatePath,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPlcDtoJson))
+                        .andExpect(status().isNotFound());
+            }
+
             @Test @DisplayName("returns correct body with api exception when PLC already exists")
             void returnsCorrectBodyWithApiExceptionWhenPlcAlreadyExists() throws Exception {
-                Mockito.when(plcService.updateById(any(Long.class),any(Consumer.class))).thenThrow(new PlcUniqueConstrainException("Plc with given IP address "+ validPlcDto.getIpAddress()+" already exists"));
+                Mockito.when(plcService.update(anyLong(),any())).thenThrow(new PlcUniqueConstrainException("Plc with given IP address "+ validPlcDto.getIpAddress()+" already exists"));
 
                 MvcResult mvcResult = mvc.perform(put(updatePath,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -281,7 +285,7 @@ public class PlcControllerSpec {
             @Test @DisplayName("triggers DtoMapper and transforms updated plc to proper DTO")
             void triggersDtoMapper() throws Exception {
                 Plc plcToReturn = new Plc();
-                Mockito.when(plcService.updateById(any(Long.class),any(Consumer.class))).thenReturn(plcToReturn);
+                Mockito.when(plcService.update(anyLong(),any())).thenReturn(plcToReturn);
 
 
                 mvc.perform(put(updatePath,1L)
@@ -300,7 +304,7 @@ public class PlcControllerSpec {
                 PlcDto.Request.Update invalidPlcDto = validPlcDto.toBuilder().name(null).build();
                 String invalidPlcJson = objectMapper.writeValueAsString(invalidPlcDto);
 
-                mvc.perform(put(path+"/{id}",1L)
+                mvc.perform(put(updatePath,1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidPlcJson))
                         .andExpect(status().isBadRequest());
@@ -311,7 +315,7 @@ public class PlcControllerSpec {
                 PlcDto.Request.Update invalidPlcDto = validPlcDto.toBuilder().name(null).ipAddress(null).build();
                 String invalidPlcJson = objectMapper.writeValueAsString(invalidPlcDto);
 
-                MvcResult mvcResult = mvc.perform(put(path+"/{id}",1L)
+                MvcResult mvcResult = mvc.perform(put(updatePath,1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidPlcJson))
                         .andReturn();
@@ -330,7 +334,7 @@ public class PlcControllerSpec {
         void triggersPlcService() throws Exception {
             mvc.perform(delete(path+"/{id}",1L));
 
-            Mockito.verify(plcService,Mockito.times(1)).deleteById(1L);
+            Mockito.verify(plcService,Mockito.times(1)).delete(1L);
         }
 
         @Test @DisplayName("returns 200 Ok when everything was ok")
@@ -341,7 +345,7 @@ public class PlcControllerSpec {
 
         @Test @DisplayName("returns 404 Not Found when PLC which should be deleted was not found")
         void returnsNotFoundWhenPlcWhichShouldBeDeletedWasNotFound() throws Exception {
-            doThrow(new PlcNotFoundException(1L)).when(plcService).deleteById(1L);
+            doThrow(new PlcNotFoundException(1L)).when(plcService).delete(1L);
 
             mvc.perform(delete(path+"/{id}",1L))
                     .andExpect(status().isNotFound());
@@ -349,7 +353,7 @@ public class PlcControllerSpec {
 
         @Test @DisplayName("returns proper api exception when PLC which should be deleted was not found")
         void returnsProperApiExceptionWhenPlcWhichShouldBeDeletedWasNotFound() throws Exception {
-            doThrow(new PlcNotFoundException(1L)).when(plcService).deleteById(1L);
+            doThrow(new PlcNotFoundException(1L)).when(plcService).delete(1L);
             ApiException expectedApiException = ApiException.builder()
                     .message("Plc with id 1 was not found")
                     .status(HttpStatus.NOT_FOUND)

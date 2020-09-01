@@ -29,11 +29,29 @@ public enum ToolDto {;
 
             @NotNull(message = "Automatic monitoring must be filled")
             Boolean automaticMonitoring;
+
+            ToolStatusType toolStatus = ToolStatusType.MANUALLY_ADDED;
         }
 
         @Value @Builder(toBuilder = true)
         public static class Update{
+            @NotNull(message = "Tool number must be filled")
+            Integer toolNumber;
 
+            String name;
+
+            @NotNull(message = "Number of reference cycles must be filled")
+            @Min(value = 1,message = "Number of reference cycles must me at least 1")
+            @Max(value = 100, message = "Number of reference cycles can be maximally 100")
+            Integer numberOfReferenceCycles;
+
+            @NotNull(message = "Type of stop reaction must be selected")
+            StopReactionType stopReaction;
+
+            @NotNull(message = "Automatic monitoring must be filled")
+            Boolean automaticMonitoring;
+
+            ToolStatusType toolStatus = ToolStatusType.MANUALLY_ADDED;
         }
     }
 

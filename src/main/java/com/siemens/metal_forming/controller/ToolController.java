@@ -4,6 +4,8 @@ import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.dto.ToolDto.Request.Create;
 import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.enumerated.StopReactionType;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.service.ToolService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Tag(name = "Tools")
@@ -34,14 +40,29 @@ public class ToolController {
         return ResponseEntity.ok(toolService.findAll(plcId).stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList()));
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<ToolDto.Response.Overview> createTool(@PathVariable Long plcId,@Valid @RequestBody Create tool){
-        return null;
+    public ToolDto.Response.Overview createTool(@PathVariable Long plcId,@Valid @RequestBody Create toolDto){
+        Tool tool = dtoMapper.toTool(toolDto);
+        return dtoMapper.toToolDtoOverview(toolService.create(plcId,tool));
+    }
+
+    @PutMapping(path = "/{toolId}")
+    public ToolDto.Response.Overview updateToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId, @Valid @RequestBody ToolDto.Request.Update toolDto){
+        Consumer<Tool> updateAllAttributesSentFromFrontEnd = tool -> {
+            tool.setToolNumber(toolDto.getToolNumber());
+            tool.setName(toolDto.getName());
+            tool.setNumberOfReferenceCycles(toolDto.getNumberOfReferenceCycles());
+            tool.setStopReaction(toolDto.getStopReaction());
+            tool.setAutomaticMonitoring(toolDto.getAutomaticMonitoring());
+            tool.setToolStatus(toolDto.getToolStatus());
+        };
+        return dtoMapper.toToolDtoOverview(toolService.update(plcId,toolId,updateAllAttributesSentFromFrontEnd));
     }
 
     @DeleteMapping(path = "/{toolId}")
     public void deleteToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId){
-        toolService.deleteByPlcIdAndToolId(plcId,toolId);
+        toolService.delete(plcId,toolId);
     }
 
 }
