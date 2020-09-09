@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "Tools")
 @RestController
-@RequestMapping(path = "/plcs/{plcId}/tools")
+@RequestMapping(path = "/plcs")
 public class ToolController {
     private final ToolService toolService;
     private final DtoMapper dtoMapper;
@@ -35,19 +35,24 @@ public class ToolController {
         this.dtoMapper = dtoMapper;
     }
 
-    @GetMapping
-    public ResponseEntity<List<ToolDto.Response.Overview>> getAllTools(@PathVariable Long plcId){
-        return ResponseEntity.ok(toolService.findAll(plcId).stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList()));
+    @GetMapping(path = "/tools")
+    public List<ToolDto.Response.Overview> getAllTools(){
+        return toolService.findAll().stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList());
+    }
+
+    @GetMapping(path = "/{plcId}/tools")
+    public List<ToolDto.Response.Overview> getAllTools(@PathVariable Long plcId){
+        return toolService.findAll(plcId).stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList());
     }
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping
+    @PostMapping(path = "/{plcId}/tools")
     public ToolDto.Response.Overview createTool(@PathVariable Long plcId,@Valid @RequestBody Create toolDto){
         Tool tool = dtoMapper.toTool(toolDto);
         return dtoMapper.toToolDtoOverview(toolService.create(plcId,tool));
     }
 
-    @PutMapping(path = "/{toolId}")
+    @PutMapping(path = "/{plcId}/tools/{toolId}")
     public ToolDto.Response.Overview updateToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId, @Valid @RequestBody ToolDto.Request.Update toolDto){
         Consumer<Tool> updateAllAttributesSentFromFrontEnd = tool -> {
             tool.setToolNumber(toolDto.getToolNumber());
@@ -60,7 +65,7 @@ public class ToolController {
         return dtoMapper.toToolDtoOverview(toolService.update(plcId,toolId,updateAllAttributesSentFromFrontEnd));
     }
 
-    @DeleteMapping(path = "/{toolId}")
+    @DeleteMapping(path = "/{plcId}/tools/{toolId}")
     public void deleteToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId){
         toolService.delete(plcId,toolId);
     }

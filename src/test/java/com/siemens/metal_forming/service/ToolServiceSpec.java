@@ -105,6 +105,23 @@ class ToolServiceSpec {
         }
     }
 
+    @Nested @DisplayName("FIND ALL TOOLS")
+    class FindAllTools{
+        @Test @DisplayName("triggers toolRepository.findAll()")
+        void triggersToolRepository(){
+            toolService.findAll();
+            Mockito.verify(toolRepository, Mockito.times(1)).findAll();
+        }
+
+        @Test @DisplayName("returns what was found in database")
+        void returnsWhatWasFoundInDataBase(){
+            List<Tool> listToReturn = List.of(new Tool(),new Tool(), new Tool());
+            Mockito.when(toolRepository.findAll()).thenReturn(listToReturn);
+
+            assertThat(toolService.findAll().size()).isEqualTo(listToReturn.size());
+        }
+    }
+
     @Nested @DisplayName("DELETE ONE TOOL FROM PLC BY PLC ID AND TOOL ID")
     class DeleteOneToolFromPlcByPlcIdAndToolId{
         @Test @DisplayName("throws PlcNotFoundException when there was no PLC with given ID")

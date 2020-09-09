@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 
 public interface ToolService {
     List<Tool> findAll(Long plcId);
+    List<Tool> findAll();
     void delete(Long plcId, Long toolId);
     Tool create(Long plcId, Tool tool);
     Tool update(Long plcId, Long toolId, Consumer<Tool> updateTool);
