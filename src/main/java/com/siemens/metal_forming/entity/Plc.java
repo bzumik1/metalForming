@@ -54,8 +54,7 @@ public class Plc {
     @JoinColumn(name = "current_tool")
     Tool currentTool;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "plc_id")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc")
     final Set<Tool> tools = new HashSet<>();
 
     public void setCurrentTool(int toolId){
@@ -80,10 +79,12 @@ public class Plc {
             throw new InvalidToolsException();
         }
         this.tools.clear();
+        tools.forEach(tool -> tool.setPlc(this));
         this.tools.addAll(tools);
     }
 
     public void addTool(Tool tool){
+        tool.setPlc(this);
         if(!tools.add(tool)){
             throw new ToolUniqueConstrainException(tool.getToolNumber());
         }
