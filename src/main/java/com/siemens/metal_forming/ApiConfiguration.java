@@ -5,7 +5,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
-@EnableWebMvc
+//@EnableWebMvc //should not be activated, disables auto-configuration
 public class ApiConfiguration implements WebMvcConfigurer {
     @Override //api is not case sensitive
     public void configurePathMatch(PathMatchConfigurer configurer) {
