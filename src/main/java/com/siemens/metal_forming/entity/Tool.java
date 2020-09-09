@@ -25,7 +25,8 @@ public class Tool{
     @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;
 
-    @Column(name = "stop_reaction") @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "stop_reaction")
     StopReactionType stopReaction;
 
     @NotNull

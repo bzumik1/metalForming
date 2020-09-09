@@ -34,7 +34,7 @@ public class CurveSpec {
             validator = factory.getValidator();
         }
 
-        @Test @DisplayName("is invalid when curve points are null")
+        @Test @DisplayName("is invalid when measuredCurve points are null")
         void isInvalidWhenCurvePointsAreNull(){
             curve.setPoints(null);
             Set<ConstraintViolation<Curve>> violations = validator.validate(curve);
