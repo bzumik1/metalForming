@@ -44,8 +44,7 @@ public class ToolServiceImpl implements ToolService {
     @Override
     public void delete(Long plcId, Long toolId){
         Consumer<Plc> updatePlc = plc -> {
-            Tool toolToBeRemoved = plc.getTools().stream().filter(tool -> tool.getId().equals(toolId))
-                    .findAny().orElseThrow(() -> new ToolNotFoundException(toolId));
+            Tool toolToBeRemoved = plc.getTool(toolId);
             plc.removeTool(toolToBeRemoved);
         };
         plcService.update(plcId,updatePlc);

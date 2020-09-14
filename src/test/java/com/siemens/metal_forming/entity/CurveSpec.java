@@ -11,7 +11,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("<= Curve Specification =>")
+@DisplayName("<= CURVE SPECIFICATION =>")
 public class CurveSpec {
     private Curve curve;
     private Validator validator;

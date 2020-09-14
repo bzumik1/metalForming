@@ -54,7 +54,7 @@ public class Plc {
     @JoinColumn(name = "current_tool")
     Tool currentTool;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc", orphanRemoval = true)
     final Set<Tool> tools = new HashSet<>();
 
     public void setCurrentTool(int toolId){

@@ -13,7 +13,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("<= Plc Repository Specification =>")
+@DisplayName("<= TOOL SPECIFICATION =>")
 public class ToolSpec {
     Validator validator;
     Tool tool;
