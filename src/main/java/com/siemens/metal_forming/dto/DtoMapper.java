@@ -14,6 +14,7 @@ public interface DtoMapper {
 
     PlcDto.Response.Overview toPlcDtoOverview(Plc plc);
 
+    @Mapping(target = "plcId", source = "tool.plc.id")
     @Mapping(target = "referenceCurveIsCalculated", source = "tool.referenceCurve")
     ToolDto.Response.Overview toToolDtoOverview(Tool tool);
 
@@ -23,6 +24,10 @@ public interface DtoMapper {
     @Mapping(target = "currentTool",ignore = true)
     Plc toPlc(PlcDto.Request.Create plcDto);
 
+    @Mapping(target = "referenceCurve", ignore = true)
+    @Mapping(target = "plc", ignore = true)
+    @Mapping(target = "maxSpeedOperation", ignore = true)
+    @Mapping(target = "id", ignore = true)
     Tool toTool(ToolDto.Request.Create toolDto);
 
     default boolean toReferenceCurveIsCalculated(Curve referenceCurve){

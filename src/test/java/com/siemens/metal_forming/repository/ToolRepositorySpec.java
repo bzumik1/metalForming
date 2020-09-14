@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @DisplayName("<= TOOL REPOSITORY SPECIFICATION =>")
-public class ToolRepositorySpec {
+class ToolRepositorySpec {
     @Autowired
     ToolRepository toolRepository;
     @Autowired
@@ -35,11 +35,11 @@ public class ToolRepositorySpec {
             //Database setup
             plc1 = Plc.builder().ipAddress("192.168.0.1").name("name").build();
             for(int i = 0;i<4;i++){
-                plc1.getTools().add(Tool.builder().toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
+                plc1.addTool(Tool.builder().toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
             }
             plc2 = Plc.builder().ipAddress("192.168.0.2").name("name2").build();
             for(int i = 0;i<5;i++){
-                plc2.getTools().add(Tool.builder().toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
+                plc2.addTool(Tool.builder().toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).automaticMonitoring(false).build());
             }
             plc1 = plcRepository.save(plc1);
             plc2 = plcRepository.save(plc2);

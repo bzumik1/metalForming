@@ -13,8 +13,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@DisplayName("<= Curve Specification =>")
+@DisplayName("<= CURVE SPECIFICATION =>")
 class CurveSpec  extends EntitySpec{
     Curve curve;
     Validator validator;

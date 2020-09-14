@@ -87,70 +87,89 @@ class PlcRepositorySpec {
             plcWithAllAttributes.setName("name");
         }
 
+        @Nested @DisplayName("DELETING PLC") @DataJpaTest
+        class DeletingPlc{
+            @Test @DisplayName("when PLC is deleted also motorCurve is deleted")
+            void deletesAlsoCurve(){
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                plcRepository.deleteById(plc.getId());
+                Optional<Curve> curveInDb = curveRepository.findById(plc.getMotorCurve().getId());
 
-        @Test @DisplayName("when PLC is deleted also motorCurve is deleted")
-        void deletesAlsoCurve(){
-            Plc plc = plcRepository.save(plcWithAllAttributes);
-            plcRepository.deleteById(plc.getId());
-            Optional<Curve> curveInDb = curveRepository.findById(plc.getMotorCurve().getId());
+                assertThat(curveInDb).isNotPresent();
+            }
 
-            assertThat(curveInDb).isNotPresent();
+            @Test @DisplayName("when PLC is deleted also hardwareInformation are deleted")
+            void deletesAlsoHardwareInformation(){
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                plcRepository.deleteById(plc.getId());
+                Optional<HardwareInformation> hardwareInformationInDb = hardwareInformationRepository.findById(plc.getHardwareInformation().getId());
+
+                assertThat(hardwareInformationInDb).isNotPresent();
+            }
+
+            @Test @DisplayName("when PLC is deleted also curve and all its points are deleted")
+            void deletesAlsoCurvePoints(){
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                plcRepository.deleteById(plc.getId());
+                List<PointOfTorqueAndSpeed> points
+                        = pointOfTorqueAndSpeedRepository.findAll();
+
+                assertThat(points).isEmpty();
+            }
+
+            @Test @DisplayName("when PLC is deleted also tools are deleted")
+            void deletesAlsoTools(){
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                entityManager.flush();
+
+                plcRepository.deleteById(plc.getId());
+                List<Tool> tools
+                        = toolRepository.findAll();
+
+                assertThat(tools).isEmpty();
+            }
+
+            @Test @DisplayName("when PLC is deleted also reference curves of all tools are deleted")
+            void deleteAlsoReferenceCurvesOfTools(){
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                entityManager.flush();
+
+                plcRepository.deleteById(plc.getId());
+                List<Curve> curves
+                        = curveRepository.findAll();
+
+                assertThat(curves).isEmpty();
+            }
+
+            @Test @DisplayName("when PLC is deleted also connection is deleted")
+            void deleteAlsoConnection(){
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                entityManager.flush();
+
+                plcRepository.deleteById(plc.getId());
+                List<Connection> connections
+                        = connectionRepository.findAll();
+
+                assertThat(connections).isEmpty();
+            }
         }
 
-        @Test @DisplayName("when PLC is deleted also hardwareInformation are deleted")
-        void deletesAlsoHardwareInformation(){
-            Plc plc = plcRepository.save(plcWithAllAttributes);
-            plcRepository.deleteById(plc.getId());
-            Optional<HardwareInformation> hardwareInformationInDb = hardwareInformationRepository.findById(plc.getHardwareInformation().getId());
+        @Nested @DisplayName("UPDATING PLC") @DataJpaTest
+        class UpdatingPlc{
+            @Test @DisplayName("deletes tool from database when tool is deleted from plc")
+            void deletesToolFromDatabaseWhenToolIsDeletedFromPlc(){
+                int originalNumberOfTools = plcWithAllAttributes.getTools().size();
+                Plc plc = plcRepository.save(plcWithAllAttributes);
+                entityManager.flush();
 
-            assertThat(hardwareInformationInDb).isNotPresent();
+                Tool randomTool = plc.getTools().stream().findAny().orElseThrow(() -> new RuntimeException("Plc doesn't have any tools"));
+                plc.removeTool(randomTool);
+                plcRepository.save(plc);
+
+                assertThat(toolRepository.findAll().size()).isEqualTo(originalNumberOfTools-1);
+            }
         }
 
-        @Test @DisplayName("when PLC is deleted also measuredCurve and all its points are deleted")
-        void deletesAlsoCurvePoints(){
-            Plc plc = plcRepository.save(plcWithAllAttributes);
-            plcRepository.deleteById(plc.getId());
-            List<CurvePoint> points
-                    = curvePointRepository.findAll();
-
-            assertThat(points).isEmpty();
-        }
-
-        @Test @DisplayName("when PLC is deleted also tools are deleted")
-        void deletesAlsoTools(){
-            Plc plc = plcRepository.save(plcWithAllAttributes);
-            entityManager.flush();
-
-            plcRepository.deleteById(plc.getId());
-            List<Tool> tools
-                    = toolRepository.findAll();
-
-            assertThat(tools).isEmpty();
-        }
-
-        @Test @DisplayName("when PLC is deleted also reference curves of all tools are deleted")
-        void deleteAlsoReferenceCurvesOfTools(){
-            Plc plc = plcRepository.save(plcWithAllAttributes);
-            entityManager.flush();
-
-            plcRepository.deleteById(plc.getId());
-            List<Curve> curves
-                    = curveRepository.findAll();
-
-            assertThat(curves).isEmpty();
-        }
-
-        @Test @DisplayName("when PLC is deleted also connection is deleted")
-        void deleteAlsoConnection(){
-            Plc plc = plcRepository.save(plcWithAllAttributes);
-            entityManager.flush();
-
-            plcRepository.deleteById(plc.getId());
-            List<Connection> connections
-                    = connectionRepository.findAll();
-
-            assertThat(connections).isEmpty();
-        }
     }
 
 

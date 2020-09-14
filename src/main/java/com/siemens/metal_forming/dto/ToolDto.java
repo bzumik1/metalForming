@@ -59,6 +59,7 @@ public enum ToolDto {;
         @Value @Builder(toBuilder = true)
         public static class Overview{
             Long id;
+            Long plcId;
             Integer toolNumber;
             String name;
             Integer numberOfReferenceCycles;

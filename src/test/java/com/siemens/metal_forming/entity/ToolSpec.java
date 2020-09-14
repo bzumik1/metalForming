@@ -15,8 +15,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@DisplayName("<= Plc Repository Specification =>")
+@DisplayName("<= TOOL SPECIFICATION =>")
 class ToolSpec extends EntitySpec{
     Validator validator;
     Tool tool;

@@ -15,6 +15,10 @@ public class Tool{
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "plc_id", nullable = false)
+    Plc plc;
+
     @EqualsAndHashCode.Include
     @NotNull
     @Column(name = "tool_number", nullable = false)

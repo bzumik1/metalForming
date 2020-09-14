@@ -51,6 +51,7 @@ class DtoMapperSpec {
         void transformsToolToToolDtoResponseOverviewCorrectly(){
             Tool toolWithAllAttributes = Tool.builder()
                     .id(1L)
+                    .plc(Plc.builder().id(1L).build())
                     .toolNumber(1)
                     .name("name")
                     .toolStatus(ToolStatusType.AUTODETECTED)
@@ -65,6 +66,7 @@ class DtoMapperSpec {
 
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(toolDto.getId()).as("id").isEqualTo(toolWithAllAttributes.getId());
+            softAssertions.assertThat(toolDto.getPlcId()).as("plcId").isEqualTo(toolWithAllAttributes.getPlc().getId());
             softAssertions.assertThat(toolDto.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
             softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getName());
             softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());

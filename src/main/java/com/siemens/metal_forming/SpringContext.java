@@ -22,7 +22,6 @@ public class SpringContext implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
-
         // store ApplicationContext reference to access required beans later on
         SpringContext.context = context;
     }

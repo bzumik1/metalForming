@@ -56,6 +56,31 @@ public class ToolControllerSpec {
         Mockito.reset(dtoMapper);
     }
 
+    @Nested @DisplayName("FIND ALL TOOLS")
+    class FindAllTools{
+        private final static String findAllPath = "/plcs/tools";
+        @Test @DisplayName("triggers toolService.findAll")
+        void triggersToolService() throws Exception {
+            mvc.perform(get(findAllPath));
+            Mockito.verify(toolService,Mockito.times(1)).findAll();
+        }
+
+        @Test @DisplayName("returns 200 Ok when everything is ok")
+        void returnsOkWhenEverythingIsOk() throws Exception {
+            mvc.perform(get(findAllPath)).andExpect(status().isOk());
+        }
+
+        @Test @DisplayName("triggers dtoMapper and transforms found tools to proper DTOs")
+        void triggersDtoMapperAndTransformsToolsIntoDtos() throws Exception {
+            List<Tool> tools = List.of(new Tool(),new Tool(), new Tool());
+            Mockito.when(toolService.findAll()).thenReturn(tools);
+
+            MvcResult mvcResult = mvc.perform(get(findAllPath)).andReturn();
+
+            Mockito.verify(dtoMapper,Mockito.times(tools.size())).toToolDtoOverview(any(Tool.class));
+        }
+    }
+
     @Nested @DisplayName("FIND ALL TOOLS FROM ONE PLC")
     class FindAllToolsFromOnePlc{
         @Test @DisplayName("triggers toolService.findAll")

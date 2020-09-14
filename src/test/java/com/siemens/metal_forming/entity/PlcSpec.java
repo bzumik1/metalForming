@@ -7,7 +7,9 @@ import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= PLC SPECIFICATION =>")
-public final class PlcSpec extends EntitySpec{
+public class PlcSpec extends EntitySpec{
     Plc plc;
 
     @Override
@@ -236,15 +238,31 @@ public final class PlcSpec extends EntitySpec{
 
         @Nested @DisplayName("SET TOOLS")
         class SetTools{
+            Set<Tool> newTools;
+
+            @BeforeEach
+            void initializeForSetTools(){
+                newTools = new HashSet<>();
+                newTools.add(Tool.builder().toolNumber(1).build());
+                newTools.add(Tool.builder().toolNumber(2).build());
+            }
 
             @Test @DisplayName("old tools are replaced with new ones")
             void oldToolsAreReplacedWithNewOnes(){
-                Set<Tool> newTools = new HashSet<>();
-                newTools.add(new Tool());
-
                 assertThat(plc.getTools().size()).isNotEqualTo(newTools.size());
                 plc.setTools(newTools);
                 assertThat(plc.getTools().size()).isEqualTo(newTools.size());
+            }
+
+            @Test @DisplayName("sets plc for all new tools")
+            void setsPlcForAllNewTools(){
+                plc.setTools(newTools);
+
+                SoftAssertions softAssertions = new SoftAssertions();
+                for (Tool t: newTools){
+                    softAssertions.assertThat(t.getPlc()).isEqualTo(plc);
+                }
+                softAssertions.assertAll();
             }
 
             @Test @DisplayName("throws exception when null is entered as parameter")
@@ -260,6 +278,14 @@ public final class PlcSpec extends EntitySpec{
                 Tool tool2 = Tool.builder().id(1L).toolNumber(1).name("name2").build();
 
                 assertThrows(ToolUniqueConstrainException.class,() -> plc.addTool(tool2));
+            }
+
+            @Test @DisplayName("sets plc of the tool to this plc")
+            void setsPlcOfTheToolToThisPlc(){
+                Tool newTool = Tool.builder().build();
+                plc.addTool(newTool);
+
+                assertThat(newTool.getPlc()).isEqualTo(plc);
             }
 
             @Test @DisplayName("adds tool if toolNumberIsUnique")
