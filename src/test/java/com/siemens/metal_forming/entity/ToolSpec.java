@@ -18,6 +18,11 @@ public class ToolSpec {
     Validator validator;
     Tool tool;
 
+    @Override
+    public Class getTestedClass() {
+        return Tool.class;
+    }
+
     @BeforeEach
     void initialize(){
         tool = new Tool();

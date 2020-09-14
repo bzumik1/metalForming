@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DisplayName("<= PLC REPOSITORY SPECIFICATION =>")
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
-public class PlcRepositorySpec {
+class PlcRepositorySpec {
 
     @Autowired
     private TestEntityManager entityManager;

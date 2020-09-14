@@ -1,18 +1,17 @@
 package com.siemens.metal_forming.entity.log;
 
 import com.siemens.metal_forming.enumerated.StopReactionType;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@Getter @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true) @AllArgsConstructor @Builder
+@Getter @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @Entity
-public class ToolInfo {
+public final class ToolInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;

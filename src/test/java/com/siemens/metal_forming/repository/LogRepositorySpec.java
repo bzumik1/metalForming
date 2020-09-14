@@ -18,7 +18,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("<= PLC REPOSITORY SPECIFICATION =>")
+@DisplayName("<= LOG REPOSITORY SPECIFICATION =>")
 @DataJpaTest
 class LogRepositorySpec {
     @Autowired
@@ -68,12 +68,12 @@ class LogRepositorySpec {
                 Log log = Log.builder()
                         .measuredCurve(curve)
                         .referenceCurve(referenceCurve)
+                        .motorCurve(motorCurve)
                         .collisionPoints(collisionPoints)
                         .plcInformation(plcInfo)
                         .toolInformation(toolInfo)
                         .comment("comment"+l)
                         .build();
-                log.setMotorCurve(motorCurve);
 
                 logs.add(log);
             }
@@ -172,7 +172,6 @@ class LogRepositorySpec {
                 entityManager.flush();
 
 
-                log1.getMotorCurve().getLogsWithMotorCurve().remove(log1);
                 entityManager.flush();
                 //logRepository.deleteById(log1.getId());
 

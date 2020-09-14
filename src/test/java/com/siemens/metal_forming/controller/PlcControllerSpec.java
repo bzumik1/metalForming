@@ -11,6 +11,7 @@ import com.siemens.metal_forming.exception.exceptionsApi.ApiException;
 import com.siemens.metal_forming.service.PlcService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -168,7 +169,7 @@ public class PlcControllerSpec {
 
             @Test @DisplayName("triggers DtoMapper and transforms newly created plc to proper DTO")
             void triggersDtoMapper() throws Exception {
-                Plc plcToReturn = DtoMapper.INSTANCE.toPlc(validPlcDto).toBuilder().id(1L).build();
+                Plc plcToReturn = Mappers.getMapper(DtoMapper.class).toPlc(validPlcDto).toBuilder().id(1L).build();
                 Mockito.when(plcService.create(any(Plc.class))).thenReturn(plcToReturn);
 
 

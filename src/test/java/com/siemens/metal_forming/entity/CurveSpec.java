@@ -12,9 +12,14 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("<= Curve Specification =>")
-public class CurveSpec {
-    private Curve curve;
-    private Validator validator;
+class CurveSpec  extends EntitySpec{
+    Curve curve;
+    Validator validator;
+
+    @Override
+    public Class getTestedClass() {
+        return Curve.class;
+    }
 
     @BeforeEach
     void initialize(){
@@ -26,7 +31,8 @@ public class CurveSpec {
         assertThat(curve.getPoints()).isNotNull();
     }
 
-    @Nested @DisplayName("validation")
+
+    @Nested @DisplayName("VALIDATION")
     class validation{
         @BeforeEach
         void initializeValidator(){

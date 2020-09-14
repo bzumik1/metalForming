@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.dto;
 
+import com.siemens.metal_forming.MetalFormingApplication;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.StopReactionType;
@@ -9,16 +10,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest(classes = DtoMapperImpl.class)
 @DisplayName("<= DTO MAPPER SPECIFICATION =>")
-public class DtoMapperSpec {
+class DtoMapperSpec {
+    @Autowired
     private DtoMapper dtoMapper;
-    @BeforeEach
-    void initialize(){
-        dtoMapper = DtoMapper.INSTANCE;
-    }
 
 
 

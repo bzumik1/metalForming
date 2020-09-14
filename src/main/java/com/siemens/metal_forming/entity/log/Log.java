@@ -10,9 +10,10 @@ import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.Set;
 
-@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @AllArgsConstructor @Builder(toBuilder = true)
+@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor @Builder(toBuilder = true)
 @Entity
-public class Log {
+public final class Log {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
