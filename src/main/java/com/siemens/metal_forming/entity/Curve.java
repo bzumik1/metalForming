@@ -1,16 +1,17 @@
 package com.siemens.metal_forming.entity;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import com.siemens.metal_forming.entity.log.Log;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
 @Entity @Table(name = "curves")
 public class Curve {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
@@ -18,6 +19,6 @@ public class Curve {
 
     @NotNull
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "curve_id", nullable = false)
-    List<PointOfTorqueAndSpeed> points = new ArrayList<>();
+    @JoinColumn(name = "curve_id", nullable = false) //ToDo should be nullable=false but different point should be created
+    List<CurvePoint> points = new ArrayList<>();
 }

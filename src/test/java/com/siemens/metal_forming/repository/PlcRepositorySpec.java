@@ -7,7 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.PersistenceException;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DisplayName("<= PLC REPOSITORY SPECIFICATION =>")
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
-public class PlcRepositorySpec {
+class PlcRepositorySpec {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -43,7 +44,7 @@ public class PlcRepositorySpec {
     private HardwareInformationRepository hardwareInformationRepository;
 
     @Autowired
-    private PointOfTorqueAndSpeedRepository pointOfTorqueAndSpeedRepository;
+    private CurvePointRepository curvePointRepository;
 
     @Autowired
     private ConnectionRepository connectionRepository;
@@ -61,7 +62,7 @@ public class PlcRepositorySpec {
             plcWithAllAttributes = new Plc();
             Curve motorCurve = new Curve();
             for(int i=0; i<100; i++){
-                motorCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+                motorCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
             }
             Set<Tool> tools = new HashSet<>();
             for(int i=0; i<10; i++){
@@ -70,7 +71,7 @@ public class PlcRepositorySpec {
                 tool.setToolStatus(ToolStatusType.AUTODETECTED);
                 Curve referenceCurve = new Curve();
                 for(int j=0; j<100; j++){
-                    referenceCurve.getPoints().add(new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()));
+                    referenceCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
                 }
                 tool.setReferenceCurve(referenceCurve);
                 tools.add(tool);
@@ -242,6 +243,38 @@ public class PlcRepositorySpec {
             }
 
         }
+    }
+
+    @Test
+    void findByExample(){
+        for (int p=0;p<10;p++) {
+            Plc plcToDb = new Plc();
+
+            plcToDb.getHardwareInformation().setSerialNumber("SN 8370938");
+            plcToDb.getHardwareInformation().setFirmwareNumber("FW V1.2");
+            plcToDb.setIpAddress("192.168.1."+p);
+            plcToDb.markAsConnected();
+            plcToDb.setName("name"+p);
+            plcRepository.save(plcToDb);
+            entityManager.flush();
+        }
+
+        Plc plcExample = new Plc();
+
+        plcExample.getHardwareInformation().setSerialNumber("SN 8370938");
+        plcExample.getHardwareInformation().setFirmwareNumber("FW V1.2");
+        plcExample.setIpAddress("192.168.1."+1);
+        plcExample.markAsConnected();
+        plcExample.setName("name"+1);
+
+        ExampleMatcher ignoringExampleMatcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("connection");
+        Example<Plc> example = Example.of(plcExample,ignoringExampleMatcher);
+
+        Plc foundPlc = plcRepository.findOne(example).get();
+
+        System.out.println(foundPlc);
+
     }
 
 

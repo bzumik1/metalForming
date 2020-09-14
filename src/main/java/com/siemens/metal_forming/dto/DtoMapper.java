@@ -11,7 +11,6 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface DtoMapper {
-    DtoMapper INSTANCE = Mappers.getMapper( DtoMapper.class );
 
     PlcDto.Response.Overview toPlcDtoOverview(Plc plc);
 

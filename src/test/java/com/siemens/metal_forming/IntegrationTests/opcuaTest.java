@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutionException;
         locations = "classpath:application-integrationtest.properties")
 
 //@ActiveProfiles("test")
-public class opcuaTest {
+class opcuaTest {
     @Autowired
     private OpcuaConnector opcuaConnector;
 

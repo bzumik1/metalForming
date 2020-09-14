@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.entity;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,10 +13,17 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= CURVE SPECIFICATION =>")
-public class CurveSpec {
-    private Curve curve;
-    private Validator validator;
+class CurveSpec  extends EntitySpec{
+    Curve curve;
+    Validator validator;
+
+    @Override
+    public Class getTestedClass() {
+        return Curve.class;
+    }
 
     @BeforeEach
     void initialize(){
@@ -26,7 +35,8 @@ public class CurveSpec {
         assertThat(curve.getPoints()).isNotNull();
     }
 
-    @Nested @DisplayName("validation")
+
+    @Nested @DisplayName("VALIDATION")
     class validation{
         @BeforeEach
         void initializeValidator(){
@@ -34,7 +44,7 @@ public class CurveSpec {
             validator = factory.getValidator();
         }
 
-        @Test @DisplayName("is invalid when curve points are null")
+        @Test @DisplayName("is invalid when measuredCurve points are null")
         void isInvalidWhenCurvePointsAreNull(){
             curve.setPoints(null);
             Set<ConstraintViolation<Curve>> violations = validator.validate(curve);

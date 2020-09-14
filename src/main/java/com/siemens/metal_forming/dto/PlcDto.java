@@ -3,6 +3,8 @@ package com.siemens.metal_forming.dto;
 import com.siemens.metal_forming.entity.Connection;
 import com.siemens.metal_forming.entity.HardwareInformation;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Value;
 
 import javax.validation.constraints.NotBlank;
