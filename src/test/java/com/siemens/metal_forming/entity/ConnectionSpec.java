@@ -1,6 +1,8 @@
 package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,11 +15,17 @@ import java.sql.Timestamp;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= CONNECTION SPECIFICATION =>")
-public class ConnectionSpec {
-    Validator validator;
+class ConnectionSpec extends EntitySpec{
     Connection connection;
+
+
+    @Override
+    public Class getTestedClass() {
+        return Connection.class;
+    }
+
     @BeforeEach
     void initialize(){
         connection = new Connection();
@@ -69,6 +77,8 @@ public class ConnectionSpec {
 
     @Nested @DisplayName("VALIDATION")
     class validation{
+        Validator validator;
+
         @BeforeEach
         void initializeForValidation(){
             validator = Validation.buildDefaultValidatorFactory().getValidator();

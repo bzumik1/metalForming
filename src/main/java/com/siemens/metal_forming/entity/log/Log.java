@@ -19,20 +19,20 @@ public final class Log {
 
     @NotNull
     @Column(nullable = false, updatable = false)
-    final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    final Timestamp createdOn = new Timestamp(System.currentTimeMillis());
 
     @NotNull
-    @ManyToOne(cascade={CascadeType.PERSIST})
+    @OneToOne(cascade={CascadeType.ALL})
     @JoinColumn(name = "measured_curve_id", nullable = false, updatable = false)
     Curve measuredCurve;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "motor_curve_id", nullable = false, updatable = false)
     Curve motorCurve;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reference_curve_id", nullable = false, updatable = false)
     Curve referenceCurve;
 
@@ -41,23 +41,15 @@ public final class Log {
     Set<CollisionPoint> collisionPoints;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "plc_information_id",nullable = false, updatable = false)
     PlcInfo plcInformation;
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "tool_information_id", nullable = false, updatable = false)
     ToolInfo toolInformation;
 
     @NonFinal
     String comment;
-
-    public void setMotorCurve(Curve motorCurve){
-        motorCurve.getLogsWithMotorCurve().add(this);
-        if(this.motorCurve != null){
-            this.motorCurve.getLogsWithMotorCurve().remove(this);
-        }
-        this.motorCurve = motorCurve;
-    }
 }

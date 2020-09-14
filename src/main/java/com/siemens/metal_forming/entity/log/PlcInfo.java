@@ -9,10 +9,11 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-@Getter @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true) @AllArgsConstructor @Builder(toBuilder = true)
+@Getter @FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder(toBuilder = true)
 @Entity
-@Table(uniqueConstraints={@UniqueConstraint(columnNames = {"name", "iPAddress","serialNumber","firmwareNumber"})})
-public class PlcInfo {
+public final class PlcInfo {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 

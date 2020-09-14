@@ -5,6 +5,8 @@ import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.*;
 
 import javax.validation.ConstraintViolation;
@@ -18,10 +20,15 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= PLC SPECIFICATION =>")
-public class PlcSpec {
+public final class PlcSpec extends EntitySpec{
+    Plc plc;
 
-    private Plc plc;
+    @Override
+    public Class getTestedClass() {
+        return Plc.class;
+    }
 
     @BeforeEach
     void initializePlc(){
