@@ -111,8 +111,8 @@ class PlcRepositorySpec {
             void deletesAlsoCurvePoints(){
                 Plc plc = plcRepository.save(plcWithAllAttributes);
                 plcRepository.deleteById(plc.getId());
-                List<PointOfTorqueAndSpeed> points
-                        = pointOfTorqueAndSpeedRepository.findAll();
+                List<CurvePoint> points
+                        = curvePointRepository.findAll();
 
                 assertThat(points).isEmpty();
             }
