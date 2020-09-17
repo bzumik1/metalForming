@@ -3,6 +3,7 @@ package com.siemens.metal_forming.testBuilders.specification;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
+import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 
@@ -29,7 +30,7 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
 
     @Nested @DisplayName("SPECIAL METHODS")
     class SpecialMethods{
-        @Test @DisplayName("adds given number of random tools to new PLC")
+        @Test @DisplayName("adds given number of random tools to new plc")
         void addsGivenNumberOfRandomTools(){
             Plc testPlc = testPlcBuilder.randomTools(3).build();
 
@@ -54,6 +55,16 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
             softAssertions.assertThat(testPlc.getConnection().getStatus()).as("status").isEqualTo(ConnectionStatus.DISCONNECTED);
             softAssertions.assertThat(testPlc.getConnection().getLastStatusChange()).as("lastStatusChange").isEqualTo(new Timestamp(1L));
             softAssertions.assertAll();
+        }
+
+        @Test @DisplayName("adds tool to tools of new plc")
+        void addsToolToToolsOfNewPlc(){
+            Plc testPlc = testPlcBuilder
+                    .addTool(new TestToolBuilder().toolNumber(1).build())
+                    .addTool(new TestToolBuilder().toolNumber(1).build())
+                    .build();
+
+            assertThat(testPlc.getTools().size()).isEqualTo(2);
         }
     }
 

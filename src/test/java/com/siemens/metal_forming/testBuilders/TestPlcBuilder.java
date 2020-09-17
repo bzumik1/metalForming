@@ -75,6 +75,15 @@ public class TestPlcBuilder{
         return this;
     }
 
+    public TestPlcBuilder addTool(Tool tool){
+        if(tools == null){
+            tools = new HashSet<>();
+        }
+        tools.add(tool);
+
+        return this;
+    }
+
     public TestPlcBuilder randomTools(int numberOfRandomTools){
         tools = Stream.iterate(1, n ->n+1).map(i -> new TestToolBuilder().toolNumber(i).build()).limit(numberOfRandomTools).collect(Collectors.toSet());
         return this;
