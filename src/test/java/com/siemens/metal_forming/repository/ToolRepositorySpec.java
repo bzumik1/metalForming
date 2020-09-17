@@ -1,13 +1,13 @@
 package com.siemens.metal_forming.repository;
 
+import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -20,13 +20,41 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ToolRepositorySpec {
     @Autowired
     ToolRepository toolRepository;
+
+    @Autowired
+    CurveRepository curveRepository;
+
     @Autowired
     PlcRepository plcRepository;
+
     @Autowired
     TestEntityManager entityManager;
 
-    @DataJpaTest
-    @Nested @DisplayName("METHODS WITH SQL SPECIFICATION")
+    TestToolBuilder testToolBuilder;
+
+    TestCurveBuilder testCurveBuilder;
+
+    @BeforeEach
+    void initialize(){
+        testToolBuilder = new TestToolBuilder();
+        testCurveBuilder = new TestCurveBuilder();
+    }
+
+    @Nested @DisplayName("CASCADE") @DataJpaTest
+    class Cascade{
+        @Test @DisplayName("when tool is deleted also curve is deleted") @Disabled("plc needs to be saved first")
+        void deleteAlsoReferenceCurveOfTool(){
+            Curve referenceCurve = testCurveBuilder.randomPoints(100).build();
+            Tool testTool = testToolBuilder.referenceCurve(referenceCurve).build();
+
+            testTool = toolRepository.save(testTool);
+            toolRepository.deleteById(testTool.getId());
+
+            assertThat(curveRepository.findAll()).isEmpty();
+        }
+    }
+
+    @Nested @DisplayName("METHODS WITH SQL SPECIFICATION") @DataJpaTest
     class MethodsWithSqlSpecification{
         Plc plc1;
         Plc plc2;

@@ -2,6 +2,10 @@ package com.siemens.metal_forming.repository;
 
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,77 +25,58 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-//TODO make tests independent (when new attribute is added to entyty ony one test will not work)
 //TODO move nested attributes to own repository specification
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= PLC REPOSITORY SPECIFICATION =>")
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 class PlcRepositorySpec {
 
     @Autowired
-    private TestEntityManager entityManager;
+    TestEntityManager entityManager;
 
     @Autowired
-    private PlcRepository plcRepository;
+    PlcRepository plcRepository;
 
     @Autowired
-    private CurveRepository curveRepository;
+    CurveRepository curveRepository;
 
     @Autowired
-    private ToolRepository toolRepository;
+    ToolRepository toolRepository;
 
     @Autowired
-    private HardwareInformationRepository hardwareInformationRepository;
+    HardwareInformationRepository hardwareInformationRepository;
 
     @Autowired
-    private CurvePointRepository curvePointRepository;
+    CurvePointRepository curvePointRepository;
 
     @Autowired
-    private ConnectionRepository connectionRepository;
+    ConnectionRepository connectionRepository;
 
+    TestCurveBuilder testCurveBuilder;
+
+    TestPlcBuilder testPlcBuilder;
+
+    @BeforeEach
+    void initialize(){
+        testCurveBuilder = new TestCurveBuilder();
+        testPlcBuilder = new TestPlcBuilder();
+    }
 
 
 
 
     @Nested @DisplayName("CASCADING") @DataJpaTest
     class Cascade{
-        private Plc plcWithAllAttributes;
-
-        @BeforeEach
-        void initializeForCascading(){
-            plcWithAllAttributes = new Plc();
-            Curve motorCurve = new Curve();
-            for(int i=0; i<100; i++){
-                motorCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-            }
-            Set<Tool> tools = new HashSet<>();
-            for(int i=0; i<10; i++){
-                Tool tool = new Tool();
-                tool.setToolNumber(i);
-                tool.setToolStatus(ToolStatusType.AUTODETECTED);
-                Curve referenceCurve = new Curve();
-                for(int j=0; j<100; j++){
-                    referenceCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-                }
-                tool.setReferenceCurve(referenceCurve);
-                tools.add(tool);
-            }
-
-            plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 8370938");
-            plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW V1.2");
-            plcWithAllAttributes.setMotorCurve(motorCurve);
-            plcWithAllAttributes.setIpAddress("192.168.1.1");
-            plcWithAllAttributes.markAsConnected();
-            plcWithAllAttributes.setTools(tools);
-            plcWithAllAttributes.setCurrentTool(0);
-            plcWithAllAttributes.setName("name");
-        }
 
         @Nested @DisplayName("DELETING PLC") @DataJpaTest
         class DeletingPlc{
             @Test @DisplayName("when PLC is deleted also motorCurve is deleted")
             void deletesAlsoCurve(){
-                Plc plc = plcRepository.save(plcWithAllAttributes);
+                Curve motorCurve = testCurveBuilder.randomPoints(100).build();
+                Plc testPlc = testPlcBuilder.motorCurve(motorCurve).build();
+
+                Plc plc = plcRepository.save(testPlc);
                 plcRepository.deleteById(plc.getId());
                 Optional<Curve> curveInDb = curveRepository.findById(plc.getMotorCurve().getId());
 
@@ -100,55 +85,39 @@ class PlcRepositorySpec {
 
             @Test @DisplayName("when PLC is deleted also hardwareInformation are deleted")
             void deletesAlsoHardwareInformation(){
-                Plc plc = plcRepository.save(plcWithAllAttributes);
+                HardwareInformation hardwareInformation = HardwareInformation.builder().serialNumber("SN").firmwareNumber("FW").build();
+                Plc testPlc = testPlcBuilder.hardwareInformation(hardwareInformation).build();
+
+                Plc plc = plcRepository.save(testPlc);
                 plcRepository.deleteById(plc.getId());
                 Optional<HardwareInformation> hardwareInformationInDb = hardwareInformationRepository.findById(plc.getHardwareInformation().getId());
 
                 assertThat(hardwareInformationInDb).isNotPresent();
             }
 
-            @Test @DisplayName("when PLC is deleted also curve and all its points are deleted")
-            void deletesAlsoCurvePoints(){
-                Plc plc = plcRepository.save(plcWithAllAttributes);
-                plcRepository.deleteById(plc.getId());
-                List<CurvePoint> points
-                        = curvePointRepository.findAll();
-
-                assertThat(points).isEmpty();
-            }
-
             @Test @DisplayName("when PLC is deleted also tools are deleted")
             void deletesAlsoTools(){
-                Plc plc = plcRepository.save(plcWithAllAttributes);
+                Plc testPlc = testPlcBuilder.randomTools(3).build();
+
+                Plc plc = plcRepository.save(testPlc);
                 entityManager.flush();
 
                 plcRepository.deleteById(plc.getId());
-                List<Tool> tools
-                        = toolRepository.findAll();
+                List<Tool> tools = toolRepository.findAll();
 
                 assertThat(tools).isEmpty();
             }
 
-            @Test @DisplayName("when PLC is deleted also reference curves of all tools are deleted")
-            void deleteAlsoReferenceCurvesOfTools(){
-                Plc plc = plcRepository.save(plcWithAllAttributes);
-                entityManager.flush();
-
-                plcRepository.deleteById(plc.getId());
-                List<Curve> curves
-                        = curveRepository.findAll();
-
-                assertThat(curves).isEmpty();
-            }
-
             @Test @DisplayName("when PLC is deleted also connection is deleted")
             void deleteAlsoConnection(){
-                Plc plc = plcRepository.save(plcWithAllAttributes);
+                Connection connection = new Connection();
+                Plc testPlc = testPlcBuilder.connection(connection).build();
+
+                Plc plc = plcRepository.save(testPlc);
                 entityManager.flush();
 
                 plcRepository.deleteById(plc.getId());
-                List<Connection> connections
-                        = connectionRepository.findAll();
+                List<Connection> connections = connectionRepository.findAll();
 
                 assertThat(connections).isEmpty();
             }
@@ -158,15 +127,16 @@ class PlcRepositorySpec {
         class UpdatingPlc{
             @Test @DisplayName("deletes tool from database when tool is deleted from plc")
             void deletesToolFromDatabaseWhenToolIsDeletedFromPlc(){
-                int originalNumberOfTools = plcWithAllAttributes.getTools().size();
-                Plc plc = plcRepository.save(plcWithAllAttributes);
+                Plc testPlc = testPlcBuilder.randomTools(3).build();
+
+                Plc plc = plcRepository.save(testPlc);
                 entityManager.flush();
 
                 Tool randomTool = plc.getTools().stream().findAny().orElseThrow(() -> new RuntimeException("Plc doesn't have any tools"));
-                plc.removeTool(randomTool);
+                plc.removeTool(randomTool); //todo remove by id
                 plcRepository.save(plc);
 
-                assertThat(toolRepository.findAll().size()).isEqualTo(originalNumberOfTools-1);
+                assertThat(toolRepository.findAll().size()).isEqualTo(2);
             }
         }
 
@@ -179,35 +149,39 @@ class PlcRepositorySpec {
         class IpAddress{
             @Test @DisplayName("throws exception when ipAddress is \"null\"")
             void storePlcWithNullIpAddress(){
-                Plc plc = new Plc();
+                Plc testPlc = testPlcBuilder.ipAddress(null).build();
 
-                plcRepository.save(plc);
+                plcRepository.save(testPlc);
+
                 assertThrows(ConstraintViolationException.class,() -> entityManager.flush());
             }
 
             @Test @DisplayName("throws exception when ipAddress is empty string")
             void throwsErrorWhenIpAddressIsEmpty(){
-                Plc plc = Plc.builder().ipAddress("").name("name").build();
+                Plc testPlc = testPlcBuilder.ipAddress("").build();
 
-                plcRepository.save(plc);
+                plcRepository.save(testPlc);
+
                 assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
             }
 
             @Test @DisplayName("throws exception when ipAddress is in incorrect format")
             void throwsErrorWhenIpAddressIsInIncorrectFormat(){
-                Plc plc = Plc.builder().ipAddress("192.168.0.300").name("name").build();
+                Plc testPlc = testPlcBuilder.ipAddress("192.168.0.300").build();
 
-                plcRepository.save(plc);
+                plcRepository.save(testPlc);
+
                 assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
             }
 
             @Test @DisplayName("throws exception when two PLCs with same IP address are stored into database")
             void ipAddressIsUnique(){
-                Plc plc1 = Plc.builder().ipAddress("192.168.0.1").name("name1").build();
-                Plc plc2 = Plc.builder().ipAddress("192.168.0.1").name("name2").build();
+                Plc testPlc1 = testPlcBuilder.ipAddress("192.168.0.1").name("name1").build();
+                Plc testPlc2 = testPlcBuilder.ipAddress("192.168.0.1").name("name2").build();
 
-                plcRepository.save(plc1);
-                plcRepository.save(plc2);
+                plcRepository.save(testPlc1);
+                plcRepository.save(testPlc2);
+
                 assertThrows(PersistenceException.class,() -> entityManager.flush());
             }
 
@@ -218,27 +192,30 @@ class PlcRepositorySpec {
         class Name{
             @Test @DisplayName("throws exception when name is \"null\"")
             void throwsErrorWhenNameIsNull(){
-                Plc plc = Plc.builder().ipAddress("192.168.0.1").build();
+                Plc testPlc = testPlcBuilder.name(null).build();
 
-                plcRepository.save(plc);
+                plcRepository.save(testPlc);
+
                 assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
             }
 
             @Test @DisplayName("throws exception when name is empty string")
             void throwsErrorWhenNameIsEmpty(){
-                Plc plc = Plc.builder().ipAddress("192.168.0.1").name("").build();
+                Plc testPlc = testPlcBuilder.name("").build();
 
-                plcRepository.save(plc);
+                plcRepository.save(testPlc);
+
                 assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
             }
 
             @Test @DisplayName("throws exception when two PLCs with same name are stored into database")
             void nameIsUnique(){
-                Plc plc1 = Plc.builder().ipAddress("192.168.0.1").name("sameName").build();
-                Plc plc2 = Plc.builder().ipAddress("192.168.0.2").name("sameName").build();
+                Plc testPlc1 = testPlcBuilder.ipAddress("192.168.0.1").name("sameName").build();
+                Plc testPlc2 = testPlcBuilder.ipAddress("192.168.0.2").name("sameName").build();
 
-                plcRepository.save(plc1);
-                plcRepository.save(plc2);
+                plcRepository.save(testPlc1);
+                plcRepository.save(testPlc2);
+
                 assertThrows(PersistenceException.class,() -> entityManager.flush());
             }
 
@@ -248,24 +225,12 @@ class PlcRepositorySpec {
     @Test
     void findByExample(){
         for (int p=0;p<10;p++) {
-            Plc plcToDb = new Plc();
-
-            plcToDb.getHardwareInformation().setSerialNumber("SN 8370938");
-            plcToDb.getHardwareInformation().setFirmwareNumber("FW V1.2");
-            plcToDb.setIpAddress("192.168.1."+p);
-            plcToDb.markAsConnected();
-            plcToDb.setName("name"+p);
-            plcRepository.save(plcToDb);
+            Plc plcToBeStoredInDatabase = testPlcBuilder.ipAddress("192.168.0."+p).name("plc_"+p).build();
+            plcRepository.save(plcToBeStoredInDatabase);
             entityManager.flush();
         }
 
-        Plc plcExample = new Plc();
-
-        plcExample.getHardwareInformation().setSerialNumber("SN 8370938");
-        plcExample.getHardwareInformation().setFirmwareNumber("FW V1.2");
-        plcExample.setIpAddress("192.168.1."+1);
-        plcExample.markAsConnected();
-        plcExample.setName("name"+1);
+        Plc plcExample = testPlcBuilder.ipAddress("192.168.0.1").name("plc_1").build();
 
         ExampleMatcher ignoringExampleMatcher = ExampleMatcher.matchingAll()
                 .withIgnorePaths("connection");
