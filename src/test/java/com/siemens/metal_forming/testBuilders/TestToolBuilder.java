@@ -7,11 +7,12 @@ import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TestToolBuilder {
     Long id;
-    Plc plc = new TestPlcBuilder().tools(null).currentTool(null).build();
+    Plc plc = new TestPlcBuilder().build();
     Integer toolNumber = 1;
     String name = "toolName";
     Integer numberOfReferenceCycles = 10;
@@ -72,8 +73,20 @@ public class TestToolBuilder {
     }
 
     public Tool build(){
-        Tool toolToReturn = new Tool(id,plc,toolNumber,name,numberOfReferenceCycles,stopReaction,automaticMonitoring,maxSpeedOperation,toolStatus,referenceCurve);
+        Tool toolToReturn = new Tool();
         plc.addTool(toolToReturn);
+
+        ReflectionTestUtils.setField(toolToReturn, "id", id);
+        ReflectionTestUtils.setField(toolToReturn, "plc", plc);
+        ReflectionTestUtils.setField(toolToReturn, "toolNumber", toolNumber);
+        ReflectionTestUtils.setField(toolToReturn, "name", name);
+        ReflectionTestUtils.setField(toolToReturn, "numberOfReferenceCycles", numberOfReferenceCycles);
+        ReflectionTestUtils.setField(toolToReturn, "stopReaction", stopReaction);
+        ReflectionTestUtils.setField(toolToReturn, "automaticMonitoring", automaticMonitoring);
+        ReflectionTestUtils.setField(toolToReturn, "maxSpeedOperation", maxSpeedOperation);
+        ReflectionTestUtils.setField(toolToReturn, "toolStatus", toolStatus);
+        ReflectionTestUtils.setField(toolToReturn, "referenceCurve", referenceCurve);
+
         return toolToReturn;
     }
 }

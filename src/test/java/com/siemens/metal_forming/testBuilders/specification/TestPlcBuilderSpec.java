@@ -6,6 +6,7 @@ import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 
+import java.sql.Timestamp;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +35,26 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
 
             assertThat(testPlc.getTools().size()).isEqualTo(3);
         }
+
+        @Test @DisplayName("sets status to CONNECTED and lastStatusChange to given timestamp")
+        void setsStatusToConnectedAndLastStatusChangeToGivenTimestamp(){
+            Plc testPlc = testPlcBuilder.connectedOn(new Timestamp(1)).build();
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(testPlc.getConnection().getStatus()).as("status").isEqualTo(ConnectionStatus.CONNECTED);
+            softAssertions.assertThat(testPlc.getConnection().getLastStatusChange()).as("lastStatusChange").isEqualTo(new Timestamp(1L));
+            softAssertions.assertAll();
+        }
+
+        @Test @DisplayName("sets status to DISCONNECTED and lastStatusChange to given timestamp")
+        void setsStatusToDisconnectedAndLastStatusChangeToGivenTimestamp(){
+            Plc testPlc = testPlcBuilder.disconnectedOn(new Timestamp(1)).build();
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(testPlc.getConnection().getStatus()).as("status").isEqualTo(ConnectionStatus.DISCONNECTED);
+            softAssertions.assertThat(testPlc.getConnection().getLastStatusChange()).as("lastStatusChange").isEqualTo(new Timestamp(1L));
+            softAssertions.assertAll();
+        }
     }
 
 
@@ -60,7 +81,7 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
             assertThat(testPlc.getIpAddress()).isEqualTo("192.168.0.1");
         }
 
-        @Test @DisplayName("sets hardwareInformation of new plc") @Disabled("not implemented yet")
+        @Test @DisplayName("sets hardwareInformation of new plc")
         void setsHardwareInformationOfNewPlc(){
             Plc testPlc = testPlcBuilder
                     .hardwareInformation(HardwareInformation.builder().serialNumber("SN 999").firmwareNumber("FW 999").build())
@@ -72,7 +93,7 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
             softAssertions.assertAll();
         }
 
-        @Test @DisplayName("sets connection of new plc") @Disabled("not implemented yet")
+        @Test @DisplayName("sets connection of new plc")
         void setsConnectionOfNewPlc(){
             Plc testPlc = testPlcBuilder.connection(new Connection(null, ConnectionStatus.CONNECTED)).build();
 

@@ -1,9 +1,12 @@
 package com.siemens.metal_forming.testBuilders;
 
 import com.siemens.metal_forming.entity.*;
+import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +50,16 @@ public class TestPlcBuilder{
         return this;
     }
 
+    public TestPlcBuilder connectedOn(Timestamp timestamp){
+        this.connection = new TestConnectionBuilder().status(ConnectionStatus.CONNECTED).lastStatusChange(timestamp).build();
+        return this;
+    }
+
+    public TestPlcBuilder disconnectedOn(Timestamp timestamp){
+        this.connection = new TestConnectionBuilder().status(ConnectionStatus.DISCONNECTED).lastStatusChange(timestamp).build();
+        return this;
+    }
+
     public TestPlcBuilder motorCurve(Curve motorCurve){
         this.motorCurve = motorCurve;
         return this;
@@ -76,10 +89,20 @@ public class TestPlcBuilder{
 
 
     public Plc build(){
-        Plc plcToCreate = new Plc(id,name,ipAddress,motorCurve,currentTool);
+        Plc plcToCreate = new Plc();
         if(tools != null){
             tools.forEach(plcToCreate::addTool);
         }
+
+        ReflectionTestUtils.setField(plcToCreate, "id", id);
+        ReflectionTestUtils.setField(plcToCreate, "name", name);
+        ReflectionTestUtils.setField(plcToCreate, "ipAddress", ipAddress);
+        ReflectionTestUtils.setField(plcToCreate, "hardwareInformation", hardwareInformation);
+        ReflectionTestUtils.setField(plcToCreate, "connection", connection);
+        ReflectionTestUtils.setField(plcToCreate, "motorCurve", motorCurve);
+        ReflectionTestUtils.setField(plcToCreate, "tools", tools);
+        ReflectionTestUtils.setField(plcToCreate, "currentTool", currentTool);
+
 
         return plcToCreate;
     }
