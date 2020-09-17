@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,13 +17,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= CURVE SPECIFICATION =>")
-class CurveSpec  extends EntitySpec{
+class CurveSpec  extends EntitySpec {
     Curve curve;
     Validator validator;
 
-    @Override
-    public Class getTestedClass() {
-        return Curve.class;
+    public CurveSpec() {
+        super(Curve.class);
     }
 
     @BeforeEach

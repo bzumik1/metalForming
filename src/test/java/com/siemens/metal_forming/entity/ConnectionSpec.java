@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -17,14 +18,13 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= CONNECTION SPECIFICATION =>")
-class ConnectionSpec extends EntitySpec{
+class ConnectionSpec extends EntitySpec {
     Connection connection;
 
-
-    @Override
-    public Class getTestedClass() {
-        return Connection.class;
+    public ConnectionSpec() {
+        super(Connection.class);
     }
+
 
     @BeforeEach
     void initialize(){

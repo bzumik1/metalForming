@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,14 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= TOOL SPECIFICATION =>")
-class ToolSpec extends EntitySpec{
+class ToolSpec extends EntitySpec {
     Validator validator;
     Tool tool;
 
-    @Override
-    public Class getTestedClass() {
-        return Tool.class;
+    public ToolSpec() {
+        super(Tool.class);
     }
+
 
     @BeforeEach
     void initialize(){

@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
@@ -9,7 +10,6 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
-import org.mockito.Mockito;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -24,12 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= PLC SPECIFICATION =>")
-public class PlcSpec extends EntitySpec{
+public class PlcSpec extends EntitySpec {
     Plc plc;
 
-    @Override
-    public Class getTestedClass() {
-        return Plc.class;
+    public PlcSpec() {
+        super(Plc.class);
     }
 
     @BeforeEach

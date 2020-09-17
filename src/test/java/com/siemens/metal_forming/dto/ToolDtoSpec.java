@@ -11,11 +11,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ToolDtoSpec {
     @Nested @DisplayName("CREATE")
     class ToolDtoRequestCreate{
-        @Test @DisplayName("is created with tool status MANUALLY_ADDED")
-        void isCreatedWithToolStatusManuallyAdded(){
-            ToolDto.Request.Create toolDto = ToolDto.Request.Create.builder().build();
 
-            assertThat(toolDto.getToolStatus()).isEqualTo(ToolStatusType.MANUALLY_ADDED);
+    }
+
+    @Nested @DisplayName("REQUEST")
+    class Request{
+        @Nested @DisplayName("CREATE")
+        class Create extends DtoSpec{
+            public Create() {
+                super(ToolDto.Request.Create.class);
+            }
+
+            @Test @DisplayName("is created with tool status MANUALLY_ADDED")
+            void isCreatedWithToolStatusManuallyAdded(){
+                ToolDto.Request.Create toolDto = ToolDto.Request.Create.builder().build();
+
+                assertThat(toolDto.getToolStatus()).isEqualTo(ToolStatusType.MANUALLY_ADDED);
+            }
+        }
+
+        @Nested @DisplayName("UPDATE")
+        class Update extends DtoSpec{
+            public Update() {
+                super(ToolDto.Request.Update.class);
+            }
+        }
+    }
+
+    @Nested @DisplayName("RESPONSE")
+    class Response{
+        @Nested @DisplayName("OVERVIEW")
+        class Overview extends DtoSpec{
+            public Overview() {
+                super(ToolDto.Response.Overview.class);
+            }
         }
     }
 }

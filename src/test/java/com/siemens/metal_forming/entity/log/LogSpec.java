@@ -2,25 +2,17 @@ package com.siemens.metal_forming.entity.log;
 
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.CurvePoint;
-import com.siemens.metal_forming.entity.ImmutableEntitySpec;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
-import com.siemens.metal_forming.entity.log.Log;
-import com.siemens.metal_forming.entity.log.PlcInfo;
-import com.siemens.metal_forming.entity.log.ToolInfo;
+import com.siemens.metal_forming.entity.abstractSpec.ImmutableEntitySpec;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
 import javax.validation.Validator;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,9 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LogSpec extends ImmutableEntitySpec {
     Log validLogWithAllAttributes;
 
-    @Override
-    public Class getTestedClass() {
-        return Log.class;
+    public LogSpec() {
+        super(Log.class);
     }
 
     @BeforeEach

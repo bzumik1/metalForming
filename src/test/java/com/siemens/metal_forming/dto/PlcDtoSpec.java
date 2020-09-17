@@ -1,4 +1,4 @@
-package com.siemens.metal_forming.dto.plcDto;
+package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.dto.DtoSpec;
 import com.siemens.metal_forming.dto.PlcDto;
@@ -11,17 +11,15 @@ class PlcDtoSpec {
     class Request{
         @Nested @DisplayName("CREATE")
         class Create extends DtoSpec{
-            @Override
-            public Class getTestedClass() {
-                return PlcDto.Request.Create.class;
+            public Create() {
+                super(PlcDto.Request.Create.class);
             }
         }
 
         @Nested @DisplayName("UPDATE")
         class Update extends DtoSpec{
-            @Override
-            public Class getTestedClass() {
-                return PlcDto.Request.Update.class;
+            public Update() {
+                super(PlcDto.Request.Update.class);
             }
         }
     }
@@ -30,9 +28,8 @@ class PlcDtoSpec {
     class Response{
         @Nested @DisplayName("OVERVIEW")
         class Overview extends DtoSpec{
-            @Override
-            public Class getTestedClass() {
-                return PlcDto.Response.Overview.class;
+            public Overview() {
+                super(PlcDto.Response.Overview.class);
             }
         }
     }
