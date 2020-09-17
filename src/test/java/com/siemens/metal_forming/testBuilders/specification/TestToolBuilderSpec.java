@@ -53,7 +53,7 @@ public class TestToolBuilderSpec extends TestBuilderSpec{
 
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(testTool.getPlc()).as("plc wasn't set for tool").isEqualTo(testPlc);
-            softAssertions.assertThat(testTool.getPlc().getTool(testTool.getToolNumber())).as("tool wasn't added to plc").isEqualTo(testTool);
+            softAssertions.assertThat(testTool.getPlc().getToolByToolNumber(testTool.getToolNumber())).as("tool wasn't added to plc").isEqualTo(testTool);
             softAssertions.assertAll();
         }
 

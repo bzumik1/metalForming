@@ -19,8 +19,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -260,7 +258,7 @@ class ToolServiceSpec {
                 //runs update of plc which was caught
                 plcConsumerCaptor.getValue().accept(plcInDb);
 
-                assertThat(plcInDb.getTool(idOfFirstExistingTool).getName()).isEqualTo("newName");
+                assertThat(plcInDb.getToolById(idOfFirstExistingTool).getName()).isEqualTo("newName");
             }
 
             @Test @DisplayName("updates multiple attributes")
@@ -276,8 +274,8 @@ class ToolServiceSpec {
                 plcConsumerCaptor.getValue().accept(plcInDb);
 
                 SoftAssertions softAssertions = new SoftAssertions();
-                softAssertions.assertThat(plcInDb.getTool(idOfFirstExistingTool).getName()).isEqualTo("newName");
-                softAssertions.assertThat(plcInDb.getTool(idOfFirstExistingTool).getToolNumber()).isEqualTo(100);
+                softAssertions.assertThat(plcInDb.getToolById(idOfFirstExistingTool).getName()).isEqualTo("newName");
+                softAssertions.assertThat(plcInDb.getToolById(idOfFirstExistingTool).getToolNumber()).isEqualTo(100);
                 softAssertions.assertAll();
             }
         }

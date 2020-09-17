@@ -3,7 +3,6 @@ package com.siemens.metal_forming.service.impl;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.PlcService;
@@ -44,7 +43,7 @@ public class ToolServiceImpl implements ToolService {
     @Override
     public void delete(Long plcId, Long toolId){
         Consumer<Plc> updatePlc = plc -> {
-            Tool toolToBeRemoved = plc.getTool(toolId);
+            Tool toolToBeRemoved = plc.getToolById(toolId);
             plc.removeTool(toolToBeRemoved);
         };
         plcService.update(plcId,updatePlc);
@@ -53,18 +52,18 @@ public class ToolServiceImpl implements ToolService {
     @Override
     public Tool create(Long plcId, Tool tool){
         Plc updatedPlc = plcService.update(plcId, plc -> plc.addTool(tool));
-        return updatedPlc.getTool(tool.getToolNumber());
+        return updatedPlc.getToolByToolNumber(tool.getToolNumber());
     }
 
     @Transactional
     @Override
     public Tool update(Long plcId, Long toolId, Consumer<Tool> updateTool) {
         Consumer<Plc> updatePlc = plc -> {
-            Tool toolToBeUpdated = plc.getTool(toolId);
+            Tool toolToBeUpdated = plc.getToolById(toolId);
             plc.removeTool(toolToBeUpdated);
             updateTool.accept(toolToBeUpdated);
             plc.addTool(toolToBeUpdated);
         };
-        return plcService.update(plcId,updatePlc).getTool(toolId);
+        return plcService.update(plcId,updatePlc).getToolById(toolId);
     }
 }

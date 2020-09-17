@@ -2,10 +2,9 @@ package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
-import com.siemens.metal_forming.enumerated.ToolStatusType;
-import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
+import com.siemens.metal_forming.exception.exceptions.*;
+import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
+import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.assertj.core.api.SoftAssertions;
@@ -16,8 +15,10 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import java.util.HashSet;
+import java.sql.Timestamp;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= PLC SPECIFICATION =>")
 public class PlcSpec extends EntitySpec {
-    Plc plc;
+    TestPlcBuilder testPlcBuilder;
 
     public PlcSpec() {
         super(Plc.class);
@@ -33,73 +34,111 @@ public class PlcSpec extends EntitySpec {
 
     @BeforeEach
     void initializePlc(){
-        plc = new Plc();
+        testPlcBuilder = new TestPlcBuilder();
     }
 
     @Nested @DisplayName("NEW PLC")
     class NewPlc{
-        @Test @DisplayName("is always created with empty set of tools (constructor)")
-        void isAlwaysCreatedWithEmptySetOfToolsConstructor(){
-            assertThat(plc.getTools()).isNotNull();
+        @Nested@DisplayName("DEFAULT CONSTRUCTOR")
+        class DefaultConstructor{
+            @Test @DisplayName("is always created with empty set of tools")
+            void isAlwaysCreatedWithEmptySetOfToolsConstructor(){
+                Plc testPlc = new Plc();
+
+                assertThat(testPlc.getTools()).isNotNull();
+            }
+
+            @Test @DisplayName("is always created with empty hardwareInformation")
+            void isAlwaysCreatedWithEmptyHardwareInformation(){
+                Plc testPlc = new Plc();
+
+                assertThat(testPlc.getHardwareInformation()).isNotNull();
+            }
+
+            @Test @DisplayName("is created with connection where status is FAILED and lastUpdate is now")
+            void isCreatedWithConnection(){
+                Plc testPlc = new Plc();
+
+                long acceptedTimeDifferenceInMillis = 1000;
+                long connectionMillis = testPlc.getConnection().getLastStatusChange().getTime();
+                long currentMillis = System.currentTimeMillis();
+
+                assertThat(testPlc.getConnection()).isNotNull();
+                assertThat(testPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+                assertThat(Math.abs((connectionMillis - currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+            }
         }
 
-        @Test @DisplayName("is always created with empty set of tools (builder)")
-        void isAlwaysCreatedWithEmptySetOfToolsBuilder(){
-            assertThat(Plc.builder().build().getTools()).isNotNull();
-        }
+        @Nested @DisplayName("BUILDER")
+        class Builder{
+            @Test @DisplayName("is always created with empty set of tools")
+            void isAlwaysCreatedWithEmptySetOfToolsConstructor(){
+                Plc testPlc = Plc.builder().build();
 
-        @Test @DisplayName("is always created with empty hardwareInformations")
-        void isAlwaysCreatedWithEmptyHardwareInformation(){
-            assertThat(plc.getHardwareInformation()).isNotNull();
-        }
+                assertThat(testPlc.getTools()).isNotNull();
+            }
 
-        @Test @DisplayName("is created with connection where status is FAILED and lastUpdate is now")
-        void isCreatedWithConnection(){
-            long acceptedTimeDifferenceInMillis = 1000;
+            @Test @DisplayName("is always created with empty hardwareInformation")
+            void isAlwaysCreatedWithEmptyHardwareInformation(){
+                Plc testPlc = Plc.builder().build();
 
-            long connectionMillis = plc.getConnection().getLastStatusChange().getTime();
-            long currentMillis = System.currentTimeMillis();
+                assertThat(testPlc.getHardwareInformation()).isNotNull();
+            }
 
-            assertThat(plc.getConnection()).isNotNull();
-            assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
-            assertThat(Math.abs((connectionMillis - currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+            @Test @DisplayName("is created with connection where status is FAILED and lastUpdate is now")
+            void isCreatedWithConnection(){
+                Plc testPlc = Plc.builder().build();
+
+                long acceptedTimeDifferenceInMillis = 1000;
+                long connectionMillis = testPlc.getConnection().getLastStatusChange().getTime();
+                long currentMillis = System.currentTimeMillis();
+
+                assertThat(testPlc.getConnection()).isNotNull();
+                assertThat(testPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+                assertThat(Math.abs((connectionMillis - currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+            }
+
+            @Test @DisplayName("sets plc for all tools added in builder") @Disabled("not implemented yet")
+            void setsPlcForAllToolsAddedInBuilder(){
+            }
         }
     }
 
-    @Nested @DisplayName("CONNECTION")
-    class Connection{
+    @Nested @DisplayName("CONNECTION SETUP")
+    class ConnectionSetup{
         @Test @DisplayName("connection of plc is set to CONNECTED with last update \"now\" when markAsConnected method is called")
         void markAsConnectedTest(){
-            plc.getConnection().getLastStatusChange().setTime(1);
+            Plc testPlc = testPlcBuilder.disconnectedOn(new Timestamp(1L)).build();
 
-            plc.markAsConnected();
+            testPlc.markAsConnected();
 
-            assertThat(plc.getConnection()).isNotNull();
-            assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
-            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusChange().getTime())))
+            assertThat(testPlc.getConnection()).isNotNull();
+            assertThat(testPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
+            assertThat(Math.abs((System.currentTimeMillis() - testPlc.getConnection().getLastStatusChange().getTime())))
                     .isLessThan(1000); //time difference in ms
         }
 
         @Test @DisplayName("connection of plc is set to DISCONNECTED with last update \"now\" when markAsDisconnected method is called")
         void markAsDisconnectedTest(){
-            plc.getConnection().getLastStatusChange().setTime(1); //sets random time
+            Plc testPlc = testPlcBuilder.connectedOn(new Timestamp(1L)).build();
 
-            plc.markAsDisconnected();
+            testPlc.markAsDisconnected();
 
-
-            assertThat(plc.getConnection()).isNotNull();
-            assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
-            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusChange().getTime())))
+            assertThat(testPlc.getConnection()).isNotNull();
+            assertThat(testPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+            assertThat(Math.abs((System.currentTimeMillis() - testPlc.getConnection().getLastStatusChange().getTime())))
                     .isLessThan(1000); //time difference in ms
 
         }
 
         @Test @DisplayName("updates connection status and set last update to \"now\"")
         void updatesConnectionStatusAndSetLastUpdateToNow(){
-            plc.setConnectionStatus(ConnectionStatus.CONNECTED);
+            Plc testPlc = testPlcBuilder.disconnectedOn(new Timestamp(1L)).build();
 
-            assertThat(plc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
-            assertThat(Math.abs((System.currentTimeMillis() - plc.getConnection().getLastStatusChange().getTime())))
+            testPlc.setConnectionStatus(ConnectionStatus.CONNECTED);
+
+            assertThat(testPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
+            assertThat(Math.abs((System.currentTimeMillis() - testPlc.getConnection().getLastStatusChange().getTime())))
                     .isLessThan(1000); //time difference in ms
 
         }
@@ -115,13 +154,16 @@ public class PlcSpec extends EntitySpec {
             validator = factory.getValidator();
         }
 
-        @Nested @DisplayName("IP address validation")
-        class ipAddressValidation{
+        @Nested @DisplayName("IP ADDRESS VALIDATION")
+        class IpAddressValidation{
 
 
             @Test @DisplayName("is invalid when IP address is null")
             void plcAlwaysHasIpAddress(){
-                Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+                Plc testPlc = testPlcBuilder.ipAddress(null).build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
                 assertThat(violations
                         .stream()
                         .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
@@ -130,8 +172,10 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("is invalid when IP address is empty")
             void ipAddressIsNotEmpty(){
-                plc.setIpAddress("");
-                Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+                Plc testPlc = testPlcBuilder.ipAddress("").build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
                 assertThat(violations
                         .stream()
                         .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
@@ -140,8 +184,10 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("is invalid when IP address is \"just a random string\"")
             void ipAddressIsInCorrectFormat(){
-                plc.setIpAddress("just a random string");
-                Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+                Plc testPlc = testPlcBuilder.ipAddress("just a random string").build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
                 assertThat(violations
                         .stream()
                         .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
@@ -150,8 +196,10 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("is invalid when IP address is to short \"1.1.1\"")
             void ipAddressIsToShort(){
-                plc.setIpAddress("1.1.1");
-                Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+                Plc testPlc = testPlcBuilder.ipAddress("1.1.1").build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
                 assertThat(violations
                         .stream()
                         .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
@@ -160,8 +208,10 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("is invalid when IP address is to long \"1.1.1.1.1\"")
             void ipAddressIsToLong(){
-                plc.setIpAddress("1.1.1.1.1");
-                Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
+                Plc testPlc = testPlcBuilder.ipAddress("1.1.1.1.1").build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
                 assertThat(violations
                         .stream()
                         .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
@@ -170,103 +220,113 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("is invalid when one of IP addresses number is out of range\"1.1.1.256\"")
             void ipAddressIsOutOfRange(){
-                plc.setIpAddress("1.1.1.256");
-                Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
-                assertThat(violations).isNotEmpty();
+                Plc testPlc = testPlcBuilder.ipAddress("1.1.1.256").build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
+                assertThat(violations
+                        .stream()
+                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
+                        .findFirst()).isNotEmpty();
             }
         }
 
-        @Test @DisplayName("is invalid when currentTool is null") @Disabled
-        void isInvalidWhenCurrentToolIsNull(){
-            Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
-            assertThat(violations
-                    .stream()
-                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("currentTool"))
-                    .findFirst()).isNotEmpty();
-        }
+        @Nested @DisplayName("NAME VALIDATION")
+        class NameValidation{
+            @Test @DisplayName("is invalid when name is null")
+            void isInvalidWhenNameIsNull(){
+                Plc testPlc = testPlcBuilder.name(null).build();
 
-        @Test @DisplayName("is invalid when name is null")
-        void isInvalidWhenNameIsNull(){
-            plc.setName(null);
-            Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
-            assertThat(violations
-                    .stream()
-                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
-                    .findFirst()).isNotEmpty();
-        }
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
 
-        @Test @DisplayName("is invalid when name is empty string")
-        void isInvalidWhenNameIsEmptyString(){
-            plc.setName("");
-            Set<ConstraintViolation<Plc>> violations = validator.validate(plc);
-            assertThat(violations
-                    .stream()
-                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
-                    .findFirst()).isNotEmpty();
+                assertThat(violations
+                        .stream()
+                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
+                        .findFirst()).isNotEmpty();
+            }
+
+            @Test @DisplayName("is invalid when name is empty string")
+            void isInvalidWhenNameIsEmptyString(){
+                Plc testPlc = testPlcBuilder.name("").build();
+
+                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+
+                assertThat(violations
+                        .stream()
+                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
+                        .findFirst()).isNotEmpty();
+            }
         }
     }
 
     @Nested @DisplayName("TOOLS")
     class Tools{
+        TestToolBuilder testToolBuilder;
+
         @BeforeEach
-        void initializeForTools(){
-            for(int i=0; i<3; i++){
-                Tool tool = Tool.builder().id((long)i).toolNumber(i).toolStatus(ToolStatusType.AUTODETECTED).build();
-                plc.addTool(tool);
-            }
+        void initialize(){
+            testToolBuilder = new TestToolBuilder();
         }
+
         @Nested @DisplayName("SET CURRENT TOOL")
         class SetCurrentTool{
-            @Test @DisplayName("when toolId is incorrect throws ToolNotFoundException")
+            @Test @DisplayName("when toolNumber is incorrect throws ToolNotFoundException")
             void whenToolIdIsIncorrectThrowsException(){
-                assertThrows(ToolNotFoundException.class, () -> plc.setCurrentTool(plc.getTools().size()));
+                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Tool tool2 = testToolBuilder.toolNumber(2).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
+
+                assertThrows(ToolNotFoundException.class, () -> testPlc.setCurrentTool(3));
+            }
+
+            @Test @DisplayName("throws InvalidToolNumberException when toolNumber is null")
+            void throwsInvalidToolNumberExceptionWhenToolNumberIsNull(){
+                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).build();
+
+                assertThrows(InvalidToolNumberException.class, () -> testPlc.setCurrentTool(null));
             }
 
             @Test @DisplayName("sets correct currentTool based on toolId")
             void setsCorrectCurrentTool(){
-                int toolNumber = 2;
-                Tool toolToBeSetAsFutureCurrentTool = plc.getTools()
-                        .stream().filter(tool -> tool.getToolNumber() == toolNumber)
-                        .findAny()
-                        .orElseThrow(()-> new RuntimeException("error in test"));
+                Plc testPlc = testPlcBuilder.randomTools(3).build();
 
-                plc.setCurrentTool(toolNumber);
-                assertThat(plc.getCurrentTool()).isEqualTo(toolToBeSetAsFutureCurrentTool);
+                testPlc.setCurrentTool(1);
+
+                assertThat(testPlc.getCurrentTool().getToolNumber()).isEqualTo(1);
             }
         }
 
         @Nested @DisplayName("SET TOOLS")
         class SetTools{
-            Set<Tool> newTools;
-
-            @BeforeEach
-            void initializeForSetTools(){
-                newTools = new HashSet<>();
-                newTools.add(Tool.builder().toolNumber(1).build());
-                newTools.add(Tool.builder().toolNumber(2).build());
-            }
 
             @Test @DisplayName("old tools are replaced with new ones")
             void oldToolsAreReplacedWithNewOnes(){
-                assertThat(plc.getTools().size()).isNotEqualTo(newTools.size());
-                plc.setTools(newTools);
-                assertThat(plc.getTools().size()).isEqualTo(newTools.size());
+                Plc testPlc = testPlcBuilder.randomTools(2).build();
+                Set<Tool> newTools = Stream.iterate(0,n-> n+1).map(i -> testToolBuilder.toolNumber(i).build()).limit(5).collect(Collectors.toSet());
+
+                testPlc.setTools(newTools);
+
+                assertThat(testPlc.getTools()).isEqualTo(newTools);//todo comparator?
             }
 
             @Test @DisplayName("sets plc for all new tools")
             void setsPlcForAllNewTools(){
-                plc.setTools(newTools);
+                Plc testPlc = testPlcBuilder.randomTools(2).build();
+                Set<Tool> newTools = Stream.iterate(0,n-> n+1).map(i -> testToolBuilder.toolNumber(i).build()).limit(5).collect(Collectors.toSet());
+
+                testPlc.setTools(newTools);
 
                 SoftAssertions softAssertions = new SoftAssertions();
-                for (Tool t: newTools){
-                    softAssertions.assertThat(t.getPlc()).isEqualTo(plc);
-                }
+                newTools.forEach(tool -> softAssertions.assertThat(tool.getPlc()).isEqualTo(testPlc));
                 softAssertions.assertAll();
             }
 
             @Test @DisplayName("throws exception when null is entered as parameter")
             void throwsExceptionWhenNullIsProvided(){
-                assertThrows(InvalidToolsException.class,()-> plc.setTools(null));
+                Plc testPlc = testPlcBuilder.randomTools(3).build();
+
+                assertThrows(InvalidToolsException.class,()-> testPlc.setTools(null));
             }
         }
 
@@ -274,26 +334,38 @@ public class PlcSpec extends EntitySpec {
         class AddTool{
             @Test @DisplayName("throws ToolUniqueConstrainException when tool is already in PLC's tools")
             void throwsToolUniqueConstrainExceptionWhenToolIsAlreadyInPlc(){
-                Tool tool2 = Tool.builder().id(1L).toolNumber(1).name("name2").build();
+                Tool oldTool = testToolBuilder.toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.addTool(oldTool).build();
 
-                assertThrows(ToolUniqueConstrainException.class,() -> plc.addTool(tool2));
+                assertThrows(ToolUniqueConstrainException.class,() -> testPlc.addTool(oldTool));
+            }
+
+            @Test @DisplayName("throws InvalidToolException when tool is null")
+            void throwsInvalidToolExceptionWhenToolIsNull(){
+                Plc testPlc = testPlcBuilder.build();
+
+                assertThrows(InvalidToolException.class, () -> testPlc.addTool(null));
             }
 
             @Test @DisplayName("sets plc of the tool to this plc")
             void setsPlcOfTheToolToThisPlc(){
-                Tool newTool = Tool.builder().build();
-                plc.addTool(newTool);
+                Tool newTool = testToolBuilder.toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.build();
 
-                assertThat(newTool.getPlc()).isEqualTo(plc);
+                testPlc.addTool(newTool);
+
+                assertThat(newTool.getPlc()).isEqualTo(testPlc);
             }
 
-            @Test @DisplayName("adds tool if toolNumberIsUnique")
+            @Test @DisplayName("adds tool if tool is unique")
             void addsToolIfToolNumberIsUnique(){
-                int sizeOfOldTools = plc.getTools().size();
-                Tool tool2 = Tool.builder().id(1L).toolNumber(sizeOfOldTools).name("name").build();
-                plc.addTool(tool2);
+                Tool oldTool = testToolBuilder.toolNumber(1).build();
+                Tool newTool = testToolBuilder.toolNumber(2).build();
+                Plc testPlc = testPlcBuilder.addTool(oldTool).build();
 
-                assertThat(plc.getTools().size()).isEqualTo(sizeOfOldTools+1);
+                testPlc.addTool(newTool);
+
+                assertThat(testPlc.getTools().size()).isEqualTo(2);
             }
         }
 
@@ -301,25 +373,57 @@ public class PlcSpec extends EntitySpec {
         class GetToolByToolNumber{
             @Test @DisplayName("returns tool when tool was not found")
             void returnsToolWhenToolWasFound(){
-                assertThat(plc.getTool(0)).isNotNull();
+                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Tool tool2 = testToolBuilder.toolNumber(2).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
+
+                assertThat(testPlc.getToolByToolNumber(1)).isNotNull();
+            }
+
+            @Test @DisplayName("throws InvalidToolNumberException when toolNumber is null")
+            void throwsInvalidToolNumberExceptionWhenToolNumberIsNull(){
+                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).build();
+
+                assertThrows(InvalidToolNumberException.class, () -> testPlc.getToolByToolNumber(null));
             }
 
             @Test @DisplayName("throws ToolNotFoundException when tool was found")
             void throwsExceptionWhenToolWasNotFound(){
-                assertThrows(ToolNotFoundException.class,() -> plc.getTool(plc.getTools().size()));
+                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Tool tool2 = testToolBuilder.toolNumber(2).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
+
+                assertThrows(ToolNotFoundException.class,() -> testPlc.getToolByToolNumber(3));
             }
         }
 
         @Nested @DisplayName("GET TOOL BY ID")
         class GetToolById{
-            @Test @DisplayName("returns tool when tool was not found")
+            @Test @DisplayName("returns tool when tool was found")
             void returnsToolWhenToolWasFound(){
-                assertThat(plc.getTool((long)0)).isNotNull();
+                Tool tool1 = testToolBuilder.id(1L).toolNumber(55).build();
+                Tool tool2 = testToolBuilder.id(2L).toolNumber(56).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
+
+                assertThat(testPlc.getToolById(1L)).isNotNull();
+            }
+
+            @Test @DisplayName("throws InvalidToolNumberException when id is null")
+            void throwsInvalidToolNumberExceptionWhenIdIsNull(){
+                Tool tool1 = testToolBuilder.id(1L).toolNumber(55).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).build();
+
+                assertThrows(InvalidIdException.class, () -> testPlc.getToolById(null));
             }
 
             @Test @DisplayName("throws ToolNotFoundException when tool was found")
             void throwsExceptionWhenToolWasNotFound(){
-                assertThrows(ToolNotFoundException.class,() -> plc.getTool((long)plc.getTools().size()));
+                Tool tool1 = testToolBuilder.id(1L).toolNumber(55).build();
+                Tool tool2 = testToolBuilder.id(2L).toolNumber(56).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
+
+                assertThrows(ToolNotFoundException.class,() -> testPlc.getToolById(3L));
             }
         }
 
@@ -327,15 +431,21 @@ public class PlcSpec extends EntitySpec {
         class RemoveTool{
             @Test @DisplayName("return false when tool with same toolNumber was not found")
             void returnFalseWhenToolWasNotFound(){
-                assertThat(plc.removeTool(Tool.builder().toolNumber(plc.getTools().size()).build())).isEqualTo(false);
+                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Tool toolWhichIsNotInPlc = testToolBuilder.toolNumber(2).build();
+                Plc testPlc = testPlcBuilder.addTool(tool1).build();
+
+                assertThat(testPlc.removeTool(toolWhichIsNotInPlc)).isEqualTo(false);
             }
 
             @Test @DisplayName("removes tool when tool with same toolNumber was found tool")
             void removesToolWhenToolWithSameToolNumberWasFound(){
-                int oldToolsSize  = plc.getTools().size();
-                plc.removeTool(Tool.builder().toolNumber(0).build());
+                Tool toolWhichIsInPlc = testToolBuilder.toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.addTool(toolWhichIsInPlc).build();
 
-                assertThat(plc.getTools().size()).isEqualTo(oldToolsSize-1);
+                testPlc.removeTool(toolWhichIsInPlc);
+
+                assertThat(testPlc.getTools()).isEmpty();
             }
         }
     }

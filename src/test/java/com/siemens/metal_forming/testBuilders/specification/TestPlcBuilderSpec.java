@@ -61,7 +61,7 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
         void addsToolToToolsOfNewPlc(){
             Plc testPlc = testPlcBuilder
                     .addTool(new TestToolBuilder().toolNumber(1).build())
-                    .addTool(new TestToolBuilder().toolNumber(1).build())
+                    .addTool(new TestToolBuilder().toolNumber(2).build())
                     .build();
 
             assertThat(testPlc.getTools().size()).isEqualTo(2);

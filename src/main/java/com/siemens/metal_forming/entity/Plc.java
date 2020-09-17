@@ -2,9 +2,7 @@ package com.siemens.metal_forming.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
-import com.siemens.metal_forming.exception.exceptions.InvalidToolsException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
+import com.siemens.metal_forming.exception.exceptions.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.validation.annotation.Validated;
@@ -57,10 +55,7 @@ public class Plc {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc", orphanRemoval = true)
     final Set<Tool> tools = new HashSet<>();
 
-    public void setCurrentTool(int toolId){
-        Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolNumber().equals(toolId)).findFirst();
-        currentTool = newCurrentTool.orElseThrow(ToolNotFoundException::new);
-    }
+
 
     public void markAsConnected(){
         connection.setStatus(ConnectionStatus.CONNECTED);
@@ -74,37 +69,47 @@ public class Plc {
         connection.setStatus(connectionStatus);
     }
 
+    public void setCurrentTool(@NotNull Integer toolId){
+        if (toolId == null) throw new InvalidToolNumberException();
+
+        Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolNumber().equals(toolId)).findFirst();
+        currentTool = newCurrentTool.orElseThrow(ToolNotFoundException::new);
+    }
+
     public void setTools(@NotNull Set<Tool> tools){
-        if(tools == null){
-            throw new InvalidToolsException();
-        }
+        if(tools == null)throw new InvalidToolsException();
+
         this.tools.clear();
         tools.forEach(tool -> tool.setPlc(this));
         this.tools.addAll(tools);
     }
 
-    public void addTool(Tool tool){
+    public void addTool(@NotNull Tool tool){
+        if(tool == null) throw new InvalidToolException();
+
         tool.setPlc(this);
-        if(!tools.add(tool)){
-            throw new ToolUniqueConstrainException(tool.getToolNumber());
-        }
+        if(!tools.add(tool)) throw new ToolUniqueConstrainException(tool.getToolNumber());
     }
 
-    public Tool getTool(int toolNumber){
+    public Tool getToolByToolNumber(@NotNull Integer toolNumber){
+        if(toolNumber==null) throw new InvalidToolNumberException();
+
         return tools.stream()
                 .filter(tool -> tool.getToolNumber().equals(toolNumber))
                 .findAny()
                 .orElseThrow(() -> new ToolNotFoundException(toolNumber));
     }
 
-    public Tool getTool(long toolId){
+    public Tool getToolById(@NotNull Long toolId){
+        if(toolId == null) throw new InvalidIdException();
+
         return tools.stream()
                 .filter(tool -> tool.getId().equals(toolId))
                 .findAny()
                 .orElseThrow(() -> new ToolNotFoundException(toolId));
     }
 
-    public boolean removeTool(Tool tool){
+    public boolean removeTool(@NotNull Tool tool){
         return tools.remove(tool);
     }
 }
