@@ -1,17 +1,14 @@
 package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 
-@Getter @Setter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "connections")
 public class Connection {
 
