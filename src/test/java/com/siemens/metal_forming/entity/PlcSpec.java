@@ -8,7 +8,11 @@ import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.assertj.core.api.SoftAssertions;
+import org.hibernate.annotations.Source;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -154,108 +158,35 @@ public class PlcSpec extends EntitySpec {
             validator = factory.getValidator();
         }
 
-        @Nested @DisplayName("IP ADDRESS VALIDATION")
-        class IpAddressValidation{
 
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {"just a random string","1.1.1","1.1.1.1.1","1.1.1.256","1.1.256.1","1.265.1.1","256.1.1.1"})
+        @DisplayName("is invalid when IP address is invalid")
+        void plcAlwaysHasIpAddress(String invalidIpAddress){
+            Plc testPlc = testPlcBuilder.ipAddress(invalidIpAddress).build();
 
-            @Test @DisplayName("is invalid when IP address is null")
-            void plcAlwaysHasIpAddress(){
-                Plc testPlc = testPlcBuilder.ipAddress(null).build();
+            Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
 
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
-                        .findFirst()).isNotEmpty();
-            }
-
-            @Test @DisplayName("is invalid when IP address is empty")
-            void ipAddressIsNotEmpty(){
-                Plc testPlc = testPlcBuilder.ipAddress("").build();
-
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
-                        .findFirst()).isNotEmpty();
-            }
-
-            @Test @DisplayName("is invalid when IP address is \"just a random string\"")
-            void ipAddressIsInCorrectFormat(){
-                Plc testPlc = testPlcBuilder.ipAddress("just a random string").build();
-
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
-                        .findFirst()).isNotEmpty();
-            }
-
-            @Test @DisplayName("is invalid when IP address is to short \"1.1.1\"")
-            void ipAddressIsToShort(){
-                Plc testPlc = testPlcBuilder.ipAddress("1.1.1").build();
-
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
-                        .findFirst()).isNotEmpty();
-            }
-
-            @Test @DisplayName("is invalid when IP address is to long \"1.1.1.1.1\"")
-            void ipAddressIsToLong(){
-                Plc testPlc = testPlcBuilder.ipAddress("1.1.1.1.1").build();
-
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
-                        .findFirst()).isNotEmpty();
-            }
-
-            @Test @DisplayName("is invalid when one of IP addresses number is out of range\"1.1.1.256\"")
-            void ipAddressIsOutOfRange(){
-                Plc testPlc = testPlcBuilder.ipAddress("1.1.1.256").build();
-
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
-                        .findFirst()).isNotEmpty();
-            }
+            assertThat(violations
+                    .stream()
+                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("ipAddress"))
+                    .findFirst()).isNotEmpty();
         }
 
-        @Nested @DisplayName("NAME VALIDATION")
-        class NameValidation{
-            @Test @DisplayName("is invalid when name is null")
-            void isInvalidWhenNameIsNull(){
-                Plc testPlc = testPlcBuilder.name(null).build();
 
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
+        @ParameterizedTest
+        @NullAndEmptySource
+        @DisplayName("is invalid when name is invalid")
+        void isInvalidWhenNameIsNull(String invalidName){
+            Plc testPlc = testPlcBuilder.name(invalidName).build();
 
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
-                        .findFirst()).isNotEmpty();
-            }
+            Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
 
-            @Test @DisplayName("is invalid when name is empty string")
-            void isInvalidWhenNameIsEmptyString(){
-                Plc testPlc = testPlcBuilder.name("").build();
-
-                Set<ConstraintViolation<Plc>> violations = validator.validate(testPlc);
-
-                assertThat(violations
-                        .stream()
-                        .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
-                        .findFirst()).isNotEmpty();
-            }
+            assertThat(violations
+                    .stream()
+                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("name"))
+                    .findFirst()).isNotEmpty();
         }
     }
 
