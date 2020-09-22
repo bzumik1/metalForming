@@ -1,17 +1,15 @@
 package com.siemens.metal_forming.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.siemens.metal_forming.annotations.ValidIpAddress;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.validation.annotation.Validated;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -27,10 +25,7 @@ public class Plc {
     @Column(nullable = false, unique = true)
     String name;
 
-    @NotBlank(message = "IP address must be filled")
-    @Pattern(regexp = "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\." +
-                      "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])",
-            message = "IP address must be in correct format")
+    @ValidIpAddress
     @Column(name = "ip_address", nullable = false, unique = true)
     String ipAddress;
 
