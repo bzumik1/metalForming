@@ -10,7 +10,6 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD,ElementType.METHOD,ElementType.ANNOTATION_TYPE,ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {})
-@ReportAsSingleViolation
 @Documented
 
 @NotBlank(message = "IP address must be filled")
