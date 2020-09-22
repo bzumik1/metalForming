@@ -11,6 +11,8 @@ import com.siemens.metal_forming.exception.exceptionsApi.ApiException;
 import com.siemens.metal_forming.service.PlcService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +87,16 @@ public class PlcControllerSpec {
                     .param("size","10"));
 
             Mockito.verify(dtoMapper,times(2)).toPlcDtoOverview(any(Plc.class));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(path)
+                    .header("Access-Control-Request-Method", "GET")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
         }
     }
 
@@ -210,6 +222,16 @@ public class PlcControllerSpec {
                         .contains("BAD_REQUEST");
             }
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(path)
+                    .header("Access-Control-Request-Method", "POST")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
+        }
     }
 
     @Nested @DisplayName("UPDATE PLC")
@@ -327,6 +349,16 @@ public class PlcControllerSpec {
                         .contains("BAD_REQUEST");
             }
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(updatePath,1L)
+                    .header("Access-Control-Request-Method", "PUT")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
+        }
     }
 
     @Nested @DisplayName("DELETE PLC BY ID")
@@ -366,6 +398,16 @@ public class PlcControllerSpec {
             assertThat(mvcResult.getResponse().getContentAsString())
                     .contains(expectedApiException.getMessage())
                     .contains(expectedApiException.getStatus().name());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(path+"/{id}",1L)
+                    .header("Access-Control-Request-Method", "DELETE")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
         }
     }
 

@@ -14,6 +14,8 @@ import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
 import com.siemens.metal_forming.service.ToolService;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -79,6 +81,16 @@ public class ToolControllerSpec {
 
             Mockito.verify(dtoMapper,Mockito.times(tools.size())).toToolDtoOverview(any(Tool.class));
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(findAllPath)
+                    .header("Access-Control-Request-Method", "GET")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
+        }
     }
 
     @Nested @DisplayName("FIND ALL TOOLS FROM ONE PLC")
@@ -110,6 +122,16 @@ public class ToolControllerSpec {
 
             Mockito.verify(dtoMapper,Mockito.times(tools.size())).toToolDtoOverview(any(Tool.class));
        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(path,1L)
+                    .header("Access-Control-Request-Method", "GET")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
+        }
     }
 
     @Nested @DisplayName("DELETE TOOL BY PLC ID AND TOOL ID")
@@ -140,6 +162,16 @@ public class ToolControllerSpec {
         @Test @DisplayName("returns 200 Ok when everything was ok")
         void returnsOkWhenEverythingWasOk() throws Exception {
             mvc.perform(delete(deletePath,1L,1L)).andExpect(status().isOk());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(deletePath,1L,1L)
+                    .header("Access-Control-Request-Method", "DELETE")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
         }
     }
 
@@ -261,6 +293,16 @@ public class ToolControllerSpec {
                         .contains("BAD_REQUEST");
             }
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(path,1L)
+                    .header("Access-Control-Request-Method", "POST")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
+        }
     }
 
     @Nested @DisplayName("UPDATE TOOL BY PLC ID AND TOOL ID")
@@ -364,7 +406,6 @@ public class ToolControllerSpec {
             }
         }
 
-
         @Nested @DisplayName("INVALID TOOL DTO")
         class InvalidPlc{
             String invalidToolJson;
@@ -394,6 +435,16 @@ public class ToolControllerSpec {
                         .contains("Tool number must be filled")
                         .contains("BAD_REQUEST");
             }
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options(updatePath,1L,1L)
+                    .header("Access-Control-Request-Method", "PUT")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
         }
     }
 }

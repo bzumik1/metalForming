@@ -16,6 +16,11 @@ public class ApiConfiguration implements WebMvcConfigurer {
 
     @Override //allows CORS from all origins
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**");
+        registry.addMapping("/**")
+                .allowedOrigins("*") //specifies allowed origins (ALL BY DEFAULT!)
+                .allowedMethods("POST","GET","OPTIONS","DELETE","PUT") //specifies methods which can be used for CORS
+                //.allowedHeaders("content-type","authorization","Content-IntType","Accept","X-Requested-With","remember-me","x-xsrf-token","XDataConnectorTraceskip")
+                //.allowCredentials(true)
+                .maxAge(3600); //specifies for how long preflight of CORS can be cashed in seconds
     }
 }
