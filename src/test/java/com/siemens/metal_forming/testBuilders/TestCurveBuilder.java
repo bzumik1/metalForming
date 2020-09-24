@@ -5,6 +5,7 @@ import com.siemens.metal_forming.entity.CurvePoint;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +24,11 @@ public class TestCurveBuilder{
 
     public TestCurveBuilder points(List<CurvePoint> points){
         this.points = points;
+        return this;
+    }
+
+    public TestCurveBuilder points(CurvePoint... points){
+        this.points = Arrays.asList(points);
         return this;
     }
 

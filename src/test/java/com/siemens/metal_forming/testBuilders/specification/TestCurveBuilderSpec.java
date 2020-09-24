@@ -33,6 +33,17 @@ public class TestCurveBuilderSpec extends TestBuilderSpec {
 
             assertThat(testCurve.getPoints().size()).isEqualTo(3);
         }
+
+        @Test @DisplayName("adds given points")
+        void addsGivenPoints(){
+            Curve testCurve = testCurveBuilder
+                    .points(
+                            CurvePoint.builder().speed(1.1F).torque(1.1F).build(),
+                            CurvePoint.builder().speed(2.2F).torque(2.2F).build())
+                    .build();
+
+            assertThat(testCurve.getPoints().size()).as("all points were added").isEqualTo(2);
+        }
     }
 
     @Nested @DisplayName("DIRECT SETTING METHODS")

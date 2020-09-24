@@ -1,7 +1,10 @@
 package com.siemens.metal_forming.entity.log;
 
 import com.siemens.metal_forming.entity.*;
-import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.enumerated.StopReactionType;
+import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
+import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,8 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,107 +26,91 @@ class LogCreatorSpec {
     @Autowired
     LogCreator logCreator;
 
+    TestCurveBuilder testCurveBuilder;
+    TestToolBuilder testToolBuilder;
+    TestPlcBuilder testPlcBuilder;
+
+    @BeforeEach
+    void initialize(){
+        testCurveBuilder = new TestCurveBuilder();
+        testToolBuilder = new TestToolBuilder();
+        testPlcBuilder = new TestPlcBuilder();
+    }
+
     @Nested @DisplayName("LOG FROM PLC, MEASURED CURVE AND COLLISION POINTS")
     class LogFromPlcMeasuredCurveAndCollisionPoints{
-        Plc plcWithAllAttributes;
-        Curve measuredCurve;
-        Set<CollisionPoint> collisionPoints;
 
-        @BeforeEach
-        void initializeForLog(){
-            plcWithAllAttributes = new Plc();
-            Curve motorCurve = new Curve();
-            motorCurve.setId(1L);
-            for(int i=0; i<100; i++){
-                motorCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-            }
-            Set<Tool> tools = new HashSet<>();
-            for(int i=0; i<10; i++){
-                Tool tool = new Tool();
-                tool.setId((long)i);
-                tool.setToolNumber(i);
-                tool.setToolStatus(ToolStatusType.AUTODETECTED);
-                Curve referenceCurve = new Curve();
-                referenceCurve.setId((long)i);
-                for(int j=0; j<100; j++){
-                    referenceCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-                }
-                tool.setReferenceCurve(referenceCurve);
-                tools.add(tool);
-            }
-
-            plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 8370938");
-            plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW V1.2");
-            plcWithAllAttributes.setMotorCurve(motorCurve);
-            plcWithAllAttributes.setIpAddress("192.168.1.1");
-            plcWithAllAttributes.markAsConnected();
-            plcWithAllAttributes.setTools(tools);
-            plcWithAllAttributes.setCurrentTool(0);
-            plcWithAllAttributes.setName("name");
-            plcWithAllAttributes.setId(1L);
-
-
-            measuredCurve = new Curve();
-            for(int i=0; i<100; i++){
-                measuredCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-            }
-
-            collisionPoints = new HashSet<>();
-            for(int i=0; i<100; i++){
-                collisionPoints.add(new CollisionPoint((float)Math.random(),(float)Math.random()));
-            }
-        }
 
         @Test @DisplayName("id of log should be null")
         void idOfLogShouldBeNull(){
-            Log log = logCreator.create(plcWithAllAttributes,measuredCurve,collisionPoints);
+            Plc plcForLog = testPlcBuilder.id(1L).build();
+            Curve measuredCurve = testCurveBuilder.id(1L).build();
+            Set<CollisionPoint> collisionPoints = Stream
+                    .generate(() -> CollisionPoint.builder().id(1L).speed((float)Math.random()).torque((float)Math.random()).build())
+                    .limit(2)
+                    .collect(Collectors.toSet());
+
+            Log log = logCreator.create(plcForLog,measuredCurve,collisionPoints);
 
             assertThat(log.getId()).isNull();
         }
 
         @Test @DisplayName("copies correctly all attributes")
         void copiesCorrectlyAllAttributes(){
-            Log log = logCreator.create(plcWithAllAttributes,measuredCurve,collisionPoints);
+            Plc plcForLog = testPlcBuilder
+                    .name("plcName").ipAddress("192.168.0.1").serialNumber("SN 001").firmwareNumber("FW 001")
+                    .motorCurve(testCurveBuilder.randomPoints(10).build())
+                    .currentTool(testToolBuilder
+                            .id(1L).name("toolName").toolNumber(1).stopReaction(StopReactionType.IMMEDIATE)
+                            .referenceCurve(testCurveBuilder.randomPoints(20).build())
+                            .build())
+                    .build();
+            Curve measuredCurve =testCurveBuilder.randomPoints(30).build();
+            Set<CollisionPoint> collisionPoints = Stream
+                    .generate(() -> CollisionPoint.builder().id(1L).speed((float)Math.random()).torque((float)Math.random()).build())
+                    .limit(2)
+                    .collect(Collectors.toSet());
+
+
+            Log log = logCreator.create(plcForLog,measuredCurve,collisionPoints);
 
             SoftAssertions softAssertions = new SoftAssertions();
 
             //measured curve
             for(int i=0; i<log.getMeasuredCurve().getPoints().size();i++){
-                softAssertions.assertThat(log.getMeasuredCurve().getPoints().get(i)).isEqualTo(measuredCurve.getPoints().get(i));
+                softAssertions.assertThat(log.getMeasuredCurve().getPoints().get(i))
+                        .as("measured curve point[%d]",i)
+                        .isEqualTo(measuredCurve.getPoints().get(i));
             }
 
             //motor curve
             for(int i=0; i<log.getMotorCurve().getPoints().size();i++){
                 softAssertions.assertThat(log.getMotorCurve().getPoints().get(i))
                         .as("motor curve point [%d]",i)
-                        .isEqualTo(plcWithAllAttributes.getMotorCurve().getPoints().get(i));
+                        .isEqualTo(plcForLog.getMotorCurve().getPoints().get(i));
             }
 
             //reference curve
             for(int i=0; i<log.getReferenceCurve().getPoints().size();i++){
                 softAssertions.assertThat(log.getReferenceCurve().getPoints().get(i))
                         .as("reference curve point [%d]",i)
-                        .isEqualTo(plcWithAllAttributes.getCurrentTool().getReferenceCurve().getPoints().get(i));
+                        .isEqualTo(plcForLog.getCurrentTool().getReferenceCurve().getPoints().get(i));
             }
 
             //collision points
-            for(CollisionPoint collisionPoint:log.getCollisionPoints()){
-                softAssertions.assertThat(collisionPoints.contains(collisionPoint))
-                        .as("collision point ["+collisionPoint+"]")
-                        .isEqualTo(true);
-            }
+            softAssertions.assertThat(collisionPoints).containsAll(log.getCollisionPoints());
 
             //plc information
-            softAssertions.assertThat(log.getPlcInformation().getName()).as("plc name").isEqualTo(plcWithAllAttributes.getName());
-            softAssertions.assertThat(log.getPlcInformation().getIpAddress()).as("ipAddress").isEqualTo(plcWithAllAttributes.getIpAddress());
-            softAssertions.assertThat(log.getPlcInformation().getSerialNumber()).as("serialNumber").isEqualTo(plcWithAllAttributes.getHardwareInformation().getSerialNumber());
-            softAssertions.assertThat(log.getPlcInformation().getFirmwareNumber()).as("firmwareNumber").isEqualTo(plcWithAllAttributes.getHardwareInformation().getFirmwareNumber());
+            softAssertions.assertThat(log.getPlcInformation().getName()).as("plc name").isEqualTo("plcName");
+            softAssertions.assertThat(log.getPlcInformation().getIpAddress()).as("ipAddress").isEqualTo("192.168.0.1");
+            softAssertions.assertThat(log.getPlcInformation().getSerialNumber()).as("serialNumber").isEqualTo("SN 001");
+            softAssertions.assertThat(log.getPlcInformation().getFirmwareNumber()).as("firmwareNumber").isEqualTo("FW 001");
 
             //tool information
-            softAssertions.assertThat(log.getToolInformation().getName()).as("name").isEqualTo(plcWithAllAttributes.getCurrentTool().getName());
-            softAssertions.assertThat(log.getToolInformation().getToolId()).as("toolId").isEqualTo(plcWithAllAttributes.getCurrentTool().getId());
-            softAssertions.assertThat(log.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(plcWithAllAttributes.getCurrentTool().getToolNumber());
-            softAssertions.assertThat(log.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(plcWithAllAttributes.getCurrentTool().getStopReaction());
+            softAssertions.assertThat(log.getToolInformation().getName()).as("name").isEqualTo("toolName");
+            softAssertions.assertThat(log.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
+            softAssertions.assertThat(log.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
+            softAssertions.assertThat(log.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
 
             softAssertions.assertAll();
         }
@@ -129,149 +118,112 @@ class LogCreatorSpec {
 
     @Nested @DisplayName("TO PLC INFORMATION")
     class ToPlcInformation{
-        Plc plcWithAllAttributes;
 
-        @BeforeEach
-        void initialize(){
-            plcWithAllAttributes = new Plc();
-            Curve motorCurve = new Curve();
-            motorCurve.setId(1L);
-            for(int i=0; i<100; i++){
-                motorCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-            }
-            Set<Tool> tools = new HashSet<>();
-            for(int i=0; i<10; i++){
-                Tool tool = new Tool();
-                tool.setId((long)i);
-                tool.setToolNumber(i);
-                tool.setToolStatus(ToolStatusType.AUTODETECTED);
-                Curve referenceCurve = new Curve();
-                referenceCurve.setId((long)i);
-                for(int j=0; j<100; j++){
-                    referenceCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-                }
-                tool.setReferenceCurve(referenceCurve);
-                tools.add(tool);
-            }
+        @Test @DisplayName("doesn't copy id of the plc as id of plcInfo")
+        void doesNotCopyIdOfPlcAsIdOfPlcInfo(){
+            Plc originalPlc = testPlcBuilder.id(1L).build();
 
-            plcWithAllAttributes.getHardwareInformation().setSerialNumber("SN 8370938");
-            plcWithAllAttributes.getHardwareInformation().setFirmwareNumber("FW V1.2");
-            plcWithAllAttributes.setMotorCurve(motorCurve);
-            plcWithAllAttributes.setIpAddress("192.168.1.1");
-            plcWithAllAttributes.markAsConnected();
-            plcWithAllAttributes.setTools(tools);
-            plcWithAllAttributes.setCurrentTool(0);
-            plcWithAllAttributes.setId(1L);
-            plcWithAllAttributes.setName("name");
-        }
+            PlcInfo plcInfo = logCreator.toPlcInfo(originalPlc);
 
-        @Test @DisplayName("doesn't copy id of the plc")
-        void doesNotCopyIdOfPlc(){
-            PlcInfo plcInfo = logCreator.toPlcInfo(plcWithAllAttributes);
-
-            assertThat(plcWithAllAttributes.getId()).isNotNull();
             assertThat(plcInfo.getId()).isNull();
         }
 
         @Test @DisplayName("copies all required attributes")
         void copiesAllRequiredAttributesFromPlc(){
-            PlcInfo plcInfo = logCreator.toPlcInfo(plcWithAllAttributes);
+            Plc originalPlc = testPlcBuilder
+                    .name("plcName").ipAddress("192.168.0.1").serialNumber("SN 001").firmwareNumber("FW 001").build();
+
+            PlcInfo plcInfo = logCreator.toPlcInfo(originalPlc);
 
             SoftAssertions softAssertions = new SoftAssertions();
-            softAssertions.assertThat(plcInfo.getName()).as("name").isEqualTo(plcWithAllAttributes.getName());
-            softAssertions.assertThat(plcInfo.getIpAddress()).as("ipAddress").isEqualTo(plcWithAllAttributes.getIpAddress());
-            softAssertions.assertThat(plcInfo.getSerialNumber()).as("serialNumber").isEqualTo(plcWithAllAttributes.getHardwareInformation().getSerialNumber());
-            softAssertions.assertThat(plcInfo.getFirmwareNumber()).as("firmwareNumber").isEqualTo(plcWithAllAttributes.getHardwareInformation().getFirmwareNumber());
+            softAssertions.assertThat(plcInfo.getName()).as("name").isEqualTo("plcName");
+            softAssertions.assertThat(plcInfo.getIpAddress()).as("ipAddress").isEqualTo("192.168.0.1");
+            softAssertions.assertThat(plcInfo.getSerialNumber()).as("serialNumber").isEqualTo("SN 001");
+            softAssertions.assertThat(plcInfo.getFirmwareNumber()).as("firmwareNumber").isEqualTo("FW 001");
             softAssertions.assertAll();
         }
     }
 
     @Nested @DisplayName("TO TOOL INFORMATION")
     class ToToolInformation{
-        Tool toolWithAllAttributes;
 
-        @BeforeEach
-        void initialize(){
-            toolWithAllAttributes = new Tool();
-            toolWithAllAttributes.setId(1L);
-            toolWithAllAttributes.setToolNumber(1);
-            toolWithAllAttributes.setToolStatus(ToolStatusType.AUTODETECTED);
-            Curve referenceCurve = new Curve();
-            referenceCurve.setId(1L);
-            for(int j=0; j<100; j++){
-                referenceCurve.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
-            }
-            toolWithAllAttributes.setReferenceCurve(referenceCurve);
-        }
+        @Test @DisplayName("doesn't copy id of the tool as id of toolInfo")
+        void doesNotCopyIdOfToolAsToolInfo(){
+            Tool originalTool = testToolBuilder.id(1L).build();
 
-        @Test @DisplayName("doesn't copy id of the plc")
-        void doesNotCopyIdOfPlc(){
-            ToolInfo toolInfo = logCreator.toToolInfo(toolWithAllAttributes);
+            ToolInfo toolInfo = logCreator.toToolInfo(originalTool);
 
-            assertThat(toolWithAllAttributes.getId()).isNotNull();
             assertThat(toolInfo.getId()).isNull();
         }
 
         @Test @DisplayName("copies all required attributes")
         void copiesAllRequiredAttributesFromPlc(){
-            ToolInfo toolInfo = logCreator.toToolInfo(toolWithAllAttributes);
+            Tool originalTool = testToolBuilder.name("toolName").id(1L).toolNumber(1).stopReaction(StopReactionType.IMMEDIATE).build();
+
+            ToolInfo toolInfo = logCreator.toToolInfo(originalTool);
 
             SoftAssertions softAssertions = new SoftAssertions();
-            softAssertions.assertThat(toolInfo.getName()).as("name").isEqualTo(toolWithAllAttributes.getName());
-            softAssertions.assertThat(toolInfo.getToolId()).as("toolId").isEqualTo(toolWithAllAttributes.getId());
-            softAssertions.assertThat(toolInfo.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
-            softAssertions.assertThat(toolInfo.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
+            softAssertions.assertThat(toolInfo.getName()).as("name").isEqualTo("toolName");
+            softAssertions.assertThat(toolInfo.getToolId()).as("toolId").isEqualTo(1L);
+            softAssertions.assertThat(toolInfo.getToolNumber()).as("toolNumber").isEqualTo(1);
+            softAssertions.assertThat(toolInfo.getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
             softAssertions.assertAll();
         }
     }
 
     @Nested @DisplayName("COPY CURVE WITHOUT ID")
     class CopyCurveWithoutId{
-        Curve curveWithAllAttributes;
-
-        @BeforeEach
-        void initializeForCurveWithoutId(){
-            curveWithAllAttributes = new Curve();
-            curveWithAllAttributes.setId(1L);
-            for(int j=0; j<100; j++){
-                curveWithAllAttributes.getPoints()
-                        .add(CurvePoint.builder()
-                                .id((long)j)
-                                .speed((float)Math.random())
-                                .torque((float)Math.random())
-                                .build());
-            }
-        }
 
         @Test @DisplayName("doesn't copy id of the curve")
         void doesNotCopyIdOfPlc(){
-            Curve curveCopy = logCreator.toCurveWithoutId(curveWithAllAttributes);
+            Curve originalCurve = testCurveBuilder.id(1L).build();
 
-            assertThat(curveWithAllAttributes.getId()).isNotNull();
-            assertThat(curveCopy.getId()).isNull();
+            Curve copyOfOriginalCurve = logCreator.toCurveWithoutId(originalCurve);
+
+            assertThat(copyOfOriginalCurve.getId()).isNull();
         }
 
         @Test @DisplayName("copies all required attributes")
         void copiesAllRequiredAttributesFromPlc(){
-            Curve curveCopy = logCreator.toCurveWithoutId(curveWithAllAttributes);
+            Curve originalCurve = testCurveBuilder
+                    .points(
+                            CurvePoint.builder().speed(1.1F).torque(1.1F).build(),
+                            CurvePoint.builder().speed(2.2F).torque(2.2F).build())
+                    .build();
 
-            assertThat(curveCopy.getPoints().size()).as("number of points must be same").isEqualTo(curveWithAllAttributes.getPoints().size());
-            for(int i = 0; i<curveCopy.getPoints().size();i++){
-                assertThat(curveCopy.getPoints().get(i)).isEqualTo(curveWithAllAttributes.getPoints().get(i));
-            }
+            Curve curveCopy = logCreator.toCurveWithoutId(originalCurve);
+
+            assertThat(curveCopy.getPoints()).containsAll(originalCurve.getPoints());
         }
 
         @Test @DisplayName("deep copy curve - creates new curve with same points")
         void deepCopyCurve(){
-            Curve curveCopy = logCreator.toCurveWithoutId(curveWithAllAttributes);
+            Curve originalCurve = testCurveBuilder
+                    .points(
+                            CurvePoint.builder().speed(1.1F).torque(1.1F).build(),
+                            CurvePoint.builder().speed(2.2F).torque(2.2F).build())
+                    .build();
+            Curve curveCopy = logCreator.toCurveWithoutId(originalCurve);
 
-            assertThat(curveCopy != curveWithAllAttributes).as("curve is not same object").isEqualTo(true);
-            assertThat(curveCopy.getPoints().get(0) != curveWithAllAttributes.getPoints().get(0)).as("point is not same object").isEqualTo(true);
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(curveCopy)
+                    .as("curve is not same object")
+                    .isNotSameAs(originalCurve);
+            IntStream.range(0, curveCopy.getPoints().size())
+                    .forEach(i -> softAssertions.assertThat(curveCopy.getPoints().get(i))
+                            .as("points should not be same objects")
+                            .isNotSameAs(originalCurve.getPoints().get(i)));
+            softAssertions.assertAll();
         }
 
         @Test @DisplayName("doesn't copy id of points")
         void doesNotCopyIdOfPoints(){
-            Curve curveCopy = logCreator.toCurveWithoutId(curveWithAllAttributes);
+            Curve originalCurve = testCurveBuilder
+                    .points(
+                            CurvePoint.builder().id(1L).speed(1.1F).torque(1.1F).build(),
+                            CurvePoint.builder().id(2L).speed(2.2F).torque(2.2F).build())
+                    .build();
+            Curve curveCopy = logCreator.toCurveWithoutId(originalCurve);
 
             SoftAssertions softAssertions = new SoftAssertions();
             curveCopy.getPoints().forEach(curvePoint -> softAssertions.assertThat(curvePoint.getId()).isNull());

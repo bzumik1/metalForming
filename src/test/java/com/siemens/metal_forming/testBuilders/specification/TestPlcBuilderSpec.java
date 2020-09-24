@@ -66,6 +66,20 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
 
             assertThat(testPlc.getTools().size()).isEqualTo(2);
         }
+
+        @Test @DisplayName("sets serial number")
+        void setsSerialNumber(){
+            Plc testPlc = testPlcBuilder.serialNumber("new SN 001").build();
+
+            assertThat(testPlc.getHardwareInformation().getSerialNumber()).isEqualTo("new SN 001");
+        }
+
+        @Test @DisplayName("sets firmware number")
+        void setsFirmwareNumber(){
+            Plc testPlc = testPlcBuilder.firmwareNumber("new FW 001").build();
+
+            assertThat(testPlc.getHardwareInformation().getFirmwareNumber()).isEqualTo("new FW 001");
+        }
     }
 
 
@@ -123,15 +137,27 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
             assertThat(testPlc.getMotorCurve().getPoints().size()).isEqualTo(10);
         }
 
-        @Test @DisplayName("sets currentTool of new plc")
-        void setsCurrentToolOfNewPlc(){
-            Tool testTool = Tool.builder().toolNumber(1).build();
-            Plc testPlc = testPlcBuilder
-                    .currentTool(testTool)
-                    .build();
+        @Nested @DisplayName("CURRENT TOOL")
+        class SetCurrentTool{
+            @Test @DisplayName("sets currentTool of new plc")
+            void setsCurrentToolOfNewPlc(){
+                Tool testTool = Tool.builder().toolNumber(1).build();
+                Plc testPlc = testPlcBuilder
+                        .currentTool(testTool)
+                        .build();
 
-            assertThat(testPlc.getCurrentTool().getToolNumber()).isEqualTo(1);
+                assertThat(testPlc.getCurrentTool().getToolNumber()).isEqualTo(1);
+            }
+
+            @Test @DisplayName("adds currentTool in Tools if it is not there already")
+            void addsCurrentToolInToolsIfItIsNotThereAlready(){
+                Tool currentTool = Tool.builder().id(1L).build();
+                Plc testPlc = testPlcBuilder.currentTool(currentTool).build();
+
+                assertThat(testPlc.getTools()).contains(currentTool);
+            }
         }
+
 
         @Test @DisplayName("sets tools of new plc")
         void setsToolsOfNewPlc(){

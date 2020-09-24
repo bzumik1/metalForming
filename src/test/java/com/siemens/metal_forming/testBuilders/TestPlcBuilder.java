@@ -45,6 +45,16 @@ public class TestPlcBuilder{
         return this;
     }
 
+    public TestPlcBuilder serialNumber(String serialNumber){
+        hardwareInformation.setSerialNumber(serialNumber);
+        return this;
+    }
+
+    public TestPlcBuilder firmwareNumber(String firmwareNumber){
+        hardwareInformation.setFirmwareNumber(firmwareNumber);
+        return this;
+    }
+
     public TestPlcBuilder connection(Connection connection){
         this.connection = connection;
         return this;
@@ -66,6 +76,7 @@ public class TestPlcBuilder{
     }
 
     public TestPlcBuilder currentTool(Tool currentTool){
+        tools.add(currentTool);
         this.currentTool = currentTool;
         return this;
     }
