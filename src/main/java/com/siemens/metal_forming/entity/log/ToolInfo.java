@@ -17,6 +17,10 @@ public final class ToolInfo {
     Long id;
 
     @NotNull
+    @Column(nullable = false,updatable = false)
+    Long toolId;
+
+    @NotNull
     @Column(nullable = false, updatable = false)
     Integer toolNumber;
 

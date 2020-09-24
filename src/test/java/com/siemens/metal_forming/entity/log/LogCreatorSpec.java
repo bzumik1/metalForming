@@ -1,9 +1,6 @@
-package com.siemens.metal_forming.entity;
+package com.siemens.metal_forming.entity.log;
 
-import com.siemens.metal_forming.entity.log.CollisionPoint;
-import com.siemens.metal_forming.entity.log.Log;
-import com.siemens.metal_forming.entity.log.PlcInfo;
-import com.siemens.metal_forming.entity.log.ToolInfo;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -122,8 +119,11 @@ class LogCreatorSpec {
 
             //tool information
             softAssertions.assertThat(log.getToolInformation().getName()).as("name").isEqualTo(plcWithAllAttributes.getCurrentTool().getName());
-            softAssertions.assertThat(log.getToolInformation()).as("toolNumber").isEqualTo(plcWithAllAttributes.getCurrentTool().getToolNumber());
-            softAssertions.assertThat(log.getToolInformation()).as("stopReaction").isEqualTo(plcWithAllAttributes.getCurrentTool().getStopReaction());
+            softAssertions.assertThat(log.getToolInformation().getToolId()).as("toolId").isEqualTo(plcWithAllAttributes.getCurrentTool().getId());
+            softAssertions.assertThat(log.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(plcWithAllAttributes.getCurrentTool().getToolNumber());
+            softAssertions.assertThat(log.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(plcWithAllAttributes.getCurrentTool().getStopReaction());
+
+            softAssertions.assertAll();
         }
     }
 
@@ -218,6 +218,7 @@ class LogCreatorSpec {
 
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(toolInfo.getName()).as("name").isEqualTo(toolWithAllAttributes.getName());
+            softAssertions.assertThat(toolInfo.getToolId()).as("toolId").isEqualTo(toolWithAllAttributes.getId());
             softAssertions.assertThat(toolInfo.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
             softAssertions.assertThat(toolInfo.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
             softAssertions.assertAll();
@@ -233,11 +234,16 @@ class LogCreatorSpec {
             curveWithAllAttributes = new Curve();
             curveWithAllAttributes.setId(1L);
             for(int j=0; j<100; j++){
-                curveWithAllAttributes.getPoints().add(new CurvePoint((float)Math.random(),(float)Math.random()));
+                curveWithAllAttributes.getPoints()
+                        .add(CurvePoint.builder()
+                                .id((long)j)
+                                .speed((float)Math.random())
+                                .torque((float)Math.random())
+                                .build());
             }
         }
 
-        @Test @DisplayName("doesn't copy id of the plc")
+        @Test @DisplayName("doesn't copy id of the curve")
         void doesNotCopyIdOfPlc(){
             Curve curveCopy = logCreator.toCurveWithoutId(curveWithAllAttributes);
 
@@ -261,6 +267,15 @@ class LogCreatorSpec {
 
             assertThat(curveCopy != curveWithAllAttributes).as("curve is not same object").isEqualTo(true);
             assertThat(curveCopy.getPoints().get(0) != curveWithAllAttributes.getPoints().get(0)).as("point is not same object").isEqualTo(true);
+        }
+
+        @Test @DisplayName("doesn't copy id of points")
+        void doesNotCopyIdOfPoints(){
+            Curve curveCopy = logCreator.toCurveWithoutId(curveWithAllAttributes);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            curveCopy.getPoints().forEach(curvePoint -> softAssertions.assertThat(curvePoint.getId()).isNull());
+            softAssertions.assertAll();
         }
     }
 }

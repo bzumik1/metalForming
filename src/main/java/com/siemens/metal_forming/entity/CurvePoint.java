@@ -1,10 +1,11 @@
 package com.siemens.metal_forming.entity;
 
-import lombok.AllArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+@SuperBuilder
 @Entity
 @Table(name = "curve_points")
 public class CurvePoint extends PointOfTorqueAndSpeed {

@@ -1,17 +1,21 @@
 package com.siemens.metal_forming.entity;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-@Getter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE) @EqualsAndHashCode
+@Getter @NoArgsConstructor @AllArgsConstructor @SuperBuilder
+@FieldDefaults(level = AccessLevel.PRIVATE) @EqualsAndHashCode
 @MappedSuperclass
 public abstract class PointOfTorqueAndSpeed {
+    public PointOfTorqueAndSpeed(Float torque,Float speed){
+        this.torque = torque;
+        this.speed = speed;
+    }
+
     @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
@@ -23,9 +27,4 @@ public abstract class PointOfTorqueAndSpeed {
     @NotNull
     @Column(name = "speed",nullable = false)
     float speed;
-
-    public PointOfTorqueAndSpeed(Float torque,Float speed){
-        this.torque = torque;
-        this.speed = speed;
-    }
 }

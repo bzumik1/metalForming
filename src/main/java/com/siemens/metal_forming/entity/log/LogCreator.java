@@ -1,5 +1,9 @@
-package com.siemens.metal_forming.entity;
+package com.siemens.metal_forming.entity.log;
 
+import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.entity.CurvePoint;
+import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
@@ -30,17 +34,17 @@ public interface LogCreator {
     PlcInfo toPlcInfo(Plc plc);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "toolId", source = "id")
     ToolInfo toToolInfo(Tool tool);
 
     @Named("deepCurveWithoutId")
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "points", qualifiedByName = "deepCurvePointWithoutId")
     Curve toCurveWithoutId(Curve curve);
 
-    @Named("deepCurvePointWithoutId")
     @Mapping(target = "id", ignore = true)
-    List<CurvePoint> toCurvePointWithoutId(List<CurvePoint> curvePoints);
+    CurvePoint toCurvePointWithoutId(CurvePoint curvePoint);
 
+    @Mapping(target = "id", ignore = true)
     CollisionPoint toCollisionPoint(CollisionPoint collisionPoint);
 }
 
