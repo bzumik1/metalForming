@@ -4,6 +4,8 @@ import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.CurvePoint;
 import com.siemens.metal_forming.entity.abstractSpec.ImmutableEntitySpec;
 import com.siemens.metal_forming.enumerated.StopReactionType;
+import com.siemens.metal_forming.testBuilders.TestLogBuilder;
+import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= LOG SPECIFICATION =>")
 class LogSpec extends ImmutableEntitySpec {
-    Log validLogWithAllAttributes;
+    TestLogBuilder testLogBuilder;
 
     public LogSpec() {
         super(Log.class);
@@ -28,37 +30,15 @@ class LogSpec extends ImmutableEntitySpec {
 
     @BeforeEach
     void initialize(){
-        Curve curve = new Curve();
-        Curve motorCurve = new Curve();
-        Curve referenceCurve = new Curve();
-        for (int i = 0; i < 100; i++) {
-            curve.getPoints().add(new CurvePoint((float) Math.random(), (float) Math.random()));
-            motorCurve.getPoints().add(new CurvePoint((float) Math.random(), (float) Math.random()));
-            referenceCurve.getPoints().add(new CurvePoint((float) Math.random(), (float) Math.random()));
-        }
-
-        PlcInfo plcInfo = PlcInfo.builder().firmwareNumber("FW").serialNumber("SN").ipAddress("192.167.0.").name("plc").build();
-        ToolInfo toolInfo = ToolInfo.builder().toolNumber(1).name("tool").stopReaction(StopReactionType.IMMEDIATE).build();
-
-        Set<CollisionPoint> collisionPoints = new HashSet<>();
-        collisionPoints.add(new CollisionPoint((float) Math.random(), (float) Math.random()));
-        collisionPoints.add(new CollisionPoint((float) Math.random(), (float) Math.random()));
-
-        validLogWithAllAttributes = Log.builder()
-                .measuredCurve(curve)
-                .referenceCurve(referenceCurve)
-                .collisionPoints(collisionPoints)
-                .plcInformation(plcInfo)
-                .toolInformation(toolInfo)
-                .comment("comment")
-                .build();
+        testLogBuilder = new TestLogBuilder();
     }
 
     @Test @DisplayName("is created with current timestamp")
     void isCreatedWithCurrentTimestamp(){
+        Log testLog = Log.builder().build();
         long acceptedTimeDifferenceInMillis = 1000;
 
-        long connectionMillis = validLogWithAllAttributes.getCreatedOn().getTime();
+        long connectionMillis = testLog.getCreatedOn().getTime();
         long currentMillis = System.currentTimeMillis();
 
         assertThat(Math.abs((connectionMillis-currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
@@ -75,7 +55,7 @@ class LogSpec extends ImmutableEntitySpec {
 
         @Test @DisplayName("is invalid when measured curve is null")
         void isInvalidWhenMeasuredCurveIsNull(){
-            Log invalidLog = validLogWithAllAttributes.toBuilder().measuredCurve(null).build();
+            Log invalidLog = testLogBuilder.measuredCurve(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);
 
             assertThat(violations
@@ -86,7 +66,7 @@ class LogSpec extends ImmutableEntitySpec {
 
         @Test @DisplayName("is invalid when motor curve is null")
         void isInvalidWhenMotorCurveIsNull(){
-            Log invalidLog = validLogWithAllAttributes.toBuilder().motorCurve(null).build();
+            Log invalidLog = testLogBuilder.motorCurve(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);
 
             assertThat(violations
@@ -97,7 +77,7 @@ class LogSpec extends ImmutableEntitySpec {
 
         @Test @DisplayName("is invalid when reference curve is null")
         void isInvalidWhenReferenceCurveIsNull(){
-            Log invalidLog = validLogWithAllAttributes.toBuilder().referenceCurve(null).build();
+            Log invalidLog = testLogBuilder.referenceCurve(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);
 
             assertThat(violations
@@ -108,7 +88,7 @@ class LogSpec extends ImmutableEntitySpec {
 
         @Test @DisplayName("is invalid when plc information is null")
         void isInvalidWhenPlcInformationIsNull(){
-            Log invalidLog = validLogWithAllAttributes.toBuilder().plcInformation(null).build();
+            Log invalidLog = testLogBuilder.plcInformation(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);
 
             assertThat(violations
@@ -119,7 +99,7 @@ class LogSpec extends ImmutableEntitySpec {
 
         @Test @DisplayName("is invalid when tool information is null")
         void isInvalidWhenToolInformationIsNull(){
-            Log invalidLog = validLogWithAllAttributes.toBuilder().toolInformation(null).build();
+            Log invalidLog = testLogBuilder.toolInformation(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);
 
             assertThat(violations
