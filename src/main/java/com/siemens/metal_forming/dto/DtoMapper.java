@@ -1,10 +1,12 @@
 package com.siemens.metal_forming.dto;
 
 
+import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.ReferenceCurve;
 import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.log.Log;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -17,6 +19,8 @@ public interface DtoMapper {
     @Mapping(target = "plcId", source = "tool.plc.id")
     @Mapping(target = "referenceCurveIsCalculated", source = "tool.referenceCurve")
     ToolDto.Response.Overview toToolDtoOverview(Tool tool);
+
+    LogDto.Response.Overview toLogDtoOverview(Log log);
 
     //@Mapping(target = "tools", ignore = true)
     @Mapping(target = "motorCurve", ignore = true)

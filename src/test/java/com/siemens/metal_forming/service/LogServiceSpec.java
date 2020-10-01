@@ -97,7 +97,7 @@ public class LogServiceSpec {
         void throwsExceptionWhenLogWasNotFound(){
             when(logRepository.findById(1L)).thenReturn(Optional.empty());
 
-            assertThrows(LogNotFoundException.class, () -> logService.updateComment(1L, "Comment"));
+            assertThrows(LogNotFoundException.class, () -> logService.updateComment(1L, "Update"));
         }
 
         @Test @DisplayName("returns log with comment")

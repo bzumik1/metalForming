@@ -1,10 +1,17 @@
 package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.MetalFormingApplication;
+import com.siemens.metal_forming.dto.log.LogDto;
+import com.siemens.metal_forming.dto.log.PointOfTorqueAndSpeedDto;
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.log.Log;
+import com.siemens.metal_forming.entity.log.PlcInfo;
+import com.siemens.metal_forming.entity.log.ToolInfo;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.testBuilders.TestLogBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.sql.Timestamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -74,6 +83,101 @@ class DtoMapperSpec {
             softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
             softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
             softAssertions.assertThat(toolDto.getToolStatus()).as("toolStatus").isEqualTo(toolWithAllAttributes.getToolStatus());
+            softAssertions.assertAll();
+        }
+
+        @Test @DisplayName("transforms Log to LogDto.Response.Overview correctly")
+        void transformsLogToLogDtoResponseOverviewCorrectly(){
+            Log logWithAllAttributes = new TestLogBuilder()
+                    .id(1L)
+                    .createdOn(new Timestamp(1))
+                    .comment("comment")
+                    .toolInformation(ToolInfo.builder()
+                            .id(1L)
+                            .name("toolName")
+                            .toolNumber(1)
+                            .toolId(1L)
+                            .stopReaction(StopReactionType.IMMEDIATE)
+                            .build())
+                    .plcInformation(PlcInfo.builder()
+                            .id(1L)
+                            .name("plcName")
+                            .ipAddress("192.168.0.1")
+                            .serialNumber("SN 001")
+                            .firmwareNumber("FW 001")
+                            .build())
+                    .randomCollisionPoints(2)
+                    .randomMeasuredCurve(50)
+                    .randomMotorCurve(50)
+                    .randomReferenceCurve(50)
+                    .build();
+
+            LogDto.Response.Overview logDto = dtoMapper.toLogDtoOverview(logWithAllAttributes);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(logDto.getId()).as("id").isEqualTo(1L);
+            softAssertions.assertThat(logDto.getCreatedOn()).as("createdOn").isEqualTo(new Timestamp(1));
+            softAssertions.assertThat(logDto.getComment()).as("comment").isEqualTo("comment");
+
+            //ToolInformation
+            softAssertions.assertThat(logDto.getToolInformation().getName()).as("toolName").isEqualTo("toolName");
+            softAssertions.assertThat(logDto.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
+            softAssertions.assertThat(logDto.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
+            softAssertions.assertThat(logDto.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
+
+            //PlcInformation
+            softAssertions.assertThat(logDto.getPlcInformation().getName()).as("plcName").isEqualTo("plcName");
+            softAssertions.assertThat(logDto.getPlcInformation().getIpAddress()).as("ipAddress").isEqualTo("192.168.0.1");
+            softAssertions.assertThat(logDto.getPlcInformation().getSerialNumber()).as("serialNumber").isEqualTo("SN 001");
+            softAssertions.assertThat(logDto.getPlcInformation().getFirmwareNumber()).as("firmwareNumber").isEqualTo("FW 001");
+
+            //CollisionPoints
+            boolean isSame;
+            for(PointOfTorqueAndSpeedDto pointDto:logDto.getCollisionPoints()){
+                isSame = false;
+                //must be equal at least to one point
+                for (PointOfTorqueAndSpeed point:logWithAllAttributes.getCollisionPoints()){
+                    if (pointDto.getSpeed() == point.getSpeed() && pointDto.getTorque() == point.getTorque()) {
+                        isSame = true;
+                        break;
+                    }
+                }
+                softAssertions.assertThat(isSame).as("collisionPoints").isTrue();
+            }
+
+            //MeasuredCurve
+            for(int i = 0; i<logDto.getMeasuredCurve().getPoints().size();i++){
+                softAssertions.assertThat(logDto.getMeasuredCurve().getPoints().get(i).getSpeed())
+                        .as("measuredCurve - speed")
+                        .isEqualTo(logWithAllAttributes.getMeasuredCurve().getPoints().get(i).getSpeed());
+
+                softAssertions.assertThat(logDto.getMeasuredCurve().getPoints().get(i).getTorque())
+                        .as("measuredCurve - torque")
+                        .isEqualTo(logWithAllAttributes.getMeasuredCurve().getPoints().get(i).getTorque());
+            }
+
+            //MotorCurve
+            for(int i = 0; i<logDto.getMotorCurve().getPoints().size();i++){
+                softAssertions.assertThat(logDto.getMotorCurve().getPoints().get(i).getSpeed())
+                        .as("motorCurve - speed")
+                        .isEqualTo(logWithAllAttributes.getMotorCurve().getPoints().get(i).getSpeed());
+
+                softAssertions.assertThat(logDto.getMotorCurve().getPoints().get(i).getTorque())
+                        .as("motorCurve - torque")
+                        .isEqualTo(logWithAllAttributes.getMotorCurve().getPoints().get(i).getTorque());
+            }
+
+            //ReferenceCurve
+            for(int i = 0; i<logDto.getReferenceCurve().getPoints().size();i++){
+                softAssertions.assertThat(logDto.getReferenceCurve().getPoints().get(i).getSpeed())
+                        .as("referenceCurve - speed")
+                        .isEqualTo(logWithAllAttributes.getReferenceCurve().getPoints().get(i).getSpeed());
+
+                softAssertions.assertThat(logDto.getReferenceCurve().getPoints().get(i).getTorque())
+                        .as("referenceCurve - torque")
+                        .isEqualTo(logWithAllAttributes.getReferenceCurve().getPoints().get(i).getTorque());
+            }
+
             softAssertions.assertAll();
         }
     }

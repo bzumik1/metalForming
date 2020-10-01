@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.dto.log;
 
 import com.siemens.metal_forming.dto.DtoSpec;
-import com.siemens.metal_forming.dto.log.LogDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
@@ -10,9 +9,9 @@ public class LogDtoSpec {
     @Nested @DisplayName("REQUEST")
     class Request{
         @Nested @DisplayName("COMMENT")
-        class Comment extends DtoSpec {
-            public Comment() {
-                super(LogDto.Request.Comment.class);
+        class Update extends DtoSpec {
+            public Update() {
+                super(LogDto.Request.Update.class);
             }
         }
     }
