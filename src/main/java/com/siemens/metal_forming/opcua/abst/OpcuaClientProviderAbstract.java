@@ -45,9 +45,12 @@ public abstract class OpcuaClientProviderAbstract implements OpcuaClientProvider
             //Select endpoint
             Optional<EndpointDescription> endpointWithoutSecurity = endpoints.stream().filter(endpointDescription -> endpointDescription.getSecurityMode().equals(MessageSecurityMode.None)).findFirst();
             if(endpointWithoutSecurity.isPresent()){
+                //Needed only when it is redirected, replaces invalid url with correct one
+                EndpointDescription endpoint = endpointWithoutSecurity.get().toBuilder().endpointUrl(createUrl(ipAddress)).build(); //ToDo
+
                 //select endpoint and configure connection
                 OpcUaClientConfig opcUaConfiguration = OpcUaClientConfig.builder()
-                        .setEndpoint(endpointWithoutSecurity.get())
+                        .setEndpoint(endpoint)
                         .setApplicationName(LocalizedText.english(opcuaConfiguration.getApplicationName()))
                         .setRequestTimeout(uint(2_000))
                         .setKeepAliveFailuresAllowed(uint(0)) //Number of possible failures

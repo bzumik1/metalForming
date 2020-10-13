@@ -64,10 +64,10 @@ public class Plc {
         connection.setStatus(connectionStatus);
     }
 
-    public void setCurrentTool(@NotNull Integer toolId){
-        if (toolId == null) throw new InvalidToolNumberException();
+    public void setCurrentTool(@NotNull Integer toolNumber){
+        if (toolNumber == null) throw new InvalidToolNumberException();
 
-        Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolNumber().equals(toolId)).findFirst();
+        Optional<Tool> newCurrentTool = tools.stream().filter(tool -> tool.getToolNumber().equals(toolNumber)).findFirst();
         currentTool = newCurrentTool.orElseThrow(ToolNotFoundException::new);
     }
 

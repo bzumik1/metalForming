@@ -3,6 +3,7 @@ package com.siemens.metal_forming.service.impl;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
@@ -63,11 +64,27 @@ public class PlcServiceImpl implements PlcService {
             plc.markAsConnected();
             plc.getHardwareInformation().setSerialNumber(client.readSerialNumber().get());
             plc.getHardwareInformation().setFirmwareNumber(client.readFirmwareNumber().get());
+
+            // set current tool
+            Integer currentToolNumber = client.readToolNumber().get();
+            if(plc.getCurrentTool() == null){
+                Tool newTool = Tool.builder()
+                        .toolNumber(currentToolNumber)
+                        .name(client.readToolName().get())
+                        .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .build();
+                plc.addTool(newTool);
+            }
+            plc.setCurrentTool(currentToolNumber);
+
+            log.debug("All attributes of plc were successfully read");
         } catch (OpcuaConnectionException e){
             log.warn("Newly created PLC could not be connected");
             plc.markAsDisconnected();
         } catch (InterruptedException | ExecutionException e) {
-            log.warn("HardwareInformation could not be updated: {}",e.getMessage());
+            log.warn("Plc attributes could not be updated: {}",e.getMessage());
         }
 
         return plcRepository.save(plc);
@@ -151,6 +168,7 @@ public class PlcServiceImpl implements PlcService {
         updatePlc.accept(plc);
         //if plc has different IP address then it needs to be reconnected
         if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
+            log.warn("IP address of plc with id {} was changed to {}",plc.getId(), plc.getIpAddress());
             opcuaConnector.disconnectPlc(oldPlc);
             create(plc);
         }

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration("OpcuaConfigurationMock")
-@ConfigurationProperties(prefix = "opcua")
+@ConfigurationProperties(prefix = "mock-opcua")
 @PropertySource("classpath:opcua-mock.properties")
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OpcuaConfigurationMock extends OpcuaConfiguration {
