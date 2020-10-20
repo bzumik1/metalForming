@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Set;
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
+@EqualsAndHashCode
 @Entity @Table(name = "curves")
 public class Curve {
+    @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 

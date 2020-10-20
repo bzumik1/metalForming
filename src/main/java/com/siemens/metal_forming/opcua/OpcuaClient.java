@@ -11,4 +11,6 @@ public interface OpcuaClient extends UaClient {
     CompletableFuture<String> readToolName();
     CompletableFuture<Integer> readToolNumber();
     CompletableFuture<Integer> readToolMaxSpeedOperation();
+    CompletableFuture<Void> immediateStop();
+    CompletableFuture<Void> topPositionStop();
 }

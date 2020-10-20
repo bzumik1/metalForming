@@ -9,9 +9,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode @ToString
 @Entity @Table(name = "tools")
 public class Tool{
+    @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
@@ -19,7 +20,7 @@ public class Tool{
     @JoinColumn(name = "plc_id", nullable = false)
     Plc plc;
 
-    @EqualsAndHashCode.Include
+
     @NotNull
     @Column(name = "tool_number", nullable = false)
     Integer toolNumber;

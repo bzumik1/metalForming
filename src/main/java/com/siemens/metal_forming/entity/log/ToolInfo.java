@@ -9,11 +9,11 @@ import javax.validation.constraints.NotNull;
 
 @Getter @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@Builder @EqualsAndHashCode
 @Entity
 public final class ToolInfo {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @EqualsAndHashCode.Exclude
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
     @NotNull

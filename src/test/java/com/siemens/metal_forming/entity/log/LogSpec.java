@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +43,68 @@ class LogSpec extends ImmutableEntitySpec {
         long currentMillis = System.currentTimeMillis();
 
         assertThat(Math.abs((connectionMillis-currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+    }
+
+    @Nested @DisplayName("EQUALS")
+    class Equals{
+        @Test @DisplayName("logs are equal when only id or createdOn are different")
+        void logsAreEqualWhenOnlyIdIsDifferent(){
+            Log log1 = Log.builder()
+                    .id(1L)
+                    .measuredCurve(Curve.builder()
+                            .points(List.of(new CurvePoint(1.1f, 1.1f)))
+                            .build())
+                    .motorCurve(Curve.builder()
+                            .points(List.of(new CurvePoint(2.2f, 2.2f)))
+                            .build())
+                    .referenceCurve(Curve.builder()
+                            .points(List.of(new CurvePoint(3.3f, 3.3f)))
+                            .build())
+                    .collisionPoints(Set.of(new CollisionPoint(1.1f, 1.1f)))
+                    .plcInformation(PlcInfo.builder()
+                            .name("plcName")
+                            .ipAddress("192.168.0.1")
+                            .serialNumber("SN 01")
+                            .firmwareNumber("FW 01")
+                            .build())
+                    .toolInformation(ToolInfo.builder()
+                            .toolId(1L)
+                            .toolNumber(1)
+                            .name("toolName")
+                            .stopReaction(StopReactionType.IMMEDIATE)
+                            .build())
+                    .comment("comment")
+                    .build();
+
+            Log log2 = Log.builder()
+                    .id(2L)
+                    .measuredCurve(Curve.builder()
+                            .points(List.of(new CurvePoint(1.1f, 1.1f)))
+                            .build())
+                    .motorCurve(Curve.builder()
+                            .points(List.of(new CurvePoint(2.2f, 2.2f)))
+                            .build())
+                    .referenceCurve(Curve.builder()
+                            .points(List.of(new CurvePoint(3.3f, 3.3f)))
+                            .build())
+                    .collisionPoints(Set.of(new CollisionPoint(1.1f, 1.1f)))
+                    .plcInformation(PlcInfo.builder()
+                            .name("plcName")
+                            .ipAddress("192.168.0.1")
+                            .serialNumber("SN 01")
+                            .firmwareNumber("FW 01")
+                            .build())
+                    .toolInformation(ToolInfo.builder()
+                            .toolId(1L)
+                            .toolNumber(1)
+                            .name("toolName")
+                            .stopReaction(StopReactionType.IMMEDIATE)
+                            .build())
+                    .comment("comment")
+                    .build();
+
+            assertThat(log1).isEqualTo(log2);
+        }
     }
 
     @Nested @DisplayName("VALIDATION")

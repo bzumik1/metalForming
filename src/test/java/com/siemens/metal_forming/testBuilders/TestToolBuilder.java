@@ -74,10 +74,8 @@ public class TestToolBuilder {
 
     public Tool build(){
         Tool toolToReturn = new Tool();
-        plc.addTool(toolToReturn);
 
         ReflectionTestUtils.setField(toolToReturn, "id", id);
-        ReflectionTestUtils.setField(toolToReturn, "plc", plc);
         ReflectionTestUtils.setField(toolToReturn, "toolNumber", toolNumber);
         ReflectionTestUtils.setField(toolToReturn, "name", name);
         ReflectionTestUtils.setField(toolToReturn, "numberOfReferenceCycles", numberOfReferenceCycles);
@@ -86,6 +84,8 @@ public class TestToolBuilder {
         ReflectionTestUtils.setField(toolToReturn, "maxSpeedOperation", maxSpeedOperation);
         ReflectionTestUtils.setField(toolToReturn, "toolStatus", toolStatus);
         ReflectionTestUtils.setField(toolToReturn, "referenceCurve", referenceCurve);
+
+        plc.addTool(toolToReturn);
 
         return toolToReturn;
     }

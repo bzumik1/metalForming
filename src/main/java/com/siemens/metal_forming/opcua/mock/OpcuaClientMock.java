@@ -108,6 +108,16 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
         return null;
     }
 
+    @Override
+    public CompletableFuture<Void> immediateStop() {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> topPositionStop() {
+        return null;
+    }
+
     private CompletableFuture<Integer> readInteger(NodeId nodeId){
         return getAddressSpace()
                 .getVariableNode(nodeId)

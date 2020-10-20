@@ -6,6 +6,7 @@ import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.exception.exceptions.LogNotFoundException;
 import com.siemens.metal_forming.service.LogService;
+import com.siemens.metal_forming.testBuilders.TestLogBuilder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -65,8 +66,8 @@ public class LogControllerSpec {
 
         @Test @DisplayName("returns found logs as DTO")
         void triggersDtoMapper() throws Exception {
-            Log log1 = Log.builder().id(1L).build();
-            Log log2 = Log.builder().id(2L).build();
+            Log log1 = new TestLogBuilder().id(1L).build();
+            Log log2 = new TestLogBuilder().id(2L).build();
             LogDto.Response.Overview logDto1 = LogDto.Response.Overview.builder().id(1L).build();
             LogDto.Response.Overview logDto2 = LogDto.Response.Overview.builder().id(2L).build();
 

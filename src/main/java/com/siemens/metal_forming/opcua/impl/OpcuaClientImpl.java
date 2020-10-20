@@ -1,6 +1,8 @@
 package com.siemens.metal_forming.opcua.impl;
 
 import com.siemens.metal_forming.SpringContext;
+import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.entity.CurvePoint;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.configuration.OpcuaConfigurationImpl;
@@ -21,6 +23,7 @@ import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
+import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
@@ -28,6 +31,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateReq
 import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +39,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -125,6 +130,8 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
         return readShort(toolMaxSpeedOperationNode);
     }
 
+
+
     private CompletableFuture<Integer> readUInteger(NodeId nodeId){
         return getAddressSpace()
                 .getVariableNode(nodeId)
@@ -159,8 +166,31 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
                 .thenCompose(VariableNode::getValue)
                 .thenApply(value -> (Float[])value);
     }
-    /////////////////////////////////MANUAL READ
 
+
+    /////////////////////////////////MANUAL WRITE
+
+    @Override
+    public CompletableFuture<Void> immediateStop() {
+        return writeValue(immediateStopIndicatorNode,DataValue.valueOnly(new Variant(true)))
+                .thenApply(statusCode -> {
+                    if(statusCode.isBad()){
+                        log.error("Wasn't able to write to immediateStopIndicator: {}", statusCode.toString());
+                    }
+                    return null;
+                });
+    }
+
+    @Override
+    public CompletableFuture<Void> topPositionStop() {
+        return writeValue(topPositionStopIndicatorNode,DataValue.valueOnly(new Variant(true)))
+                .thenApply(statusCode -> {
+                    if(statusCode.isBad()){
+                        log.error("Wasn't able to write to topPositionStopIndicator: {}", statusCode.toString());
+                    }
+                    return null;
+                });
+    }
 
 
 
@@ -190,21 +220,31 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
     }
 
     private void onToolNumberChange(DataValue value) {
-        log.debug("Tool number has changed.");
+        int toolNumber = (int)value.getValue().getValue();
+        log.debug("Tool number has changed to {}",toolNumber);
+        plcService.changeCurrentTool(ipAddress,toolNumber);
     }
 
     private void onReadCurveDataIndicatorChange(DataValue value) {
-        log.debug("now you can read");
-        if(((boolean)value.getValue().getValue())){ //checks for rising edge
+        boolean readCurveDataIndicator = (boolean)value.getValue().getValue();
+        if(readCurveDataIndicator){ //checks for rising edge
+            log.debug("Curve for plc with ip {} can be read", ipAddress);
             try {
-                Float[] speed = readFloatArray(motorSpeedArrayNode).get();
-                Float[] torque = readFloatArray(motorTorqueArrayNode).get();
-                log.debug("Speed is {}", Arrays.toString(speed));
-                log.debug("Torque is {}", Arrays.toString(torque));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+                final Float[] speedArray = readFloatArray(motorSpeedArrayNode).get();
+                final Float[] torqueArray = readFloatArray(motorTorqueArrayNode).get();
+                log.debug("Speed data for curve are {}", Arrays.toString(speedArray));
+                log.debug("Torque data for curve are {}", Arrays.toString(torqueArray));
+
+                List<CurvePoint> curvePoints = new ArrayList<>();
+                for(int i = 0; i<360; i++){
+                    curvePoints.add(new CurvePoint(torqueArray[i], speedArray[i]));
+                }
+
+                Curve measuredCurve = Curve.builder().points(curvePoints).build();
+
+                plcService.processNewCurve(ipAddress,measuredCurve);
+            } catch (InterruptedException|ExecutionException e) {
+                log.error("There was problem with reading torque and speed data for curve");
             }
         }
     }

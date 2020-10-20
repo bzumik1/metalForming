@@ -151,7 +151,7 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
 
             @Test @DisplayName("adds currentTool in Tools if it is not there already")
             void addsCurrentToolInToolsIfItIsNotThereAlready(){
-                Tool currentTool = Tool.builder().id(1L).build();
+                Tool currentTool = Tool.builder().id(1L).toolNumber(1).build();
                 Plc testPlc = testPlcBuilder.currentTool(currentTool).build();
 
                 assertThat(testPlc.getTools()).contains(currentTool);

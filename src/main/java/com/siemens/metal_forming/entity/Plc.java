@@ -10,9 +10,7 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -48,7 +46,7 @@ public class Plc {
     Tool currentTool;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc", orphanRemoval = true)
-    final Set<Tool> tools = new HashSet<>();
+    final Set<Tool> tools = new TreeSet<>(Comparator.comparing(Tool::getToolNumber));
 
 
 
@@ -84,6 +82,10 @@ public class Plc {
 
         tool.setPlc(this);
         if(!tools.add(tool)) throw new ToolUniqueConstrainException(tool.getToolNumber());
+    }
+
+    public boolean hasToolByToolNumber(@NotNull Integer toolNumber){
+        return tools.stream().anyMatch(tool -> tool.getToolNumber().equals(toolNumber));
     }
 
     public Tool getToolByToolNumber(@NotNull Integer toolNumber){

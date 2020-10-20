@@ -12,11 +12,14 @@ import java.util.Set;
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor @Builder(toBuilder = true)
+@EqualsAndHashCode
 @Entity
 public final class Log {
+    @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @EqualsAndHashCode.Exclude
     @NotNull
     @Column(nullable = false, updatable = false)
     final Timestamp createdOn = new Timestamp(System.currentTimeMillis());

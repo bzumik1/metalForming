@@ -1,8 +1,13 @@
 package com.siemens.metal_forming.service;
 
+import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.log.CollisionPoint;
+import com.siemens.metal_forming.entity.log.Log;
+import com.siemens.metal_forming.entity.log.LogCreator;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -13,23 +18,42 @@ import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.impl.PlcServiceImpl;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("<= PLC SERVICE SPECIFICATION =>")
 class PlcServiceSpec {
     private PlcService plcService;
+    @Mock
     private PlcRepository plcRepository;
+    @Mock
     private OpcuaConnector opcuaConnector;
+    @Mock
+    private CurveValidationService curveValidationService;
+    @Mock
+    private LogService logService;
+    @Mock
+    private LogCreator logCreator;
+
+    @Captor
+    ArgumentCaptor<Log> logCaptor;
+
+    @Captor
+    ArgumentCaptor<Plc> plcCaptor;
 
     //VARIABLES USED IN TESTS
     private final Long idOfExistingPlc = 1L;
@@ -48,9 +72,7 @@ class PlcServiceSpec {
     @BeforeEach
     void initialize() {
         //INITIALIZE MOCKS
-        plcRepository = Mockito.mock(PlcRepository.class);
-        opcuaConnector = Mockito.mock(OpcuaConnector.class);
-        plcService = new PlcServiceImpl(plcRepository, opcuaConnector);
+        plcService = new PlcServiceImpl(plcRepository, opcuaConnector, curveValidationService, logService, logCreator);
 
         //INITIALIZE VARIABLES
         plcInDb = Mockito.spy(Plc.builder().ipAddress(ipOfExistingPlc).name(nameOfExistingPlc).build());
@@ -112,15 +134,15 @@ class PlcServiceSpec {
             void newPlcIsSavedToDb(){
                 plcService.replace(idOfExistingPlc, newPlc);
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(newPlc);
+                verify(plcRepository,Mockito.times(1)).save(newPlc);
             }
 
             @Test @DisplayName("updates client if ip of updated plc is different")
             void updatesClientWhenPlcIsUpdated(){
                 plcService.replace(idOfExistingPlc, newPlc);
 
-                Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcInDb);
-                Mockito.verify(opcuaConnector,Mockito.times(1)).connectPlc(newPlc);
+                verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcInDb);
+                verify(opcuaConnector,Mockito.times(1)).connectPlc(newPlc);
             }
 
             @Test @DisplayName("sets PLC status to CONNECTED when OPC UA connection was established")
@@ -163,23 +185,101 @@ class PlcServiceSpec {
                 when(plcRepository.findByIpAddress(ipOfExistingPlc)).thenReturn(Optional.of(plcInDb));
             }
 
-            @Test @DisplayName("set new currentTool")
-            void setNewCurrentTool(){
+            @Test @DisplayName("when tool exists in plc's tools than it is selected as current tool")
+            void whenToolExistsInPlcsToolsThanItIsSelectedAsCurrentTool(){
                 Mockito.reset(plcInDb);
                 plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
 
-                Mockito.verify(plcInDb,Mockito.times(1)).setCurrentTool(toolNumberOfExistingTool);
+                verify(plcInDb,Mockito.times(1)).setCurrentTool(toolNumberOfExistingTool);
+            }
+
+            @Test @DisplayName("when tool does not exist in plc's tools then new is created")
+            void whenToolDoesNotExistInPlcsToolsThenNewIsCreated(){
+                Tool newAutodetectedTool = Tool.builder()
+                        .plc(plcInDb)
+                        .toolNumber(2)
+                        .name("newTool")
+                        .maxSpeedOperation(10)
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .build();
+
+
+                OpcuaClient client = Mockito.mock(OpcuaClient.class);
+                when(client.readToolNumber()).thenReturn(CompletableFuture.completedFuture(2));
+                when(client.readToolName()).thenReturn(CompletableFuture.completedFuture("newTool"));
+                when(client.readToolMaxSpeedOperation()).thenReturn(CompletableFuture.completedFuture(10));
+                when(opcuaConnector.getClient(any(Plc.class))).thenReturn(client);
+
+                plcService.changeCurrentTool(ipOfExistingPlc,2);
+
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+                assertThat(plcCaptor.getValue().getCurrentTool()).isEqualTo(newAutodetectedTool);
             }
 
             @Test @DisplayName("updates plc in database")
             void updatesPlcInDatabase(){
                 plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(plcInDb);
+                verify(plcRepository,Mockito.times(1)).save(plcInDb);
             }
         }
 
 
+    }
+
+    @Nested @DisplayName("PROCESS NEW CURVE")
+    class ProcessNewCurve{
+        @Test @DisplayName("when curve is invalid creates creates log with corresponding data and stops the press")
+        void whenCurveIsInvalidCreatesLogWithCorrespondingDataAndStopsThePress(){
+            Plc testPlc = Plc.builder()
+                    .currentTool(Tool.builder()
+                            .referenceCurve( Curve.builder()
+                                    .build())
+                            .automaticMonitoring(true)
+                            .stopReaction(StopReactionType.IMMEDIATE)
+                            .build())
+                    .build();
+            Curve measuredCurve = Curve.builder().build();
+            Set<CollisionPoint> collisionPoints = Set.of(new CollisionPoint(1.1f,1.1f));
+            Log logToBeCreated = Log.builder().build();
+            OpcuaClient client = Mockito.mock(OpcuaClient.class);
+
+
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
+            when(curveValidationService.validate(testPlc.getCurrentTool().getReferenceCurve(),measuredCurve))
+                    .thenReturn(collisionPoints);
+            when(logCreator.create(testPlc,measuredCurve,collisionPoints)).thenReturn(logToBeCreated);
+            when(opcuaConnector.getClient(testPlc)).thenReturn(client);
+
+            plcService.processNewCurve("192.168.0.1", measuredCurve);
+
+            verify(logService, times(1)).save(logCaptor.capture());
+            verify(client, times(1)).immediateStop();
+
+            assertThat(logCaptor.getValue()).isEqualTo(logToBeCreated);
+        }
+
+        @Test @DisplayName("when automatic monitoring is false does nothing")
+        void whenAutomaticMonitoringIsFalseDoesNothing(){
+            Plc testPlc = Plc.builder()
+                    .currentTool(Tool.builder()
+                            .referenceCurve( Curve.builder()
+                                    .build())
+                            .automaticMonitoring(false)
+                            .stopReaction(StopReactionType.IMMEDIATE)
+                            .build())
+                    .build();
+            Curve measuredCurve = Curve.builder().build();
+
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
+
+            plcService.processNewCurve("192.168.0.1", measuredCurve);
+
+            verify(logService, times(0)).save(any());
+            verify(curveValidationService, times(0)).validate(any(),any());
+            verify(opcuaConnector, times(0)).getClient(any());
+        }
     }
 
     @Nested @DisplayName("CREATE PLC")
@@ -195,14 +295,14 @@ class PlcServiceSpec {
             void storesPlcInDatabase(){
                 plcService.create(newPlc);
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(newPlc);
+                verify(plcRepository,Mockito.times(1)).save(newPlc);
             }
 
             @Test @DisplayName("connects PLC over opcua")
             void connectsPlcOverOpcua(){
                 plcService.create(newPlc);
 
-                Mockito.verify(opcuaConnector, Mockito.times(1)).connectPlc(newPlc);
+                verify(opcuaConnector, Mockito.times(1)).connectPlc(newPlc);
             }
 
             @Test @DisplayName("sets PLC status to CONNECTED when connection was established")
@@ -294,14 +394,14 @@ class PlcServiceSpec {
             void deletesPlcFromDatabase(){
                 plcService.delete(idOfExistingPlc);
 
-                Mockito.verify(plcRepository,Mockito.times(1)).deleteById(idOfExistingPlc);
+                verify(plcRepository,Mockito.times(1)).deleteById(idOfExistingPlc);
             }
 
             @Test @DisplayName("disconnects PLC from OPC UA when PLC exists")
             void disconnectsPlcFromOpcuaWhenPlcExists(){
                 plcService.delete(idOfExistingPlc);
 
-                Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcInDb);
+                verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcInDb);
             }
         }
 
@@ -363,7 +463,7 @@ class PlcServiceSpec {
         void triggersPlcRepository(){
             plcService.findAll();
 
-            Mockito.verify(plcRepository,Mockito.times(1)).findAll();
+            verify(plcRepository,Mockito.times(1)).findAll();
         }
     }
 
@@ -382,7 +482,7 @@ class PlcServiceSpec {
             @Test @DisplayName("updates one attribute (connection status) of PLC")
             void updatesOneAttribute(){
                 plcService.update(ipOfExistingPlc, plc -> plc.setConnectionStatus(ConnectionStatus.CONNECTED));
-                Mockito.verify(plcRepository).save(plcCaptor.capture());
+                verify(plcRepository).save(plcCaptor.capture());
 
                 assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
             }
@@ -395,7 +495,7 @@ class PlcServiceSpec {
                     plc.markAsConnected();
                 });
 
-                Mockito.verify(plcRepository).save(plcCaptor.capture());
+                verify(plcRepository).save(plcCaptor.capture());
 
                 SoftAssertions softAssertions = new SoftAssertions();
                 softAssertions.assertThat(plcCaptor.getValue().getName()).isEqualTo("newName");
@@ -407,7 +507,7 @@ class PlcServiceSpec {
             void storesUpdatedPlcInDb(){
                 plcService.update(ipOfExistingPlc, plc -> {});
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(any(Plc.class));
+                verify(plcRepository,Mockito.times(1)).save(any(Plc.class));
             }
 
             @Test @DisplayName("returns updated PLC")
@@ -427,9 +527,9 @@ class PlcServiceSpec {
 
                 plcService.update(ipOfExistingPlc, plc -> plc.setIpAddress("192.168.0.2"));
 
-                Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcCaptor.capture());
+                verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.1");
-                Mockito.verify(opcuaConnector,Mockito.times(1)).connectPlc(plcCaptor.capture());
+                verify(opcuaConnector,Mockito.times(1)).connectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.2");
             }
         }
@@ -457,7 +557,7 @@ class PlcServiceSpec {
             void updatesOneAttribute(){
                 plcService.update(idOfExistingPlc, plc -> plc.setConnectionStatus(ConnectionStatus.CONNECTED));
 
-                Mockito.verify(plcRepository).save(plcCaptor.capture());
+                verify(plcRepository).save(plcCaptor.capture());
 
                 assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
             }
@@ -470,7 +570,7 @@ class PlcServiceSpec {
                     plc.markAsConnected();
                 });
 
-                Mockito.verify(plcRepository).save(plcCaptor.capture());
+                verify(plcRepository).save(plcCaptor.capture());
 
                 SoftAssertions softAssertions = new SoftAssertions();
                 softAssertions.assertThat(plcCaptor.getValue().getName()).isEqualTo("newName");
@@ -482,7 +582,7 @@ class PlcServiceSpec {
             void storesUpdatedPlcInDb(){
                 plcService.update(idOfExistingPlc, plc -> {});
 
-                Mockito.verify(plcRepository,Mockito.times(1)).save(plcInDb);
+                verify(plcRepository,Mockito.times(1)).save(plcInDb);
             }
 
             @Test @DisplayName("returns updated PLC")
@@ -502,9 +602,9 @@ class PlcServiceSpec {
 
                 plcService.update(idOfExistingPlc, plc -> plc.setIpAddress("192.168.0.2"));
 
-                Mockito.verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcCaptor.capture());
+                verify(opcuaConnector,Mockito.times(1)).disconnectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.1");
-                Mockito.verify(opcuaConnector,Mockito.times(1)).connectPlc(plcCaptor.capture());
+                verify(opcuaConnector,Mockito.times(1)).connectPlc(plcCaptor.capture());
                 assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.2");
 
             }

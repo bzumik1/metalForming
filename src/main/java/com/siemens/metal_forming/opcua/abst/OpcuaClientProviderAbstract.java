@@ -52,9 +52,9 @@ public abstract class OpcuaClientProviderAbstract implements OpcuaClientProvider
                 OpcUaClientConfig opcUaConfiguration = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
                         .setApplicationName(LocalizedText.english(opcuaConfiguration.getApplicationName()))
-                        .setRequestTimeout(uint(2_000))
+                        .setRequestTimeout(uint(5_000))
                         .setKeepAliveFailuresAllowed(uint(0)) //Number of possible failures
-                        .setKeepAliveInterval(uint(2_000)) //Time after which is session (connection) marked as disconnected
+                        .setKeepAliveInterval(uint(5_000)) //Time after which is session (connection) marked as disconnected
                         .build();
 
                 UaStackClient stackClient = UaStackClient.create(opcUaConfiguration);
