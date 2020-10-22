@@ -7,6 +7,7 @@ import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import com.siemens.metal_forming.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -20,7 +21,7 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
     private final Map<Long, ReferenceCurveCalculation> calculations = new HashMap<>(); //ToDo - should be thread save
 
     @Autowired
-    public ReferenceCurveCalculationServiceImpl(ToolService toolService) {
+    public ReferenceCurveCalculationServiceImpl(@Lazy ToolService toolService) {
         this.toolService = toolService;
     }
 
