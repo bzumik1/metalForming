@@ -230,6 +230,7 @@ class PlcServiceSpec {
                         .maxSpeedOperation(10)
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
                         .build();
 
 
@@ -374,6 +375,7 @@ class PlcServiceSpec {
                 softAssertions.assertThat(createdPlc.getCurrentTool().getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(40);
                 softAssertions.assertThat(createdPlc.getCurrentTool().getToolStatus()).as("tool should be marked as autodetected").isEqualTo(ToolStatusType.AUTODETECTED);
                 softAssertions.assertThat(createdPlc.getCurrentTool().getAutomaticMonitoring()).as("tool is created with automaticMonitoring false").isFalse();
+                softAssertions.assertThat(createdPlc.getCurrentTool().getCalculateReferenceCurve()).as("tool should be created with calculationReferenceCurve false").isFalse();
                 softAssertions.assertAll();
             }
 

@@ -87,6 +87,7 @@ public class PlcServiceImpl implements PlcService {
                         .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
                         .build();
                 plc.addTool(newTool);
             }
@@ -172,6 +173,7 @@ public class PlcServiceImpl implements PlcService {
                         .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
                         .build();
                 log.debug("Setting autodetected tool as current tool: {}", autodetectedTool);
                 plc.addTool(autodetectedTool);
