@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.service;
 
+import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
@@ -48,6 +49,8 @@ class PlcServiceSpec {
     private LogService logService;
     @Mock
     private LogCreator logCreator;
+    @Mock
+    private ReferenceCurveCalculationService referenceCurveCalculationService;
 
     @Captor
     ArgumentCaptor<Log> logCaptor;
@@ -72,11 +75,11 @@ class PlcServiceSpec {
     @BeforeEach
     void initialize() {
         //INITIALIZE MOCKS
-        plcService = new PlcServiceImpl(plcRepository, opcuaConnector, curveValidationService, logService, logCreator);
+        plcService = new PlcServiceImpl(plcRepository, opcuaConnector, curveValidationService, referenceCurveCalculationService, logService, logCreator);
 
         //INITIALIZE VARIABLES
         plcInDb = Mockito.spy(Plc.builder().ipAddress(ipOfExistingPlc).name(nameOfExistingPlc).build());
-        plcInDb.addTool(Tool.builder().toolNumber(toolNumberOfExistingTool).build());
+        plcInDb.addTool(Tool.builder().toolNumber(toolNumberOfExistingTool).id(1L).calculateReferenceCurve(true).numberOfReferenceCycles(1).build());
         plcInDb.setCurrentTool(toolNumberOfExistingTool);
         newPlc = Plc.builder().ipAddress(ipOfNotExistentPlc).build();
 
@@ -190,7 +193,32 @@ class PlcServiceSpec {
                 Mockito.reset(plcInDb);
                 plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
 
-                verify(plcInDb,Mockito.times(1)).setCurrentTool(toolNumberOfExistingTool);
+                verify(plcInDb, times(1)).setCurrentTool(toolNumberOfExistingTool);
+            }
+
+            @Test @DisplayName("calculation of reference curve of old tool is canceled if it was running")
+            void cancelsReferenceCurveCalculationIfItWasRunning(){
+                Mockito.reset(plcInDb);
+                plcInDb.getCurrentTool().setCalculateReferenceCurve(true);
+
+                when(referenceCurveCalculationService.getReferenceCurveCalculation(toolNumberOfExistingTool))
+                        .thenReturn(Optional.of(new ReferenceCurveCalculation(2)));
+
+                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
+
+                verify(referenceCurveCalculationService, times(1)).removeCalculation(toolNumberOfExistingTool);
+            }
+
+            @Test @DisplayName("when tool exists in plc's tools than calculation of reference curve of new tool is started if required")
+            void startsCalculationOfReferenceCurveIfRequired(){
+                Mockito.reset(plcInDb);
+                plcInDb.getCurrentTool().setCalculateReferenceCurve(true);
+                plcInDb.getCurrentTool().setNumberOfReferenceCycles(1);
+                plcInDb.getCurrentTool().setId(1L);
+
+                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
+
+                verify(referenceCurveCalculationService, times(1)).addCalculation(1L,1);
             }
 
             @Test @DisplayName("when tool does not exist in plc's tools then new is created")
@@ -237,6 +265,7 @@ class PlcServiceSpec {
                             .referenceCurve( Curve.builder()
                                     .build())
                             .automaticMonitoring(true)
+                            .calculateReferenceCurve(false)
                             .stopReaction(StopReactionType.IMMEDIATE)
                             .build())
                     .build();
@@ -267,6 +296,7 @@ class PlcServiceSpec {
                             .referenceCurve( Curve.builder()
                                     .build())
                             .automaticMonitoring(false)
+                            .calculateReferenceCurve(false)
                             .stopReaction(StopReactionType.IMMEDIATE)
                             .build())
                     .build();
@@ -279,6 +309,26 @@ class PlcServiceSpec {
             verify(logService, times(0)).save(any());
             verify(curveValidationService, times(0)).validate(any(),any());
             verify(opcuaConnector, times(0)).getClient(any());
+        }
+
+        @Test @DisplayName("when curve is valid and calculation of reference curve is required then calculates reference curve")
+        void calculatesReferenceCurveWhenNeeded(){
+            Plc testPlc = Plc.builder()
+                    .currentTool(Tool.builder()
+                            .automaticMonitoring(false)
+                            .id(1L)
+                            .calculateReferenceCurve(true)
+                            .build())
+                    .build();
+            Curve measuredCurve = Curve.builder().build();
+            OpcuaClient client = Mockito.mock(OpcuaClient.class);
+
+
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
+
+            plcService.processNewCurve("192.168.0.1", measuredCurve);
+
+            verify(referenceCurveCalculationService, times(1)).calculate(1L, measuredCurve);
         }
     }
 

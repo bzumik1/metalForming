@@ -67,6 +67,7 @@ class DtoMapperSpec {
                     .automaticMonitoring(true)
                     .maxSpeedOperation(10)
                     .numberOfReferenceCycles(10)
+                    .calculateReferenceCurve(true)
                     .referenceCurve(null)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
@@ -79,6 +80,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(toolDto.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
             softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getName());
             softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());
+            softAssertions.assertThat(toolDto.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolWithAllAttributes.getCalculateReferenceCurve());
             softAssertions.assertThat(toolDto.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
             softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
             softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
@@ -202,6 +204,7 @@ class DtoMapperSpec {
                     .automaticMonitoring(true)
                     .name("name")
                     .numberOfReferenceCycles(10)
+                    .calculateReferenceCurve(true)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
 
@@ -212,6 +215,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(tool.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolDto.getAutomaticMonitoring());
             softAssertions.assertThat(tool.getName()).as("name").isEqualTo(toolDto.getName());
             softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
+            softAssertions.assertThat(tool.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolDto.getCalculateReferenceCurve());
             softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
             softAssertions.assertThat(tool.getToolStatus()).as("toolStatus").isEqualTo(toolDto.getToolStatus());
             softAssertions.assertAll();

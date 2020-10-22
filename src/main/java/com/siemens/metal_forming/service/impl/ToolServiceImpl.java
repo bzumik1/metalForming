@@ -1,8 +1,10 @@
 package com.siemens.metal_forming.service.impl;
 
+import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.PlcService;
@@ -65,5 +67,13 @@ public class ToolServiceImpl implements ToolService {
             plc.addTool(toolToBeUpdated);
         };
         return plcService.update(plcId,updatePlc).getToolById(toolId);
+    }
+
+    @Override
+    public void updateReferenceCurve(Long toolId, Curve referenceCurve) {
+        Tool toolInDb = toolRepository.findById(toolId).orElseThrow(() -> new ToolNotFoundException(toolId));
+        toolInDb.setReferenceCurve(referenceCurve);
+        toolInDb.setCalculateReferenceCurve(false);
+        toolRepository.save(toolInDb);
     }
 }

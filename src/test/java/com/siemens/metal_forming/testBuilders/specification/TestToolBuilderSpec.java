@@ -78,6 +78,13 @@ public class TestToolBuilderSpec extends TestBuilderSpec{
             assertThat(testTool.getNumberOfReferenceCycles()).isEqualTo(1000);
         }
 
+        @Test @DisplayName("sets calculateReferenceCurve of new tool")
+        void setsCalculateReferenceCurveOfNewTool(){
+            Tool testTool = testToolBuilder.calculateReferenceCurve(true).build();
+
+            assertThat(testTool.getCalculateReferenceCurve()).isTrue();
+        }
+
         @Test @DisplayName("sets stopReaction of new tool")
         void setsStopReactionOfNewTool(){
             Tool testTool = testToolBuilder.stopReaction(StopReactionType.TOP_POSITION).build();

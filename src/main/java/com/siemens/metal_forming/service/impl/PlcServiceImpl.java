@@ -15,6 +15,7 @@ import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.CurveValidationService;
 import com.siemens.metal_forming.service.LogService;
 import com.siemens.metal_forming.service.PlcService;
+import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,14 +33,16 @@ public class PlcServiceImpl implements PlcService {
     private final PlcRepository plcRepository;
     private final OpcuaConnector opcuaConnector;
     private final CurveValidationService curveValidationService;
+    private final ReferenceCurveCalculationService referenceCurveCalculationService;
     private final LogService logService;
     private final LogCreator logCreator;
 
     @Autowired
-    public PlcServiceImpl(PlcRepository plcRepository, OpcuaConnector opcuaConnector, @Qualifier("CurveValidationServiceMock") CurveValidationService curveValidationService, LogService logService, LogCreator logCreator) {
+    public PlcServiceImpl(PlcRepository plcRepository, OpcuaConnector opcuaConnector, @Qualifier("CurveValidationServiceMock") CurveValidationService curveValidationService, ReferenceCurveCalculationService referenceCurveCalculationService, LogService logService, LogCreator logCreator) {
         this.plcRepository = plcRepository;
         this.opcuaConnector = opcuaConnector;
         this.curveValidationService = curveValidationService;
+        this.referenceCurveCalculationService = referenceCurveCalculationService;
         this.logService = logService;
         this.logCreator = logCreator;
     }
@@ -148,9 +151,18 @@ public class PlcServiceImpl implements PlcService {
     @Override
     public void changeCurrentTool(String ipAddress, int toolNumber) {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
+        // Canceling calculation of reference curve on old tool
+        referenceCurveCalculationService.removeCalculation(plc.getCurrentTool().getId());
+
+        //Setting new current tool
         if(plc.hasToolByToolNumber(toolNumber)){
             plc.setCurrentTool(toolNumber);
-            log.debug("Seting current tool: {}", plc.getCurrentTool());
+            log.debug("Setting current tool: {}", plc.getCurrentTool());
+            Tool currentTool = plc.getCurrentTool();
+            //Starts calculation of reference curve on new current tool if needed
+            if(currentTool.getCalculateReferenceCurve()){
+                referenceCurveCalculationService.addCalculation(currentTool.getId(), currentTool.getNumberOfReferenceCycles());
+            }
         } else {
             OpcuaClient client = opcuaConnector.getClient(plc);
             try {
@@ -171,12 +183,12 @@ public class PlcServiceImpl implements PlcService {
         plcRepository.save(plc);
     }
 
-
     @Override
     public void processNewCurve(String ipAddress, Curve measuredCurve) {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
         Tool currentTool = plc.getCurrentTool();
 
+        //Validation of reference curve
         if(currentTool.getAutomaticMonitoring()){
             Set<CollisionPoint> collisionPoints = curveValidationService.validate(currentTool.getReferenceCurve(),measuredCurve);
 
@@ -196,6 +208,10 @@ public class PlcServiceImpl implements PlcService {
             log.debug("Automatic monitoring for current tool with toolNumber {} is disabled",currentTool.getToolNumber());
         }
 
+        //Calculation of reference curve
+        if(currentTool.getCalculateReferenceCurve()){
+            referenceCurveCalculationService.calculate(currentTool.getId(), measuredCurve);
+        }
     }
 
     @Transactional

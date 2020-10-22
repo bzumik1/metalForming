@@ -24,6 +24,9 @@ public enum ToolDto {;
             @Max(value = 100, message = "Number of reference cycles can be maximally 100")
             Integer numberOfReferenceCycles;
 
+            @NotNull(message = "Calculate reference curve must be filled")
+            Boolean calculateReferenceCurve;
+
             @NotNull(message = "Type of stop reaction must be selected")
             StopReactionType stopReaction;
 
@@ -45,6 +48,9 @@ public enum ToolDto {;
             @Max(value = 100, message = "Number of reference cycles can be maximally 100")
             Integer numberOfReferenceCycles;
 
+            @NotNull(message = "Calculate reference curve must be filled")
+            Boolean calculateReferenceCurve;
+
             @NotNull(message = "Type of stop reaction must be selected")
             StopReactionType stopReaction;
 
@@ -63,6 +69,7 @@ public enum ToolDto {;
             Integer toolNumber;
             String name;
             Integer numberOfReferenceCycles;
+            Boolean calculateReferenceCurve;
             StopReactionType stopReaction;
             Boolean referenceCurveIsCalculated;
             Boolean automaticMonitoring;

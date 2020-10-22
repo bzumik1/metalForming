@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.service;
 
+import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -8,6 +9,8 @@ import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainExcepti
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.impl.ToolServiceImpl;
+import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,17 +24,23 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+
 @ExtendWith({MockitoExtension.class})
 @DisplayName("<= TOOL SERVICE SPECIFICATION =>")
 class ToolServiceSpec {
     @Captor
     ArgumentCaptor<Consumer<Plc>> plcConsumerCaptor;
+
+    @Captor
+    ArgumentCaptor<Tool> toolCaptor;
 
     private ToolRepository toolRepository;
     private PlcRepository plcRepository;
@@ -78,14 +87,14 @@ class ToolServiceSpec {
             @BeforeEach
             void initializeForPlcIsInDatabase(){
                 toolsInDb = List.of(new Tool(),new Tool(),new Tool());
-                Mockito.when(plcRepository.existsById(1L)).thenReturn(true);
-                Mockito.when(toolRepository.findAllByPlcId(1L)).thenReturn(toolsInDb);
+                when(plcRepository.existsById(1L)).thenReturn(true);
+                when(toolRepository.findAllByPlcId(1L)).thenReturn(toolsInDb);
             }
 
             @Test @DisplayName("triggers ToolRepository.findAllByPlcId()")
             void triggersToolRepository(){
                 toolService.findAll(1L);
-                Mockito.verify(toolRepository,Mockito.times(1)).findAllByPlcId(1L);
+                verify(toolRepository, times(1)).findAllByPlcId(1L);
             }
 
             @Test @DisplayName("returns what was found in database")
@@ -97,7 +106,7 @@ class ToolServiceSpec {
 
         @Test @DisplayName("throws PlcNotFoundException when PLC with given ID was not found in database")
         void throwsExceptionWhenPlcDoesNotExistInDatabase(){
-            Mockito.when(plcRepository.existsById(1L)).thenReturn(false);
+            when(plcRepository.existsById(1L)).thenReturn(false);
 
             assertThrows(PlcNotFoundException.class,() -> toolService.findAll(1L));
         }
@@ -108,13 +117,13 @@ class ToolServiceSpec {
         @Test @DisplayName("triggers toolRepository.findAll()")
         void triggersToolRepository(){
             toolService.findAll();
-            Mockito.verify(toolRepository, Mockito.times(1)).findAll();
+            verify(toolRepository, times(1)).findAll();
         }
 
         @Test @DisplayName("returns what was found in database")
         void returnsWhatWasFoundInDataBase(){
             List<Tool> listToReturn = List.of(new Tool(),new Tool(), new Tool());
-            Mockito.when(toolRepository.findAll()).thenReturn(listToReturn);
+            when(toolRepository.findAll()).thenReturn(listToReturn);
 
             assertThat(toolService.findAll().size()).isEqualTo(listToReturn.size());
         }
@@ -124,14 +133,14 @@ class ToolServiceSpec {
     class DeleteOneToolFromPlcByPlcIdAndToolId{
         @Test @DisplayName("throws PlcNotFoundException when there was no PLC with given ID")
         void throwsPlcNotFoundExceptionWhenThereWasNoPlcWithGivenId(){
-            Mockito.when(plcService.update(any(Long.class),ArgumentMatchers.<Consumer<Plc>>any())).thenThrow(new PlcNotFoundException(1L));
+            when(plcService.update(any(Long.class),ArgumentMatchers.<Consumer<Plc>>any())).thenThrow(new PlcNotFoundException(1L));
 
             assertThrows(PlcNotFoundException.class, () -> toolService.delete(1L,1L));
         }
 
         @Test @DisplayName("throws ToolNotFoundException when there was no tool with given ID")
         void throwsToolNotFoundExceptionWhenThereWasNoToolWithGivenId(){
-            Mockito.when(plcService.update(any(Long.class),ArgumentMatchers.<Consumer<Plc>>any())).thenThrow(new ToolNotFoundException(1L));
+            when(plcService.update(any(Long.class),ArgumentMatchers.<Consumer<Plc>>any())).thenThrow(new ToolNotFoundException(1L));
 
             assertThrows(ToolNotFoundException.class, () -> toolService.delete(1L,1L));
         }
@@ -146,26 +155,26 @@ class ToolServiceSpec {
             void triggersPlcServiceUpdateById(){
                 toolService.delete(1L,1L);
 
-                Mockito.verify(plcService,Mockito.times(1)).update(anyLong(), ArgumentMatchers.<Consumer<Plc>>any());
+                verify(plcService, times(1)).update(anyLong(), ArgumentMatchers.<Consumer<Plc>>any());
             }
 
             @Test @DisplayName("deletes tool from plc")
             void deletesToolFromPlc(){
                 toolService.delete(1L,1L);
-                Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+                verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
 
 
                 Plc testPlc = Mockito.spy(Plc.builder().build());
                 testPlc.addTool(Tool.builder().toolNumber(1).id(1L).build());
                 plcConsumerCaptor.getValue().accept(testPlc);
 
-                Mockito.verify(testPlc,Mockito.times(1)).removeTool(any(Tool.class));
+                verify(testPlc, times(1)).removeTool(any(Tool.class));
             }
 
             @Test @DisplayName("throws ToolNotFoundException when tool was not found")
             void throwsToolNotFoundExceptionWhenToolWasNotFound(){
                 toolService.delete(1L,1L);
-                Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+                verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
 
 
                 Plc testPlc = Mockito.spy(Plc.builder().build());
@@ -182,7 +191,7 @@ class ToolServiceSpec {
     class CreateTool{
         @Test @DisplayName("throws PlcNotFoundException when PLC is not in database")
         void throwsPlcNotFoundExceptionWhenPlcIsNotInDatabase(){
-            Mockito.when(plcService.update(any(Long.class),ArgumentMatchers.<Consumer<Plc>>any())).thenThrow(new PlcNotFoundException(1L));
+            when(plcService.update(any(Long.class),ArgumentMatchers.<Consumer<Plc>>any())).thenThrow(new PlcNotFoundException(1L));
 
             assertThrows(PlcNotFoundException.class,() -> toolService.create(1L,new Tool()));
         }
@@ -193,7 +202,7 @@ class ToolServiceSpec {
             Tool toolToReturn = Tool.builder().id(1L).toolNumber(1).build();
             Plc plcToReturn = new Plc();
             plcToReturn.addTool(toolToReturn);
-            Mockito.when(plcService.update(any(Long.class),any())).thenReturn(plcToReturn);
+            when(plcService.update(any(Long.class),any())).thenReturn(plcToReturn);
 
             Tool createdTool = toolService.create(1L,newTool);
             assertThat(createdTool.getId()).isEqualTo(1L);
@@ -203,9 +212,9 @@ class ToolServiceSpec {
         void throwsToolUniqueConstrainExceptionWhenToolAlreadyExists(){
             Plc plcToReturn = new Plc();
             plcToReturn.addTool(Tool.builder().toolNumber(1).build());
-            Mockito.when(plcService.update(anyLong(),ArgumentMatchers.<Consumer<Plc>>any())).thenReturn(plcToReturn);
+            when(plcService.update(anyLong(),ArgumentMatchers.<Consumer<Plc>>any())).thenReturn(plcToReturn);
             toolService.create(1L,Tool.builder().toolNumber(1).build());
-            Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+            verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
 
             Plc testPlc = Mockito.spy(new Plc());
             testPlc.addTool(Tool.builder().toolNumber(1).build());
@@ -217,9 +226,9 @@ class ToolServiceSpec {
         void addsToolWhenEverythingIsOk(){
             Plc plcToReturn = new Plc();
             plcToReturn.addTool(Tool.builder().toolNumber(1).build());
-            Mockito.when(plcService.update(anyLong(),ArgumentMatchers.<Consumer<Plc>>any())).thenReturn(plcToReturn);
+            when(plcService.update(anyLong(),ArgumentMatchers.<Consumer<Plc>>any())).thenReturn(plcToReturn);
             toolService.create(1L,Tool.builder().toolNumber(1).build());
-            Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+            verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
 
             Plc testPlc = new Plc();
             plcConsumerCaptor.getValue().accept(testPlc);
@@ -235,7 +244,7 @@ class ToolServiceSpec {
 
             @BeforeEach
             void initializeForPlcAndToolExist(){
-                Mockito.when(plcService.update(anyLong(),any())).thenReturn(plcInDb);
+                when(plcService.update(anyLong(),any())).thenReturn(plcInDb);
             }
 
             @Test @DisplayName("throws PlcUniqueConstrainException when tool number is changed to one which already exists")
@@ -243,7 +252,7 @@ class ToolServiceSpec {
                 //runs method without error
                 toolService.update(idOfExistingPlc, idOfSecondExistingTool, tool -> tool.setToolNumber(toolNumberOfFirstExistingTool));
                 //catches update of plc
-                Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+                verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
 
                 //if throws error during updating plc and tool
                 assertThrows(ToolUniqueConstrainException.class,() -> plcConsumerCaptor.getValue().accept(plcInDb));
@@ -254,7 +263,7 @@ class ToolServiceSpec {
                 //runs method without error
                 toolService.update(idOfExistingPlc, idOfFirstExistingTool, tool -> tool.setName("newName"));
                 //catches update of plc
-                Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+                verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
                 //runs update of plc which was caught
                 plcConsumerCaptor.getValue().accept(plcInDb);
 
@@ -269,7 +278,7 @@ class ToolServiceSpec {
                     tool.setToolNumber(100);
                 });
                 //catches update of plc
-                Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+                verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
                 //runs update of plc which was caught
                 plcConsumerCaptor.getValue().accept(plcInDb);
 
@@ -282,18 +291,47 @@ class ToolServiceSpec {
 
         @Test @DisplayName("throws PlcNotFoundException when plc with given ID was not found")
         void throwsExceptionWhenPlcWasNotFound(){
-            Mockito.when(plcService.update(anyLong(),any())).thenThrow(new PlcNotFoundException(idOfNonExistentPlc));
+            when(plcService.update(anyLong(),any())).thenThrow(new PlcNotFoundException(idOfNonExistentPlc));
 
             assertThrows(PlcNotFoundException.class, () -> toolService.update(idOfNonExistentPlc, idOfFirstExistingTool, tool -> {}));
         }
 
         @Test @DisplayName("throws ToolNotFoundException when tool with given ID was not found")
         void throwsExceptionWhenToolWasNotFound(){
-            Mockito.when(plcService.update(anyLong(),any())).thenReturn(plcInDb);
+            when(plcService.update(anyLong(),any())).thenReturn(plcInDb);
             assertThrows(ToolNotFoundException.class, () ->toolService.update(idOfExistingPlc,idOfNonExistentTool,tool -> {}));
-            Mockito.verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
+            verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
 
             assertThrows(ToolNotFoundException.class, () -> plcConsumerCaptor.getValue().accept(plcInDb));
+        }
+    }
+
+    @Nested @DisplayName("UPDATES REFERENCE CURVE")
+    class UpdatesReferenceCurve {
+        @Test @DisplayName("throws ToolNotFoundException when tool was not found in database")
+        void throwsToolNotFoundExceptionWhenToolWasNotFoundInDatabase(){
+            Curve newReferenceCurve = new TestCurveBuilder().randomPoints(360).build();
+
+            when(toolRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThrows(ToolNotFoundException.class, () -> toolService.updateReferenceCurve(1L, newReferenceCurve));
+        }
+
+        @Test @DisplayName("sets new ReferenceCurve value and sets calculateReferenceCurve to false and saves it to db")
+        void setsNewReferenceCurveValueAndSetsCalculateReferenceCurveToFalseAndSavesItToDb(){
+            Curve newReferenceCurve = new TestCurveBuilder().randomPoints(360).build();
+            Tool toolInDb = new TestToolBuilder().id(1L).calculateReferenceCurve(true).build();
+
+            when(toolRepository.findById(1L)).thenReturn(Optional.of(toolInDb));
+
+            toolService.updateReferenceCurve(1L, newReferenceCurve);
+
+            verify(toolRepository, times(1)).save(toolCaptor.capture());
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(toolCaptor.getValue().getReferenceCurve()).isEqualTo(newReferenceCurve);
+            softAssertions.assertThat(toolCaptor.getValue().getCalculateReferenceCurve()).isFalse();
+            softAssertions.assertAll();
         }
     }
 }

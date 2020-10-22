@@ -16,6 +16,7 @@ public class TestToolBuilder {
     Integer toolNumber = 1;
     String name = "toolName";
     Integer numberOfReferenceCycles = 10;
+    Boolean calculateReferenceCurve = false;
     StopReactionType stopReaction = StopReactionType.IMMEDIATE;
     Boolean automaticMonitoring = true;
     Integer maxSpeedOperation = 60;
@@ -44,6 +45,11 @@ public class TestToolBuilder {
 
     public TestToolBuilder numberOfReferenceCycles(Integer numberOfReferenceCycles) {
         this.numberOfReferenceCycles = numberOfReferenceCycles;
+        return this;
+    }
+
+    public TestToolBuilder calculateReferenceCurve(Boolean calculateReferenceCurve){
+        this.calculateReferenceCurve = calculateReferenceCurve;
         return this;
     }
 
@@ -79,6 +85,7 @@ public class TestToolBuilder {
         ReflectionTestUtils.setField(toolToReturn, "toolNumber", toolNumber);
         ReflectionTestUtils.setField(toolToReturn, "name", name);
         ReflectionTestUtils.setField(toolToReturn, "numberOfReferenceCycles", numberOfReferenceCycles);
+        ReflectionTestUtils.setField(toolToReturn, "calculateReferenceCurve", calculateReferenceCurve);
         ReflectionTestUtils.setField(toolToReturn, "stopReaction", stopReaction);
         ReflectionTestUtils.setField(toolToReturn, "automaticMonitoring", automaticMonitoring);
         ReflectionTestUtils.setField(toolToReturn, "maxSpeedOperation", maxSpeedOperation);

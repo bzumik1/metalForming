@@ -30,6 +30,9 @@ public class Tool{
     @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;
 
+    @Column(name = "calculate_reference_curve")
+    Boolean calculateReferenceCurve;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "stop_reaction")
     StopReactionType stopReaction;
