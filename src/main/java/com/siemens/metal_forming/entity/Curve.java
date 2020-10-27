@@ -21,6 +21,7 @@ public class Curve {
 
     @NotNull
     @OneToMany(cascade = CascadeType.ALL)
+    @OrderColumn(name = "index")
     @JoinColumn(name = "curve_id", nullable = false) //ToDo should be nullable=false but different point should be created
     List<CurvePoint> points = new ArrayList<>();
 }

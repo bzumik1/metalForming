@@ -25,6 +25,15 @@ public abstract class LogDto {
         public static class Overview{
             Long id;
             Timestamp createdOn;
+            PlcInfoDto plcInformation;
+            ToolInfoDto toolInformation;
+            String comment;
+        }
+
+        @Value @Builder @JsonInclude(JsonInclude.Include.NON_NULL)
+        public static class Detail{
+            Long id;
+            Timestamp createdOn;
             CurveDto measuredCurve;
             CurveDto motorCurve;
             CurveDto referenceCurve;

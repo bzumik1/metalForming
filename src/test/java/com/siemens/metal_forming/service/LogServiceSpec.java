@@ -49,6 +49,25 @@ public class LogServiceSpec {
         }
     }
 
+    @Nested @DisplayName("FIND LOG BY ID")
+    class FindLogById{
+        @Test @DisplayName("triggers logRepository.findById")
+        void triggersLogRepository(){
+            when(logRepository.findById(1L)).thenReturn(Optional.of(Log.builder().build()));
+
+            logService.findById(1L);
+
+            verify(logRepository, times(1)).findById(1L);
+        }
+
+        @Test @DisplayName("throws exception when log was not found")
+        void throwsExceptionWhenLogWasNotFound(){
+            when(logRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThrows(LogNotFoundException.class, () -> logService.findById(1L));
+        }
+    }
+
     @Nested @DisplayName("CREATE LOG")
     class CreateLog{
         @Test @DisplayName("saves given log to database")
