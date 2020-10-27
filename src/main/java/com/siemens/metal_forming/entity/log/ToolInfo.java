@@ -24,6 +24,7 @@ public final class ToolInfo {
     @Column(nullable = false, updatable = false)
     Integer toolNumber;
 
+    //@NotBlank //ToDo uncomment after testing and also set nullable to true
     @Column(updatable = false)
     String name;
 

@@ -209,18 +209,6 @@ class PlcServiceSpec {
                 verify(referenceCurveCalculationService, times(1)).removeCalculation(toolNumberOfExistingTool);
             }
 
-            @Test @DisplayName("when tool exists in plc's tools than calculation of reference curve of new tool is started if required")
-            void startsCalculationOfReferenceCurveIfRequired(){
-                Mockito.reset(plcInDb);
-                plcInDb.getCurrentTool().setCalculateReferenceCurve(true);
-                plcInDb.getCurrentTool().setNumberOfReferenceCycles(1);
-                plcInDb.getCurrentTool().setId(1L);
-
-                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
-
-                verify(referenceCurveCalculationService, times(1)).addCalculation(1L,1);
-            }
-
             @Test @DisplayName("when tool does not exist in plc's tools then new is created")
             void whenToolDoesNotExistInPlcsToolsThenNewIsCreated(){
                 Tool newAutodetectedTool = Tool.builder()
@@ -319,6 +307,7 @@ class PlcServiceSpec {
                             .automaticMonitoring(false)
                             .id(1L)
                             .calculateReferenceCurve(true)
+                            .numberOfReferenceCycles(10)
                             .build())
                     .build();
             Curve measuredCurve = Curve.builder().build();
@@ -326,10 +315,28 @@ class PlcServiceSpec {
 
 
             when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
+            when(referenceCurveCalculationService.getReferenceCurveCalculation(1L)).thenReturn(Optional.empty());
 
             plcService.processNewCurve("192.168.0.1", measuredCurve);
 
             verify(referenceCurveCalculationService, times(1)).calculate(1L, measuredCurve);
+        }
+
+        @Test @DisplayName("starts calculation of reference curve when it already doesn't exist")
+        void startsCalculationOfReferenceCurveWhenItAlreadyDoesNotExist(){
+            Mockito.reset(plcInDb);
+            plcInDb.getCurrentTool().setCalculateReferenceCurve(true);
+            plcInDb.getCurrentTool().setAutomaticMonitoring(false);
+            plcInDb.getCurrentTool().setNumberOfReferenceCycles(1);
+            plcInDb.getCurrentTool().setId(1L);
+            Curve measuredCurve = Curve.builder().build();
+
+            when(plcRepository.findByIpAddress(ipOfExistingPlc)).thenReturn(Optional.of(plcInDb));
+            when(referenceCurveCalculationService.getReferenceCurveCalculation(1L)).thenReturn(Optional.empty());
+
+            plcService.processNewCurve(ipOfExistingPlc,measuredCurve);
+
+            verify(referenceCurveCalculationService, times(1)).addCalculation(1L,1);
         }
     }
 

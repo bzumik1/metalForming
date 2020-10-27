@@ -29,14 +29,14 @@ public final class Log {
     @JoinColumn(name = "measured_curve_id", nullable = false, updatable = false)
     Curve measuredCurve;
 
-    @NotNull
+    //@NotNull //ToDo uncomment when implemented and also set nullable to true
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "motor_curve_id", nullable = false, updatable = false)
+    @JoinColumn(name = "motor_curve_id", nullable = true, updatable = false)
     Curve motorCurve;
 
-    @NotNull
+    //@NotNull //ToDo uncomment after testing and also set nullable to true
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "reference_curve_id", nullable = false, updatable = false)
+    @JoinColumn(name = "reference_curve_id", nullable = true, updatable = false)
     Curve referenceCurve;
 
     @OneToMany(cascade = CascadeType.ALL)

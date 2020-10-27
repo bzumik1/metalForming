@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.service.impl;
 
+import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
@@ -160,10 +161,6 @@ public class PlcServiceImpl implements PlcService {
             plc.setCurrentTool(toolNumber);
             log.debug("Setting current tool: {}", plc.getCurrentTool());
             Tool currentTool = plc.getCurrentTool();
-            //Starts calculation of reference curve on new current tool if needed
-            if(currentTool.getCalculateReferenceCurve()){
-                referenceCurveCalculationService.addCalculation(currentTool.getId(), currentTool.getNumberOfReferenceCycles());
-            }
         } else {
             OpcuaClient client = opcuaConnector.getClient(plc);
             try {
@@ -213,6 +210,10 @@ public class PlcServiceImpl implements PlcService {
 
         //Calculation of reference curve
         if(currentTool.getCalculateReferenceCurve()){
+            Optional<ReferenceCurveCalculation> calculation = referenceCurveCalculationService.getReferenceCurveCalculation(currentTool.getId());
+            if(calculation.isEmpty()){
+                referenceCurveCalculationService.addCalculation(currentTool.getId(),currentTool.getNumberOfReferenceCycles());
+            }
             referenceCurveCalculationService.calculate(currentTool.getId(), measuredCurve);
         }
     }
