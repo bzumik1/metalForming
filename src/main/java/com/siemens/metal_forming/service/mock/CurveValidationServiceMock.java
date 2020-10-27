@@ -17,7 +17,7 @@ public class CurveValidationServiceMock implements CurveValidationService {
     @Override
     public Set<CollisionPoint> validate(Curve referenceCurve, Curve measuredCurve) {
         Set<CollisionPoint> collisionPoints = new HashSet<>();
-        if(Math.random()<0.2){
+        if(Math.random()<0.9){
             int numberOfCollisions = ThreadLocalRandom.current().nextInt(1, 3);
             return Stream.generate(() -> measuredCurve.getPoints().get(ThreadLocalRandom.current().nextInt(0,360)))
                     .limit(numberOfCollisions)

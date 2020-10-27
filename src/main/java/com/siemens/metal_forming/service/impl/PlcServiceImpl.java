@@ -195,6 +195,7 @@ public class PlcServiceImpl implements PlcService {
             Set<CollisionPoint> collisionPoints = curveValidationService.validate(currentTool.getReferenceCurve(),measuredCurve);
 
             if(!collisionPoints.isEmpty()){
+                log.debug("There were {} collision points on curve",collisionPoints.size());
                 logService.save(logCreator.create(plc, measuredCurve, collisionPoints));
                 OpcuaClient client = opcuaConnector.getClient(plc);
                 switch (currentTool.getStopReaction()){
@@ -207,7 +208,7 @@ public class PlcServiceImpl implements PlcService {
                 log.debug("Curve was without problems.");
             }
         } else {
-            log.debug("Automatic monitoring for current tool with toolNumber {} is disabled",currentTool.getToolNumber());
+            log.debug("New curve wasn't validated because automatic monitoring for current tool with toolNumber {} is disabled",currentTool.getToolNumber());
         }
 
         //Calculation of reference curve

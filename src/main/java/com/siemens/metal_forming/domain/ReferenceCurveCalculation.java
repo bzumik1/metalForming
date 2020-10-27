@@ -24,7 +24,7 @@ public class ReferenceCurveCalculation {
     }
 
     public Optional<Curve> calculate(Curve curve){
-        log.debug("Calculating reference curve remaining cycles: {}/{}", NUMBER_OF_CYCLES-curves.size(), NUMBER_OF_CYCLES);
+        log.debug("Calculating reference curve remaining cycles: {}/{}", curves.size(), NUMBER_OF_CYCLES);
         if(curves.size() < NUMBER_OF_CYCLES){
             curves.add(curve);
         }
