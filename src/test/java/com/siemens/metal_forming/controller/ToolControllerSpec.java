@@ -181,7 +181,7 @@ public class ToolControllerSpec {
 
         @BeforeEach
         void initialize(){
-            validToolDto = ToolDto.Request.Create.builder().toolNumber(1).numberOfReferenceCycles(10).stopReaction(StopReactionType.IMMEDIATE).automaticMonitoring(true).build();
+            validToolDto = ToolDto.Request.Create.builder().toolNumber(1).numberOfReferenceCycles(10).calculateReferenceCurve(true).stopReaction(StopReactionType.IMMEDIATE).automaticMonitoring(true).build();
         }
 
         @Nested @DisplayName("VALID TOOL")
@@ -317,6 +317,7 @@ public class ToolControllerSpec {
                     .name("toolName")
                     .automaticMonitoring(true)
                     .numberOfReferenceCycles(10)
+                    .calculateReferenceCurve(true)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
         }

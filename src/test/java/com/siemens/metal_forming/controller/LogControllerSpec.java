@@ -6,6 +6,7 @@ import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.exception.exceptions.LogNotFoundException;
 import com.siemens.metal_forming.service.LogService;
+import com.siemens.metal_forming.testBuilders.TestLogBuilder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -65,8 +66,8 @@ public class LogControllerSpec {
 
         @Test @DisplayName("returns found logs as DTO")
         void triggersDtoMapper() throws Exception {
-            Log log1 = Log.builder().id(1L).build();
-            Log log2 = Log.builder().id(2L).build();
+            Log log1 = new TestLogBuilder().id(1L).build();
+            Log log2 = new TestLogBuilder().id(2L).build();
             LogDto.Response.Overview logDto1 = LogDto.Response.Overview.builder().id(1L).build();
             LogDto.Response.Overview logDto2 = LogDto.Response.Overview.builder().id(2L).build();
 
@@ -87,6 +88,61 @@ public class LogControllerSpec {
         @DisplayName("allows CORS from all origins")
         void allowsCorsFromAllOrigins(String origin) throws Exception {
             mvc.perform(options("/logs")
+                    .header("Access-Control-Request-Method", "GET")
+                    .header("Origin", origin))
+                    .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
+        }
+    }
+
+    @Nested @DisplayName("GET LOG BY ID")
+    class GetLogById{
+
+        @Test @DisplayName("returns 200 Ok when everything is ok")
+        void returnsOkWhenEverythingIsOk() throws Exception {
+            mvc.perform(get("/logs/{id}",1L))
+                    .andExpect(status().isOk());
+        }
+
+        @Test @DisplayName("returns found log as DTO")
+        void triggersDtoMapper() throws Exception {
+            Log log1 = new TestLogBuilder().id(1L).build();
+            LogDto.Response.Detail logDto1 = LogDto.Response.Detail.builder().id(1L).build();
+
+            when(logService.findById(1L)).thenReturn(log1);
+            when(dtoMapper.toLogDtoDetail(log1)).thenReturn(logDto1);
+
+            MvcResult mvcResult = mvc.perform(get("/logs/{id}",1L))
+                    .andReturn();
+
+            assertThat(mvcResult.getResponse().getContentAsString())
+                    .contains(objectMapper.writeValueAsString(logDto1));
+        }
+
+        @Test @DisplayName("returns 404 not found when log with given id was not found")
+        void returnsNotFoundWhenLogDoesNotExist() throws Exception {
+            Mockito.when(logService.findById(1L)).thenThrow(new LogNotFoundException(1L));
+
+            mvc.perform(get("/logs/{id}",1L))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test @DisplayName("returns correct body when log was not found")
+        void returnsCorrectBodyWhenLogWasNotFound() throws Exception {
+            Mockito.when(logService.findById(1L)).thenThrow(new LogNotFoundException(1L));
+
+            MvcResult mvcResult = mvc.perform(get("/logs/{id}",1L))
+                    .andReturn();
+
+            assertThat(mvcResult.getResponse().getContentAsString())
+                    .contains("not found")
+                    .contains("1");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
+        @DisplayName("allows CORS from all origins")
+        void allowsCorsFromAllOrigins(String origin) throws Exception {
+            mvc.perform(options("/logs/{id}",1L)
                     .header("Access-Control-Request-Method", "GET")
                     .header("Origin", origin))
                     .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden

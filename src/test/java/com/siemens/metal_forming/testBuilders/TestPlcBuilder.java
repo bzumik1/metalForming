@@ -110,6 +110,7 @@ public class TestPlcBuilder{
 
     public Plc build(){
         Plc plcToCreate = new Plc();
+
         if(tools != null){
             tools.forEach(plcToCreate::addTool);
         }
@@ -120,7 +121,6 @@ public class TestPlcBuilder{
         ReflectionTestUtils.setField(plcToCreate, "hardwareInformation", hardwareInformation);
         ReflectionTestUtils.setField(plcToCreate, "connection", connection);
         ReflectionTestUtils.setField(plcToCreate, "motorCurve", motorCurve);
-        ReflectionTestUtils.setField(plcToCreate, "tools", tools);
         ReflectionTestUtils.setField(plcToCreate, "currentTool", currentTool);
 
 

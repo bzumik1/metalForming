@@ -11,9 +11,10 @@ import javax.validation.constraints.Pattern;
 
 @Getter @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder(toBuilder = true)
+@Builder(toBuilder = true) @EqualsAndHashCode
 @Entity
 public final class PlcInfo {
+    @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 

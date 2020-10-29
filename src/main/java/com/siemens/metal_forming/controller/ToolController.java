@@ -58,6 +58,7 @@ public class ToolController {
             tool.setToolNumber(toolDto.getToolNumber());
             tool.setName(toolDto.getName());
             tool.setNumberOfReferenceCycles(toolDto.getNumberOfReferenceCycles());
+            tool.setCalculateReferenceCurve(toolDto.getCalculateReferenceCurve());
             tool.setStopReaction(toolDto.getStopReaction());
             tool.setAutomaticMonitoring(toolDto.getAutomaticMonitoring());
             tool.setToolStatus(toolDto.getToolStatus());

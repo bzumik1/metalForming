@@ -17,6 +17,18 @@ public abstract class OpcuaConfiguration {
     OpcuaNodeConfiguration plcSerialNumber;
     OpcuaNodeConfiguration plcFirmwareNumber;
 
+    OpcuaNodeConfiguration toolName;
+    OpcuaNodeConfiguration toolNumber;
+    OpcuaNodeConfiguration toolMaxSpeedOperation;
+
+    OpcuaNodeConfiguration immediateStopIndicator;
+    OpcuaNodeConfiguration topPositionStopIndicator;
+
+    OpcuaNodeConfiguration motorSpeedArray;
+    OpcuaNodeConfiguration motorTorqueArray;
+    OpcuaNodeConfiguration readCurveDataIndicator;
+
+
     @Setter @Getter
     public static class OpcuaNodeConfiguration{
         private int nameSpaceIndex;

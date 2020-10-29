@@ -6,8 +6,10 @@ import com.siemens.metal_forming.repository.LogRepository;
 import com.siemens.metal_forming.service.LogService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,10 +31,16 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
+    public Log findById(Long id) {
+        return logRepository.findById(id).orElseThrow(() -> new LogNotFoundException(id));
+    }
+
+    @Override
     public Log save(Log log) {
         return logRepository.save(log);
     }
 
+    @Transactional
     @Override
     public void delete(Iterable<Long> ids) {
         final Set<Long> idsToDelete = StreamSupport.stream(ids.spliterator(), false).collect(Collectors.toSet());

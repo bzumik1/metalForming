@@ -12,11 +12,14 @@ import java.util.Set;
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor @Builder(toBuilder = true)
+@EqualsAndHashCode
 @Entity
 public final class Log {
+    @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @EqualsAndHashCode.Exclude
     @NotNull
     @Column(nullable = false, updatable = false)
     final Timestamp createdOn = new Timestamp(System.currentTimeMillis());
@@ -26,14 +29,14 @@ public final class Log {
     @JoinColumn(name = "measured_curve_id", nullable = false, updatable = false)
     Curve measuredCurve;
 
-    @NotNull
+    //@NotNull //ToDo uncomment when implemented and also set nullable to true
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "motor_curve_id", nullable = false, updatable = false)
+    @JoinColumn(name = "motor_curve_id", nullable = true, updatable = false)
     Curve motorCurve;
 
-    @NotNull
+    //@NotNull //ToDo uncomment after testing and also set nullable to true
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "reference_curve_id", nullable = false, updatable = false)
+    @JoinColumn(name = "reference_curve_id", nullable = true, updatable = false)
     Curve referenceCurve;
 
     @OneToMany(cascade = CascadeType.ALL)

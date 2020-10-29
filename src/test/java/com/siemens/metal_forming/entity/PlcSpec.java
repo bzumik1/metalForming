@@ -191,19 +191,13 @@ public class PlcSpec extends EntitySpec {
 
     @Nested @DisplayName("TOOLS")
     class Tools{
-        TestToolBuilder testToolBuilder;
-
-        @BeforeEach
-        void initialize(){
-            testToolBuilder = new TestToolBuilder();
-        }
 
         @Nested @DisplayName("SET CURRENT TOOL")
         class SetCurrentTool{
             @Test @DisplayName("when toolNumber is incorrect throws ToolNotFoundException")
             void whenToolIdIsIncorrectThrowsException(){
-                Tool tool1 = testToolBuilder.toolNumber(1).build();
-                Tool tool2 = testToolBuilder.toolNumber(2).build();
+                Tool tool1 = new TestToolBuilder().toolNumber(1).build();
+                Tool tool2 = new TestToolBuilder().toolNumber(2).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
 
                 assertThrows(ToolNotFoundException.class, () -> testPlc.setCurrentTool(3));
@@ -211,7 +205,7 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("throws InvalidToolNumberException when toolNumber is null")
             void throwsInvalidToolNumberExceptionWhenToolNumberIsNull(){
-                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Tool tool1 = new TestToolBuilder().toolNumber(1).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).build();
 
                 assertThrows(InvalidToolNumberException.class, () -> testPlc.setCurrentTool(null));
@@ -233,17 +227,17 @@ public class PlcSpec extends EntitySpec {
             @Test @DisplayName("old tools are replaced with new ones")
             void oldToolsAreReplacedWithNewOnes(){
                 Plc testPlc = testPlcBuilder.randomTools(2).build();
-                Set<Tool> newTools = Stream.iterate(0,n-> n+1).map(i -> testToolBuilder.toolNumber(i).build()).limit(5).collect(Collectors.toSet());
+                Set<Tool> newTools = Stream.iterate(0,n-> n+1).map(i -> new TestToolBuilder().toolNumber(i).build()).limit(5).collect(Collectors.toSet());
 
                 testPlc.setTools(newTools);
 
-                assertThat(testPlc.getTools()).isEqualTo(newTools);//todo comparator?
+                assertThat(testPlc.getTools()).containsExactlyInAnyOrderElementsOf(newTools);
             }
 
             @Test @DisplayName("sets plc for all new tools")
             void setsPlcForAllNewTools(){
                 Plc testPlc = testPlcBuilder.randomTools(2).build();
-                Set<Tool> newTools = Stream.iterate(0,n-> n+1).map(i -> testToolBuilder.toolNumber(i).build()).limit(5).collect(Collectors.toSet());
+                Set<Tool> newTools = Stream.iterate(0,n-> n+1).map(i -> new TestToolBuilder().toolNumber(i).build()).limit(5).collect(Collectors.toSet());
 
                 testPlc.setTools(newTools);
 
@@ -264,7 +258,7 @@ public class PlcSpec extends EntitySpec {
         class AddTool{
             @Test @DisplayName("throws ToolUniqueConstrainException when tool is already in PLC's tools")
             void throwsToolUniqueConstrainExceptionWhenToolIsAlreadyInPlc(){
-                Tool oldTool = testToolBuilder.toolNumber(1).build();
+                Tool oldTool = new TestToolBuilder().toolNumber(1).build();
                 Plc testPlc = testPlcBuilder.addTool(oldTool).build();
 
                 assertThrows(ToolUniqueConstrainException.class,() -> testPlc.addTool(oldTool));
@@ -279,7 +273,7 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("sets plc of the tool to this plc")
             void setsPlcOfTheToolToThisPlc(){
-                Tool newTool = testToolBuilder.toolNumber(1).build();
+                Tool newTool = new TestToolBuilder().toolNumber(1).build();
                 Plc testPlc = testPlcBuilder.build();
 
                 testPlc.addTool(newTool);
@@ -289,8 +283,8 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("adds tool if tool is unique")
             void addsToolIfToolNumberIsUnique(){
-                Tool oldTool = testToolBuilder.toolNumber(1).build();
-                Tool newTool = testToolBuilder.toolNumber(2).build();
+                Tool oldTool = new TestToolBuilder().toolNumber(1).build();
+                Tool newTool = new TestToolBuilder().toolNumber(2).build();
                 Plc testPlc = testPlcBuilder.addTool(oldTool).build();
 
                 testPlc.addTool(newTool);
@@ -303,8 +297,8 @@ public class PlcSpec extends EntitySpec {
         class GetToolByToolNumber{
             @Test @DisplayName("returns tool when tool was not found")
             void returnsToolWhenToolWasFound(){
-                Tool tool1 = testToolBuilder.toolNumber(1).build();
-                Tool tool2 = testToolBuilder.toolNumber(2).build();
+                Tool tool1 = new TestToolBuilder().toolNumber(1).build();
+                Tool tool2 = new TestToolBuilder().toolNumber(2).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
 
                 assertThat(testPlc.getToolByToolNumber(1)).isNotNull();
@@ -312,7 +306,7 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("throws InvalidToolNumberException when toolNumber is null")
             void throwsInvalidToolNumberExceptionWhenToolNumberIsNull(){
-                Tool tool1 = testToolBuilder.toolNumber(1).build();
+                Tool tool1 = new TestToolBuilder().toolNumber(1).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).build();
 
                 assertThrows(InvalidToolNumberException.class, () -> testPlc.getToolByToolNumber(null));
@@ -320,8 +314,8 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("throws ToolNotFoundException when tool was found")
             void throwsExceptionWhenToolWasNotFound(){
-                Tool tool1 = testToolBuilder.toolNumber(1).build();
-                Tool tool2 = testToolBuilder.toolNumber(2).build();
+                Tool tool1 = new TestToolBuilder().toolNumber(1).build();
+                Tool tool2 = new TestToolBuilder().toolNumber(2).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
 
                 assertThrows(ToolNotFoundException.class,() -> testPlc.getToolByToolNumber(3));
@@ -332,8 +326,8 @@ public class PlcSpec extends EntitySpec {
         class GetToolById{
             @Test @DisplayName("returns tool when tool was found")
             void returnsToolWhenToolWasFound(){
-                Tool tool1 = testToolBuilder.id(1L).toolNumber(55).build();
-                Tool tool2 = testToolBuilder.id(2L).toolNumber(56).build();
+                Tool tool1 = new TestToolBuilder().id(1L).toolNumber(55).build();
+                Tool tool2 = new TestToolBuilder().id(2L).toolNumber(56).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
 
                 assertThat(testPlc.getToolById(1L)).isNotNull();
@@ -341,7 +335,7 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("throws InvalidToolNumberException when id is null")
             void throwsInvalidToolNumberExceptionWhenIdIsNull(){
-                Tool tool1 = testToolBuilder.id(1L).toolNumber(55).build();
+                Tool tool1 = new TestToolBuilder().id(1L).toolNumber(55).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).build();
 
                 assertThrows(InvalidIdException.class, () -> testPlc.getToolById(null));
@@ -349,8 +343,8 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("throws ToolNotFoundException when tool was found")
             void throwsExceptionWhenToolWasNotFound(){
-                Tool tool1 = testToolBuilder.id(1L).toolNumber(55).build();
-                Tool tool2 = testToolBuilder.id(2L).toolNumber(56).build();
+                Tool tool1 = new TestToolBuilder().id(1L).toolNumber(55).build();
+                Tool tool2 = new TestToolBuilder().id(2L).toolNumber(56).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).addTool(tool2).build();
 
                 assertThrows(ToolNotFoundException.class,() -> testPlc.getToolById(3L));
@@ -361,8 +355,8 @@ public class PlcSpec extends EntitySpec {
         class RemoveTool{
             @Test @DisplayName("return false when tool with same toolNumber was not found")
             void returnFalseWhenToolWasNotFound(){
-                Tool tool1 = testToolBuilder.toolNumber(1).build();
-                Tool toolWhichIsNotInPlc = testToolBuilder.toolNumber(2).build();
+                Tool tool1 = new TestToolBuilder().toolNumber(1).build();
+                Tool toolWhichIsNotInPlc = new TestToolBuilder().toolNumber(2).build();
                 Plc testPlc = testPlcBuilder.addTool(tool1).build();
 
                 assertThat(testPlc.removeTool(toolWhichIsNotInPlc)).isEqualTo(false);
@@ -370,12 +364,34 @@ public class PlcSpec extends EntitySpec {
 
             @Test @DisplayName("removes tool when tool with same toolNumber was found tool")
             void removesToolWhenToolWithSameToolNumberWasFound(){
-                Tool toolWhichIsInPlc = testToolBuilder.toolNumber(1).build();
-                Plc testPlc = testPlcBuilder.addTool(toolWhichIsInPlc).build();
+                Tool toolWhichIsInPlc = new TestToolBuilder().toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.addTool(toolWhichIsInPlc).addTool(toolWhichIsInPlc).build();
 
                 testPlc.removeTool(toolWhichIsInPlc);
 
                 assertThat(testPlc.getTools()).isEmpty();
+            }
+
+            @Test @DisplayName("removes tool when tool id was changed")
+            void removesToolWhenToolIdWasChanged(){
+                Tool testTool = new TestToolBuilder().toolNumber(1).build();
+                Plc testPlc = testPlcBuilder.addTool(testTool).build();
+
+                testTool.setToolNumber(2);
+                testPlc.removeTool(testTool);
+
+                assertThat(testPlc.getTools()).isEmpty();
+            }
+        }
+
+        @Nested @DisplayName("HAS TOOL BY TOOL NUMBER")
+        class HasToolByToolNumber{
+            @Test @DisplayName("returns true if plc has tool with given tool nuber")
+            void returnsTrueWhenPlcHasToolWithGivenToolNumber(){
+                Tool currentTool = Tool.builder().toolNumber(99).build();
+                Plc plc = testPlcBuilder.randomTools(2).currentTool(currentTool).build();
+
+                assertThat(plc.hasToolByToolNumber(99)).isEqualTo(true);
             }
         }
     }

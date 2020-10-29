@@ -1,36 +1,51 @@
 package com.siemens.metal_forming.service.impl;
 
+import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
+import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.entity.log.CollisionPoint;
+import com.siemens.metal_forming.entity.log.LogCreator;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.OpcuaConnector;
 import com.siemens.metal_forming.repository.PlcRepository;
+import com.siemens.metal_forming.service.CurveValidationService;
+import com.siemens.metal_forming.service.LogService;
 import com.siemens.metal_forming.service.PlcService;
+import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @Service @Slf4j
 public class PlcServiceImpl implements PlcService {
     private final PlcRepository plcRepository;
     private final OpcuaConnector opcuaConnector;
+    private final CurveValidationService curveValidationService;
+    private final ReferenceCurveCalculationService referenceCurveCalculationService;
+    private final LogService logService;
+    private final LogCreator logCreator;
 
-    public PlcServiceImpl(@Autowired PlcRepository plcRepository, @Autowired OpcuaConnector opcuaConnector) {
+    @Autowired
+    public PlcServiceImpl(PlcRepository plcRepository, OpcuaConnector opcuaConnector, @Qualifier("CurveValidationServiceMock") CurveValidationService curveValidationService, ReferenceCurveCalculationService referenceCurveCalculationService, LogService logService, LogCreator logCreator) {
         this.plcRepository = plcRepository;
         this.opcuaConnector = opcuaConnector;
+        this.curveValidationService = curveValidationService;
+        this.referenceCurveCalculationService = referenceCurveCalculationService;
+        this.logService = logService;
+        this.logCreator = logCreator;
     }
 
     @Override
@@ -63,11 +78,28 @@ public class PlcServiceImpl implements PlcService {
             plc.markAsConnected();
             plc.getHardwareInformation().setSerialNumber(client.readSerialNumber().get());
             plc.getHardwareInformation().setFirmwareNumber(client.readFirmwareNumber().get());
+
+            // set current tool
+            Integer currentToolNumber = client.readToolNumber().get();
+            if(plc.getCurrentTool() == null){
+                Tool newTool = Tool.builder()
+                        .toolNumber(currentToolNumber)
+                        .name(client.readToolName().get())
+                        .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
+                        .build();
+                plc.addTool(newTool);
+            }
+            plc.setCurrentTool(currentToolNumber);
+
+            log.debug("All attributes of plc were successfully read");
         } catch (OpcuaConnectionException e){
             log.warn("Newly created PLC could not be connected");
             plc.markAsDisconnected();
         } catch (InterruptedException | ExecutionException e) {
-            log.warn("HardwareInformation could not be updated: {}",e.getMessage());
+            log.warn("Plc attributes could not be updated: {}",e.getMessage());
         }
 
         return plcRepository.save(plc);
@@ -117,11 +149,73 @@ public class PlcServiceImpl implements PlcService {
         }
     }
 
+    @Transactional
     @Override
     public void changeCurrentTool(String ipAddress, int toolNumber) {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
-        plc.setCurrentTool(toolNumber);
+        // Canceling calculation of reference curve on old tool
+        referenceCurveCalculationService.removeCalculation(plc.getCurrentTool().getId());
+
+        //Setting new current tool
+        if(plc.hasToolByToolNumber(toolNumber)){
+            plc.setCurrentTool(toolNumber);
+            log.debug("Setting current tool: {}", plc.getCurrentTool());
+            Tool currentTool = plc.getCurrentTool();
+        } else {
+            OpcuaClient client = opcuaConnector.getClient(plc);
+            try {
+                Tool autodetectedTool = Tool.builder()
+                        .toolNumber(client.readToolNumber().get())
+                        .name(client.readToolName().get())
+                        .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
+                        .build();
+                log.debug("Setting autodetected tool as current tool: {}", autodetectedTool);
+                plc.addTool(autodetectedTool);
+                plc.setCurrentTool(toolNumber);
+            } catch (InterruptedException|ExecutionException e) {
+                log.error("Information about tool could not be correctly read.");
+            }
+        }
         plcRepository.save(plc);
+    }
+
+    @Override
+    public void processNewCurve(String ipAddress, Curve measuredCurve) {
+        Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
+        Tool currentTool = plc.getCurrentTool();
+
+        //Validation of reference curve
+        if(currentTool.getAutomaticMonitoring()){
+            Set<CollisionPoint> collisionPoints = curveValidationService.validate(currentTool.getReferenceCurve(),measuredCurve);
+
+            if(!collisionPoints.isEmpty()){
+                log.debug("There were {} collision points on curve",collisionPoints.size());
+                logService.save(logCreator.create(plc, measuredCurve, collisionPoints));
+                OpcuaClient client = opcuaConnector.getClient(plc);
+                switch (currentTool.getStopReaction()){
+                    case IMMEDIATE:
+                        client.immediateStop();
+                    case TOP_POSITION:
+                        client.topPositionStop();
+                }
+            } else {
+                log.debug("Curve was without problems.");
+            }
+        } else {
+            log.debug("New curve wasn't validated because automatic monitoring for current tool with toolNumber {} is disabled",currentTool.getToolNumber());
+        }
+
+        //Calculation of reference curve
+        if(currentTool.getCalculateReferenceCurve()){
+            Optional<ReferenceCurveCalculation> calculation = referenceCurveCalculationService.getReferenceCurveCalculation(currentTool.getId());
+            if(calculation.isEmpty()){
+                referenceCurveCalculationService.addCalculation(currentTool.getId(),currentTool.getNumberOfReferenceCycles());
+            }
+            referenceCurveCalculationService.calculate(currentTool.getId(), measuredCurve);
+        }
     }
 
     @Transactional
@@ -151,6 +245,7 @@ public class PlcServiceImpl implements PlcService {
         updatePlc.accept(plc);
         //if plc has different IP address then it needs to be reconnected
         if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
+            log.warn("IP address of plc with id {} was changed to {}",plc.getId(), plc.getIpAddress());
             opcuaConnector.disconnectPlc(oldPlc);
             create(plc);
         }

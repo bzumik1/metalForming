@@ -9,9 +9,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode @ToString
 @Entity @Table(name = "tools")
 public class Tool{
+    @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
@@ -19,7 +20,7 @@ public class Tool{
     @JoinColumn(name = "plc_id", nullable = false)
     Plc plc;
 
-    @EqualsAndHashCode.Include
+
     @NotNull
     @Column(name = "tool_number", nullable = false)
     Integer toolNumber;
@@ -28,6 +29,9 @@ public class Tool{
 
     @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;
+
+    @Column(name = "calculate_reference_curve")
+    Boolean calculateReferenceCurve;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "stop_reaction")

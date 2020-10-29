@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.service;
 
+import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
@@ -30,6 +31,8 @@ public interface PlcService {
     Plc update(Long id, Consumer<Plc> toUpdate);
 
     void changeCurrentTool(String ipAddress,int toolId);
+
+    void processNewCurve(String ipAddress, Curve measuredCurve);
 
 
 

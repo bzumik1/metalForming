@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface LogService {
     List<Log> findAllByToolId(Long toolId);
+    Log findById(Long id);
     Log save(Log log);
     void delete(Iterable<Long> ids);
     Log updateComment(Long id, String comment);

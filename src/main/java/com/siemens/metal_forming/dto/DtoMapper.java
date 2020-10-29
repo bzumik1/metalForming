@@ -20,6 +20,8 @@ public interface DtoMapper {
     @Mapping(target = "referenceCurveIsCalculated", source = "tool.referenceCurve")
     ToolDto.Response.Overview toToolDtoOverview(Tool tool);
 
+    LogDto.Response.Detail toLogDtoDetail(Log log);
+
     LogDto.Response.Overview toLogDtoOverview(Log log);
 
     //@Mapping(target = "tools", ignore = true)

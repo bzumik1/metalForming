@@ -93,6 +93,31 @@ public class OpcuaClientMock extends OpcUaClient implements OpcuaClient  {
                 .thenApply(integer -> "FW V1."+integer);
     }
 
+    @Override
+    public CompletableFuture<String> readToolName() {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Integer> readToolNumber() {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Integer> readToolMaxSpeedOperation() {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> immediateStop() {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> topPositionStop() {
+        return null;
+    }
+
     private CompletableFuture<Integer> readInteger(NodeId nodeId){
         return getAddressSpace()
                 .getVariableNode(nodeId)
