@@ -64,11 +64,18 @@ public class TestToolBuilderSpec extends TestBuilderSpec{
             assertThat(testTool.getToolNumber()).isEqualTo(99);
         }
 
-        @Test @DisplayName("sets name of new tool")
-        void setsNameOfNewTool(){
-            Tool testTool = testToolBuilder.name("newName").build();
+        @Test @DisplayName("sets nameFromPlc of new tool")
+        void setsNameFromPlcOfNewTool(){
+            Tool testTool = testToolBuilder.nameFromPlc("newName").build();
 
-            assertThat(testTool.getName()).isEqualTo("newName");
+            assertThat(testTool.getNameFromPlc()).isEqualTo("newName");
+        }
+
+        @Test @DisplayName("sets nickName of new tool")
+        void setsNickNameOfNewTool(){
+            Tool testTool = testToolBuilder.nickName("nickName").build();
+
+            assertThat(testTool.getNickName()).isEqualTo("nickName");
         }
 
         @Test @DisplayName("sets numberOfReferenceCycles of new tool")

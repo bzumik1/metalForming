@@ -5,7 +5,6 @@ import com.siemens.metal_forming.entity.CurvePoint;
 import com.siemens.metal_forming.entity.abstractSpec.ImmutableEntitySpec;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.testBuilders.TestLogBuilder;
-import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -70,7 +68,7 @@ class LogSpec extends ImmutableEntitySpec {
                     .toolInformation(ToolInfo.builder()
                             .toolId(1L)
                             .toolNumber(1)
-                            .name("toolName")
+                            .nameFromPlc("toolName")
                             .stopReaction(StopReactionType.IMMEDIATE)
                             .build())
                     .comment("comment")
@@ -97,7 +95,7 @@ class LogSpec extends ImmutableEntitySpec {
                     .toolInformation(ToolInfo.builder()
                             .toolId(1L)
                             .toolNumber(1)
-                            .name("toolName")
+                            .nameFromPlc("toolName")
                             .stopReaction(StopReactionType.IMMEDIATE)
                             .build())
                     .comment("comment")

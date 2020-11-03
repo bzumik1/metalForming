@@ -56,8 +56,6 @@ public enum ToolDto {;
 
             @NotNull(message = "Automatic monitoring must be filled")
             Boolean automaticMonitoring;
-
-            ToolStatusType toolStatus = ToolStatusType.MANUALLY_ADDED; //ToDo should not change status
         }
     }
 

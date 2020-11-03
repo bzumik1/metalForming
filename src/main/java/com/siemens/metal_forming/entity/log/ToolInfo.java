@@ -26,7 +26,10 @@ public final class ToolInfo {
 
     //@NotBlank //ToDo uncomment after testing and also set nullable to true
     @Column(updatable = false)
-    String name;
+    String nameFromPlc;
+
+    @Column(updatable = false)
+    String nickName;
 
     @NotNull
     @Enumerated(EnumType.STRING)

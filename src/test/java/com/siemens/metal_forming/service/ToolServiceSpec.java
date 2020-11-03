@@ -3,19 +3,19 @@ package com.siemens.metal_forming.service;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.impl.ToolServiceImpl;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -23,6 +23,7 @@ import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.persistence.OneToOne;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -73,8 +74,8 @@ class ToolServiceSpec {
         toolService = new ToolServiceImpl(toolRepository, plcRepository, plcService);
 
         //INITIALIZE VARIABLES
-        firstToolInDb = Tool.builder().id(idOfFirstExistingTool).toolNumber(toolNumberOfFirstExistingTool).name("firstTool").build();
-        secondToolInDb = Tool.builder().id(idOfSecondExistingTool).toolNumber(toolNumberOfSecondExistingTool).name("secondTool").build();
+        firstToolInDb = Tool.builder().id(idOfFirstExistingTool).toolNumber(toolNumberOfFirstExistingTool).nameFromPlc("firstTool").build();
+        secondToolInDb = Tool.builder().id(idOfSecondExistingTool).toolNumber(toolNumberOfSecondExistingTool).nameFromPlc("secondTool").build();
         plcInDb = new Plc();
         plcInDb.addTool(firstToolInDb);
         plcInDb.addTool(secondToolInDb);
@@ -258,23 +259,34 @@ class ToolServiceSpec {
                 assertThrows(ToolUniqueConstrainException.class,() -> plcConsumerCaptor.getValue().accept(plcInDb));
             }
 
+            @Test @DisplayName("throws ToolNumberUpdateException when tool number was updated for autodetected tool") @Disabled("needs refactoring of main code")
+            void throwsExceptionWhenToolNumberWasUpdatedForAutodetectedTool(){
+                Tool toolInDatabase = new TestToolBuilder().id(1L).toolStatus(ToolStatusType.AUTODETECTED).build();
+                Plc plcInDatabase = new TestPlcBuilder().id(1L).build();
+                plcInDatabase.addTool(toolInDatabase);
+
+                when(plcRepository.findById(1L)).thenReturn(Optional.of(plcInDatabase));
+
+                assertThrows(ToolNumberUpdateException.class, ()-> toolService.update(1L,1L, tool -> tool.setToolNumber(1)));
+            }
+
             @Test @DisplayName("updates one attribute")
             void updatesOneAttribute(){
                 //runs method without error
-                toolService.update(idOfExistingPlc, idOfFirstExistingTool, tool -> tool.setName("newName"));
+                toolService.update(idOfExistingPlc, idOfFirstExistingTool, tool -> tool.setNameFromPlc("newName"));
                 //catches update of plc
                 verify(plcService).update(anyLong(),plcConsumerCaptor.capture());
                 //runs update of plc which was caught
                 plcConsumerCaptor.getValue().accept(plcInDb);
 
-                assertThat(plcInDb.getToolById(idOfFirstExistingTool).getName()).isEqualTo("newName");
+                assertThat(plcInDb.getToolById(idOfFirstExistingTool).getNameFromPlc()).isEqualTo("newName");
             }
 
             @Test @DisplayName("updates multiple attributes")
             void updatesMultipleAttribute(){
                 //runs method without error
                 toolService.update(idOfExistingPlc, idOfFirstExistingTool, tool -> {
-                    tool.setName("newName");
+                    tool.setNameFromPlc("newName");
                     tool.setToolNumber(100);
                 });
                 //catches update of plc
@@ -283,7 +295,7 @@ class ToolServiceSpec {
                 plcConsumerCaptor.getValue().accept(plcInDb);
 
                 SoftAssertions softAssertions = new SoftAssertions();
-                softAssertions.assertThat(plcInDb.getToolById(idOfFirstExistingTool).getName()).isEqualTo("newName");
+                softAssertions.assertThat(plcInDb.getToolById(idOfFirstExistingTool).getNameFromPlc()).isEqualTo("newName");
                 softAssertions.assertThat(plcInDb.getToolById(idOfFirstExistingTool).getToolNumber()).isEqualTo(100);
                 softAssertions.assertAll();
             }

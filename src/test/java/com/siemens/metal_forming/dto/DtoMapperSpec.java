@@ -59,7 +59,7 @@ class DtoMapperSpec {
                     .id(1L)
                     .plc(Plc.builder().id(1L).build())
                     .toolNumber(1)
-                    .name("name")
+                    .nickName("nickName")
                     .toolStatus(ToolStatusType.AUTODETECTED)
                     .automaticMonitoring(true)
                     .maxSpeedOperation(10)
@@ -75,7 +75,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(toolDto.getId()).as("id").isEqualTo(toolWithAllAttributes.getId());
             softAssertions.assertThat(toolDto.getPlcId()).as("plcId").isEqualTo(toolWithAllAttributes.getPlc().getId());
             softAssertions.assertThat(toolDto.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
-            softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getName());
+            softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getNickName());
             softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());
             softAssertions.assertThat(toolDto.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolWithAllAttributes.getCalculateReferenceCurve());
             softAssertions.assertThat(toolDto.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
@@ -93,7 +93,8 @@ class DtoMapperSpec {
                     .comment("comment")
                     .toolInformation(ToolInfo.builder()
                             .id(1L)
-                            .name("toolName")
+                            .nameFromPlc("nameFromPlc")
+                            .nickName("nickName")
                             .toolNumber(1)
                             .toolId(1L)
                             .stopReaction(StopReactionType.IMMEDIATE)
@@ -119,7 +120,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(logDto.getComment()).as("comment").isEqualTo("comment");
 
             //ToolInformation
-            softAssertions.assertThat(logDto.getToolInformation().getName()).as("toolName").isEqualTo("toolName");
+            softAssertions.assertThat(logDto.getToolInformation().getName()).as("name").isEqualTo("nickName");
             softAssertions.assertThat(logDto.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(logDto.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(logDto.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
@@ -188,7 +189,7 @@ class DtoMapperSpec {
                     .comment("comment")
                     .toolInformation(ToolInfo.builder()
                             .id(1L)
-                            .name("toolName")
+                            .nameFromPlc("nameFromPlc")
                             .toolNumber(1)
                             .toolId(1L)
                             .stopReaction(StopReactionType.IMMEDIATE)
@@ -214,7 +215,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(logDto.getComment()).as("comment").isEqualTo("comment");
 
             //ToolInformation
-            softAssertions.assertThat(logDto.getToolInformation().getName()).as("toolName").isEqualTo("toolName");
+            softAssertions.assertThat(logDto.getToolInformation().getName()).as("toolName").isEqualTo("nameFromPlc");
             softAssertions.assertThat(logDto.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(logDto.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(logDto.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
@@ -258,7 +259,8 @@ class DtoMapperSpec {
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(tool.getToolNumber()).as("toolNumber").isEqualTo(toolDto.getToolNumber());
             softAssertions.assertThat(tool.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolDto.getAutomaticMonitoring());
-            softAssertions.assertThat(tool.getName()).as("name").isEqualTo(toolDto.getName());
+            softAssertions.assertThat(tool.getNameFromPlc()).as("nameFromPlc").isNull();
+            softAssertions.assertThat(tool.getNickName()).as("nickName").isEqualTo(toolDto.getName());
             softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
             softAssertions.assertThat(tool.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolDto.getCalculateReferenceCurve());
             softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());

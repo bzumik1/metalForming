@@ -25,7 +25,9 @@ public class Tool{
     @Column(name = "tool_number", nullable = false)
     Integer toolNumber;
 
-    String name;
+    String nameFromPlc;
+
+    String nickName;
 
     @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;

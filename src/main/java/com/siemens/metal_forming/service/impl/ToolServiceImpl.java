@@ -3,8 +3,10 @@ package com.siemens.metal_forming.service.impl;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
+import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.PlcService;
@@ -62,8 +64,12 @@ public class ToolServiceImpl implements ToolService {
     public Tool update(Long plcId, Long toolId, Consumer<Tool> updateTool) {
         Consumer<Plc> updatePlc = plc -> {
             Tool toolToBeUpdated = plc.getToolById(toolId);
+            final Integer oldToolNumber = toolToBeUpdated.getToolNumber();
             plc.removeTool(toolToBeUpdated);
             updateTool.accept(toolToBeUpdated);
+            if(!toolToBeUpdated.getToolNumber().equals(oldToolNumber) && toolToBeUpdated.getToolStatus() == ToolStatusType.AUTODETECTED){
+                throw new ToolNumberUpdateException();
+            }
             plc.addTool(toolToBeUpdated);
         };
         return plcService.update(plcId,updatePlc).getToolById(toolId);
