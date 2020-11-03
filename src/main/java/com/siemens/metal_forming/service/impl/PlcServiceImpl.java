@@ -1,13 +1,11 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
-import com.siemens.metal_forming.entity.Connection;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.LogCreator;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -107,7 +105,7 @@ public class PlcServiceImpl implements PlcService {
             if(plc.getCurrentTool() == null){
                 Tool newTool = Tool.builder()
                         .toolNumber(currentToolNumber)
-                        .name(client.readToolName().get())
+                        .nameFromPlc(client.readToolName().get())
                         .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)
@@ -135,7 +133,7 @@ public class PlcServiceImpl implements PlcService {
                 .map(CompletableFuture::join)
                 .collect(Collectors.toList());
         log.info("Trying to connect to plcs with IP addresses: {} over OPC UA", plcs.stream().map(Plc::getIpAddress).collect(Collectors.joining(", ")));
-        log.debug("Plcs with IP: {} were successfully connected.", plcs.stream().filter(Plc::isConnected).map(Plc::getIpAddress).collect(Collectors.joining(", ")));
+        log.info("Plcs with IP addresses: {} were successfully connected.", plcs.stream().filter(Plc::isConnected).map(Plc::getIpAddress).collect(Collectors.joining(", ")));
     }
 
     @Override
@@ -182,7 +180,7 @@ public class PlcServiceImpl implements PlcService {
             try {
                 Tool autodetectedTool = Tool.builder()
                         .toolNumber(client.readToolNumber().get())
-                        .name(client.readToolName().get())
+                        .nameFromPlc(client.readToolName().get())
                         .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)

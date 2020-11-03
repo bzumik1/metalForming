@@ -14,7 +14,8 @@ public class TestToolBuilder {
     Long id;
     Plc plc = new TestPlcBuilder().build();
     Integer toolNumber = 1;
-    String name = "toolName";
+    String nameFromPlc = "toolName";
+    String nickName = "nickName";
     Integer numberOfReferenceCycles = 10;
     Boolean calculateReferenceCurve = false;
     StopReactionType stopReaction = StopReactionType.IMMEDIATE;
@@ -38,8 +39,13 @@ public class TestToolBuilder {
         return this;
     }
 
-    public TestToolBuilder name(String name) {
-        this.name = name;
+    public TestToolBuilder nameFromPlc(String nameFromPlc) {
+        this.nameFromPlc = nameFromPlc;
+        return this;
+    }
+
+    public TestToolBuilder nickName(String nickName) {
+        this.nickName = nickName;
         return this;
     }
 
@@ -83,7 +89,8 @@ public class TestToolBuilder {
 
         ReflectionTestUtils.setField(toolToReturn, "id", id);
         ReflectionTestUtils.setField(toolToReturn, "toolNumber", toolNumber);
-        ReflectionTestUtils.setField(toolToReturn, "name", name);
+        ReflectionTestUtils.setField(toolToReturn, "nameFromPlc", nameFromPlc);
+        ReflectionTestUtils.setField(toolToReturn, "nickName", nickName);
         ReflectionTestUtils.setField(toolToReturn, "numberOfReferenceCycles", numberOfReferenceCycles);
         ReflectionTestUtils.setField(toolToReturn, "calculateReferenceCurve", calculateReferenceCurve);
         ReflectionTestUtils.setField(toolToReturn, "stopReaction", stopReaction);

@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.testBuilders;
 
 import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
@@ -25,7 +24,7 @@ public class TestLogBuilder {
     Curve referenceCurve = new TestCurveBuilder().randomPoints(100).build();;
     Set<CollisionPoint> collisionPoints = Set.of(new CollisionPoint(1.1F,1.1F),new CollisionPoint(2.2F,2.2F));
     PlcInfo plcInformation = PlcInfo.builder().name("plcName").firmwareNumber("FW 001").serialNumber("SN 001").ipAddress("192.168.0.1").build();
-    ToolInfo toolInformation = ToolInfo.builder().name("toolName").toolId(1L).toolNumber(1).stopReaction(StopReactionType.IMMEDIATE).build();
+    ToolInfo toolInformation = ToolInfo.builder().nameFromPlc("toolName").toolId(1L).toolNumber(1).stopReaction(StopReactionType.IMMEDIATE).build();
     String comment;
 
     public TestLogBuilder id(Long id){

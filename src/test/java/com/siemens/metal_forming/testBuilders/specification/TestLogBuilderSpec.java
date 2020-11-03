@@ -5,11 +5,7 @@ import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
 import com.siemens.metal_forming.entity.log.ToolInfo;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.testBuilders.TestLogBuilder;
-import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
-import com.siemens.metal_forming.testBuilders.TestToolBuilder;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -17,8 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -129,7 +123,7 @@ public class TestLogBuilderSpec extends TestBuilderSpec{
 
         @Test @DisplayName("sets toolInformation of new log")
         void setsToolInformationOfNewLog(){
-            ToolInfo toolInfo = ToolInfo.builder().name("toolName").build();
+            ToolInfo toolInfo = ToolInfo.builder().nameFromPlc("toolName").build();
 
             Log testLog = testLogBuilder.toolInformation(toolInfo).build();
 

@@ -89,7 +89,7 @@ class LogRepositorySpec {
 
         @Test @DisplayName("deletes toolInformation when log is deleted")
         void deletesToolInformationWhenLogIsDeleted(){
-            ToolInfo toolInfo = ToolInfo.builder().name("toolName").toolNumber(1).toolId(1L).stopReaction(StopReactionType.IMMEDIATE).build();
+            ToolInfo toolInfo = ToolInfo.builder().nameFromPlc("toolName").toolNumber(1).toolId(1L).stopReaction(StopReactionType.IMMEDIATE).build();
             Log testLog = testLogBuilder.toolInformation(toolInfo).build();
 
             Long id = logRepository.save(testLog).getId();

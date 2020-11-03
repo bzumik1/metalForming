@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = LogCreatorImpl.class)
-@DisplayName("<= ENTITY MAPPER SPECIFICATION =>")
+@DisplayName("<= LOG CREATOR SPECIFICATION =>")
 class LogCreatorSpec {
     @Autowired
     LogCreator logCreator;
@@ -61,7 +61,7 @@ class LogCreatorSpec {
                     .name("plcName").ipAddress("192.168.0.1").serialNumber("SN 001").firmwareNumber("FW 001")
                     .motorCurve(testCurveBuilder.randomPoints(10).build())
                     .currentTool(testToolBuilder
-                            .id(1L).name("toolName").toolNumber(1).stopReaction(StopReactionType.IMMEDIATE)
+                            .id(1L).nameFromPlc("nameFromPlc").nickName("nickName").toolNumber(1).stopReaction(StopReactionType.IMMEDIATE)
                             .referenceCurve(testCurveBuilder.randomPoints(20).build())
                             .build())
                     .build();
@@ -107,7 +107,8 @@ class LogCreatorSpec {
             softAssertions.assertThat(log.getPlcInformation().getFirmwareNumber()).as("firmwareNumber").isEqualTo("FW 001");
 
             //tool information
-            softAssertions.assertThat(log.getToolInformation().getName()).as("name").isEqualTo("toolName");
+            softAssertions.assertThat(log.getToolInformation().getNameFromPlc()).as("nameFromPlc").isEqualTo("nameFromPlc");
+            softAssertions.assertThat(log.getToolInformation().getNickName()).as("nickName").isEqualTo("nickName");
             softAssertions.assertThat(log.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(log.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(log.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
@@ -158,12 +159,19 @@ class LogCreatorSpec {
 
         @Test @DisplayName("copies all required attributes")
         void copiesAllRequiredAttributesFromPlc(){
-            Tool originalTool = testToolBuilder.name("toolName").id(1L).toolNumber(1).stopReaction(StopReactionType.IMMEDIATE).build();
+            Tool originalTool = Tool.builder()
+                    .nameFromPlc("toolName")
+                    .nickName("nickName")
+                    .id(1L)
+                    .toolNumber(1)
+                    .stopReaction(StopReactionType.IMMEDIATE)
+                    .build();
 
             ToolInfo toolInfo = logCreator.toToolInfo(originalTool);
 
             SoftAssertions softAssertions = new SoftAssertions();
-            softAssertions.assertThat(toolInfo.getName()).as("name").isEqualTo("toolName");
+            softAssertions.assertThat(toolInfo.getNameFromPlc()).as("nameFromPlc").isEqualTo("toolName");
+            softAssertions.assertThat(toolInfo.getNickName()).as("nickName").isEqualTo("nickName");
             softAssertions.assertThat(toolInfo.getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(toolInfo.getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(toolInfo.getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);

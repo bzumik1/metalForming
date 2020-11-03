@@ -215,7 +215,7 @@ class PlcServiceSpec {
                 Tool newAutodetectedTool = Tool.builder()
                         .plc(plcInDb)
                         .toolNumber(2)
-                        .name("newTool")
+                        .nameFromPlc("newTool")
                         .maxSpeedOperation(10)
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)
@@ -379,7 +379,7 @@ class PlcServiceSpec {
                 softAssertions.assertThat(createdPlc.getTools().size()).as("tool should be added").isEqualTo(1);
                 softAssertions.assertThat(createdPlc.getCurrentTool()).as("tool should be selected as current tool").isNotNull();
                 softAssertions.assertThat(createdPlc.getCurrentTool().getToolNumber()).as("tool should be created with correct number").isEqualTo(1);
-                softAssertions.assertThat(createdPlc.getCurrentTool().getName()).as("tool should be created with correct name").isEqualTo("toolName");
+                softAssertions.assertThat(createdPlc.getCurrentTool().getNameFromPlc()).as("tool should be created with correct name").isEqualTo("toolName");
                 softAssertions.assertThat(createdPlc.getCurrentTool().getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(40);
                 softAssertions.assertThat(createdPlc.getCurrentTool().getToolStatus()).as("tool should be marked as autodetected").isEqualTo(ToolStatusType.AUTODETECTED);
                 softAssertions.assertThat(createdPlc.getCurrentTool().getAutomaticMonitoring()).as("tool is created with automaticMonitoring false").isFalse();
@@ -486,7 +486,7 @@ class PlcServiceSpec {
                 softAssertions.assertThat(createdPlc.getTools().size()).as("tool should be added").isEqualTo(1);
                 softAssertions.assertThat(createdPlc.getCurrentTool()).as("tool should be selected as current tool").isNotNull();
                 softAssertions.assertThat(createdPlc.getCurrentTool().getToolNumber()).as("tool should be created with correct number").isEqualTo(1);
-                softAssertions.assertThat(createdPlc.getCurrentTool().getName()).as("tool should be created with correct name").isEqualTo("toolName");
+                softAssertions.assertThat(createdPlc.getCurrentTool().getNameFromPlc()).as("tool should be created with correct name").isEqualTo("toolName");
                 softAssertions.assertThat(createdPlc.getCurrentTool().getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(40);
                 softAssertions.assertThat(createdPlc.getCurrentTool().getToolStatus()).as("tool should be marked as autodetected").isEqualTo(ToolStatusType.AUTODETECTED);
                 softAssertions.assertThat(createdPlc.getCurrentTool().getAutomaticMonitoring()).as("tool is created with automaticMonitoring false").isFalse();

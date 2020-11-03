@@ -8,14 +8,14 @@ import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.StopReactionType;
-import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
+import com.siemens.metal_forming.exception.exceptions.*;
 import com.siemens.metal_forming.service.ToolService;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -49,6 +49,9 @@ public class ToolControllerSpec {
 
     @MockBean
     DtoMapper dtoMapper;
+
+    @Captor
+    ArgumentCaptor<Consumer<Tool>> toolConsumerCaptor;
 
     private final String path = "/plcs/{plcId}/tools";
 
@@ -333,12 +336,25 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("triggers toolService when tool was valid")
             void triggersToolServiceWhenValid() throws Exception {
+                Tool toolInDatabase = new Tool();
+
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validToolDtoJson));
 
                 Mockito.verify(toolService, times(1))
-                        .update(anyLong(),anyLong(),any());
+                        .update(anyLong(),anyLong(),toolConsumerCaptor.capture());
+
+                toolConsumerCaptor.getValue().accept(toolInDatabase);
+
+                SoftAssertions softAssertions = new SoftAssertions();
+                softAssertions.assertThat(toolInDatabase.getToolNumber()).as("toolNumber").isEqualTo(validToolDto.getToolNumber());
+                softAssertions.assertThat(toolInDatabase.getNickName()).as("nickName").isEqualTo(validToolDto.getName());
+                softAssertions.assertThat(toolInDatabase.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(validToolDto.getNumberOfReferenceCycles());
+                softAssertions.assertThat(toolInDatabase.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(validToolDto.getCalculateReferenceCurve());
+                softAssertions.assertThat(toolInDatabase.getStopReaction()).as("stopReaction").isEqualTo(validToolDto.getStopReaction());
+                softAssertions.assertThat(toolInDatabase.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(validToolDto.getAutomaticMonitoring());
+                softAssertions.assertAll();
             }
 
             @Test @DisplayName("returns 200 Ok when everything was ok")
@@ -352,6 +368,16 @@ public class ToolControllerSpec {
             @Test @DisplayName("returns 409 Conflict when tool with same tool number already exists")
             void returnsConflictWhenToolWithSameToolNumberAlreadyExists() throws Exception {
                 Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolUniqueConstrainException(validToolDto.getToolNumber()));
+
+                mvc.perform(put(updatePath,1L,1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validToolDtoJson))
+                        .andExpect(status().isConflict());
+            }
+
+            @Test @DisplayName("returns 409 Conflict when tool number of autodetected tool was updated")
+            void returnsConflictWhenToolNumberOfAutodetectedToolWasUpdated() throws Exception {
+                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolNumberUpdateException());
 
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
