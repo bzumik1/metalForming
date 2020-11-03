@@ -107,7 +107,7 @@ public class PlcSpec extends EntitySpec {
         }
     }
 
-    @Nested @DisplayName("CONNECTION SETUP")
+    @Nested @DisplayName("CONNECTION")
     class ConnectionSetup{
         @Test @DisplayName("connection of plc is set to CONNECTED with last update \"now\" when markAsConnected method is called")
         void markAsConnectedTest(){
@@ -144,6 +144,14 @@ public class PlcSpec extends EntitySpec {
             assertThat(Math.abs((System.currentTimeMillis() - testPlc.getConnection().getLastStatusChange().getTime())))
                     .isLessThan(1000); //time difference in ms
 
+        }
+
+        @Test @DisplayName("returns true if connection status is CONNECTED")
+        void returnsTrueIfConnectionStatusIsConnected(){
+            Plc plc = Plc.builder().build();
+            plc.markAsConnected();
+
+            assertThat(plc.isConnected()).isTrue();
         }
 
     }
