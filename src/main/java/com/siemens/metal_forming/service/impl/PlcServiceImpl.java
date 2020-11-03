@@ -74,21 +74,7 @@ public class PlcServiceImpl implements PlcService {
 
     @Override
     public Plc createPlc(Plc plc) {
-        StringBuilder exceptionMessage = new StringBuilder();
-        String separator = ", ";
-        if(plcRepository.existsByIpAddress(plc.getIpAddress())){
-            exceptionMessage.append("PLC with given IP address ").append(plc.getIpAddress()).append(" already exists").append(separator);
-        }
-
-        if (plcRepository.existsByName(plc.getName())){
-            exceptionMessage.append("PLC with given name ").append(plc.getName()).append(" already exists").append(separator);
-        }
-
-        if(exceptionMessage.length()!=0){
-            exceptionMessage.setLength(exceptionMessage.length()-separator.length());
-            throw new PlcUniqueConstrainException(exceptionMessage.toString());
-        }
-
+        validateUniquenessOfPlc(plc);
         return connectPlc(plc);
     }
 
@@ -264,6 +250,23 @@ public class PlcServiceImpl implements PlcService {
             connectPlc(plc);
         }
         return plcRepository.save(plc);
+    }
+
+    private void validateUniquenessOfPlc(Plc plc){
+        StringBuilder exceptionMessage = new StringBuilder();
+        String separator = ", ";
+        if(plcRepository.existsByIpAddress(plc.getIpAddress())){
+            exceptionMessage.append("PLC with given IP address ").append(plc.getIpAddress()).append(" already exists").append(separator);
+        }
+
+        if (plcRepository.existsByName(plc.getName())){
+            exceptionMessage.append("PLC with given name ").append(plc.getName()).append(" already exists").append(separator);
+        }
+
+        if(exceptionMessage.length()!=0){
+            exceptionMessage.setLength(exceptionMessage.length()-separator.length());
+            throw new PlcUniqueConstrainException(exceptionMessage.toString());
+        }
     }
 
 
