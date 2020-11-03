@@ -1,11 +1,13 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
+import com.siemens.metal_forming.entity.Connection;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.LogCreator;
+import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaConnectionException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -26,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service @Slf4j
 public class PlcServiceImpl implements PlcService {
@@ -71,8 +75,27 @@ public class PlcServiceImpl implements PlcService {
     }
 
     @Override
-    public Plc create(Plc plc) {
-        hasUniqueAttributes(plc);
+    public Plc createPlc(Plc plc) {
+        StringBuilder exceptionMessage = new StringBuilder();
+        String separator = ", ";
+        if(plcRepository.existsByIpAddress(plc.getIpAddress())){
+            exceptionMessage.append("PLC with given IP address ").append(plc.getIpAddress()).append(" already exists").append(separator);
+        }
+
+        if (plcRepository.existsByName(plc.getName())){
+            exceptionMessage.append("PLC with given name ").append(plc.getName()).append(" already exists").append(separator);
+        }
+
+        if(exceptionMessage.length()!=0){
+            exceptionMessage.setLength(exceptionMessage.length()-separator.length());
+            throw new PlcUniqueConstrainException(exceptionMessage.toString());
+        }
+
+        return connectPlc(plc);
+    }
+
+    @Override
+    public Plc connectPlc(Plc plc) {
         try {
             OpcuaClient client = opcuaConnector.connectPlc(plc);
             plc.markAsConnected();
@@ -105,21 +128,14 @@ public class PlcServiceImpl implements PlcService {
         return plcRepository.save(plc);
     }
 
-    private void hasUniqueAttributes(Plc plc){
-        StringBuilder exceptionMessage = new StringBuilder();
-        String separator = ", ";
-        if(plcRepository.existsByIpAddress(plc.getIpAddress())){
-            exceptionMessage.append("PLC with given IP address ").append(plc.getIpAddress()).append(" already exists").append(separator);
-        }
-
-        if (plcRepository.existsByName(plc.getName())){
-            exceptionMessage.append("PLC with given name ").append(plc.getName()).append(" already exists").append(separator);
-        }
-
-        if(exceptionMessage.length()!=0){
-            exceptionMessage.setLength(exceptionMessage.length()-separator.length());
-            throw new PlcUniqueConstrainException(exceptionMessage.toString());
-        }
+    @Override @Transactional //ToDo should get all data from db
+    public void connectAllPlcsInDatabase() {
+        List<Plc> plcs = plcRepository.findAll().stream()
+                .map(plc -> CompletableFuture.supplyAsync(() -> this.connectPlc(plc)))
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+        log.info("Trying to connect to plcs with IP addresses: {} over OPC UA", plcs.stream().map(Plc::getIpAddress).collect(Collectors.joining(", ")));
+        log.debug("Plcs with IP: {} were successfully connected.", plcs.stream().filter(Plc::isConnected).map(Plc::getIpAddress).collect(Collectors.joining(", ")));
     }
 
     @Override
@@ -140,7 +156,7 @@ public class PlcServiceImpl implements PlcService {
         if(plcInDb.isPresent()){
             if(!plcInDb.get().getIpAddress().equals(newPlc.getIpAddress())){
                 opcuaConnector.disconnectPlc(plcInDb.get());
-                return create(newPlc);
+                return connectPlc(newPlc);
             }else{
                 return plcRepository.save(newPlc);
             }
@@ -247,7 +263,7 @@ public class PlcServiceImpl implements PlcService {
         if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
             log.warn("IP address of plc with id {} was changed to {}",plc.getId(), plc.getIpAddress());
             opcuaConnector.disconnectPlc(oldPlc);
-            create(plc);
+            connectPlc(plc);
         }
         return plcRepository.save(plc);
     }

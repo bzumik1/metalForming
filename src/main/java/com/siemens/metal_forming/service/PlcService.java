@@ -20,7 +20,11 @@ public interface PlcService {
 
     Optional<Plc> find(String ipAddress);
 
-    Plc create(Plc plc);
+    Plc createPlc(Plc plc);
+
+    Plc connectPlc(Plc plc);
+
+    void connectAllPlcsInDatabase();
 
     void delete(Long id);
 

@@ -35,7 +35,7 @@ public class PlcController {
     @PostMapping
     public ResponseEntity<PlcDto.Response.Overview> createPlc(@Valid @RequestBody PlcDto.Request.Create plcDto){
         Plc plc = dtoMapper.toPlc(plcDto);
-        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.create(plc)), HttpStatus.CREATED);
+        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.connectPlc(plc)), HttpStatus.CREATED);
     }
 
     @PutMapping(path = "/{plcId}")

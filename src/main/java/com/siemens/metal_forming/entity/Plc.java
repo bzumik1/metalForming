@@ -62,6 +62,10 @@ public class Plc {
         connection.setStatus(connectionStatus);
     }
 
+    public boolean isConnected(){
+        return connection.getStatus() == ConnectionStatus.CONNECTED;
+    }
+
     public void setCurrentTool(@NotNull Integer toolNumber){
         if (toolNumber == null) throw new InvalidToolNumberException();
 

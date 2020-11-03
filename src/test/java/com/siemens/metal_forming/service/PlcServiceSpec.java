@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -75,7 +76,7 @@ class PlcServiceSpec {
     @BeforeEach
     void initialize() {
         //INITIALIZE MOCKS
-        plcService = new PlcServiceImpl(plcRepository, opcuaConnector, curveValidationService, referenceCurveCalculationService, logService, logCreator);
+        plcService = spy(new PlcServiceImpl(plcRepository, opcuaConnector, curveValidationService, referenceCurveCalculationService, logService, logCreator));
 
         //INITIALIZE VARIABLES
         plcInDb = Mockito.spy(Plc.builder().ipAddress(ipOfExistingPlc).name(nameOfExistingPlc).build());
@@ -351,28 +352,28 @@ class PlcServiceSpec {
 
             @Test @DisplayName("stores PLC to database")
             void storesPlcInDatabase(){
-                plcService.create(newPlc);
+                plcService.createPlc(newPlc);
 
                 verify(plcRepository,Mockito.times(1)).save(newPlc);
             }
 
             @Test @DisplayName("connects PLC over opcua")
             void connectsPlcOverOpcua(){
-                plcService.create(newPlc);
+                plcService.createPlc(newPlc);
 
                 verify(opcuaConnector, Mockito.times(1)).connectPlc(newPlc);
             }
 
             @Test @DisplayName("sets PLC status to CONNECTED when connection was established")
             void setPlcStatusToConnected(){
-                Plc createdPlc = plcService.create(newPlc);
+                Plc createdPlc = plcService.createPlc(newPlc);
 
                 assertThat(createdPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
             }
 
             @Test @DisplayName("adds new tool as autodetected to new plc")
             void addsNewToolAsAutodetectedToNewPlc(){
-                Plc createdPlc = plcService.create(newPlc);
+                Plc createdPlc = plcService.createPlc(newPlc);
 
                 SoftAssertions softAssertions = new SoftAssertions();
                 softAssertions.assertThat(createdPlc.getTools().size()).as("tool should be added").isEqualTo(1);
@@ -390,17 +391,33 @@ class PlcServiceSpec {
             class UpdatesHardwareInformation{
                 @Test @DisplayName("updates serial number")
                 void updatesSerialNumber(){
-                    Plc createdPlc = plcService.create(newPlc);
+                    Plc createdPlc = plcService.createPlc(newPlc);
 
                     assertThat(createdPlc.getHardwareInformation().getSerialNumber()).isEqualTo("SN");
                 }
 
                 @Test @DisplayName("updates firmware number")
                 void updatesFirmwareNumber(){
-                    Plc createdPlc = plcService.create(newPlc);
+                    Plc createdPlc = plcService.createPlc(newPlc);
 
                     assertThat(createdPlc.getHardwareInformation().getFirmwareNumber()).isEqualTo("FW");
                 }
+            }
+        }
+
+        @Nested @DisplayName("PLC IS DISCONNECTED")
+        class PlcIsDisconnected{
+            @Test @DisplayName("mark plc as disconnected when the connection over OPC UA could not be established")
+            void markPlcAsDisconnectedIfTheConnectionWasNotSuccessful(){
+                Plc plcToBeConnected = Plc.builder().build();
+                plcToBeConnected.markAsConnected();
+
+                when(opcuaConnector.connectPlc(plcToBeConnected)).thenThrow(new OpcuaConnectionException());
+
+                plcService.createPlc(plcToBeConnected);
+
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+                assertThat(plcToBeConnected.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
             }
         }
 
@@ -410,14 +427,14 @@ class PlcServiceSpec {
             void throwsExceptionWhenIpAddressIsNotUnique(){
                 when(plcRepository.existsByIpAddress(ipOfExistingPlc)).thenReturn(true);
 
-                assertThrows(PlcUniqueConstrainException.class,() -> plcService.create(plcInDb));
+                assertThrows(PlcUniqueConstrainException.class,() -> plcService.createPlc(plcInDb));
             }
 
             @Test @DisplayName("throws PlcUniqueConstrainViolationException when PLC has same name as one of PLCs in database")
             void throwsExceptionWhenNameIsNotUnique(){
                 when(plcRepository.existsByName(nameOfExistingPlc)).thenReturn(true);
 
-                assertThrows(PlcUniqueConstrainException.class,() -> plcService.create(plcInDb));
+                assertThrows(PlcUniqueConstrainException.class,() -> plcService.createPlc(plcInDb));
             }
 
             @Test @DisplayName("throws PlcUniqueConstrainViolationException with correct message when PLC has same name and ip as one of PLCs in database")
@@ -425,18 +442,105 @@ class PlcServiceSpec {
                 when(plcRepository.existsByName(nameOfExistingPlc)).thenReturn(true);
                 when(plcRepository.existsByIpAddress(ipOfExistingPlc)).thenReturn(true);
 
-                String message = assertThrows(PlcUniqueConstrainException.class, () -> plcService.create(plcInDb)).getMessage();
+                String message = assertThrows(PlcUniqueConstrainException.class, () -> plcService.createPlc(plcInDb)).getMessage();
                 assertThat(message).contains("IP address").contains("name");
             }
         }
+    }
 
-        @Test @DisplayName("sets PLC status to DISCONNECTED when connection was not established")
-        void setPlcStatusToDisconnected(){
-            when(opcuaConnector.connectPlc(newPlc)).thenThrow(new OpcuaConnectionException());
+    @Nested @DisplayName("CONNECT PLC")
+    class ConnectPlc{
+        @Nested @DisplayName("PLC IS CONNECTED")
+        class PlcIsConnected{
+            @BeforeEach
+            void initializeForPlcIsConnected(){
+                SetBehaviour.correctlyConnectsOverOpcUa(opcuaConnector);
+            }
 
-            plcService.create(newPlc);
+            @Test @DisplayName("stores PLC to database")
+            void storesPlcInDatabase(){
+                plcService.connectPlc(newPlc);
 
-            assertThat(newPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+                verify(plcRepository,Mockito.times(1)).save(newPlc);
+            }
+
+            @Test @DisplayName("connects PLC over opcua")
+            void connectsPlcOverOpcua(){
+                plcService.connectPlc(newPlc);
+
+                verify(opcuaConnector, Mockito.times(1)).connectPlc(newPlc);
+            }
+
+            @Test @DisplayName("sets PLC status to CONNECTED when connection was established")
+            void setPlcStatusToConnected(){
+                Plc createdPlc = plcService.connectPlc(newPlc);
+
+                assertThat(createdPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.CONNECTED);
+            }
+
+            @Test @DisplayName("adds new tool as autodetected to new plc")
+            void addsNewToolAsAutodetectedToNewPlc(){
+                Plc createdPlc = plcService.connectPlc(newPlc);
+
+                SoftAssertions softAssertions = new SoftAssertions();
+                softAssertions.assertThat(createdPlc.getTools().size()).as("tool should be added").isEqualTo(1);
+                softAssertions.assertThat(createdPlc.getCurrentTool()).as("tool should be selected as current tool").isNotNull();
+                softAssertions.assertThat(createdPlc.getCurrentTool().getToolNumber()).as("tool should be created with correct number").isEqualTo(1);
+                softAssertions.assertThat(createdPlc.getCurrentTool().getName()).as("tool should be created with correct name").isEqualTo("toolName");
+                softAssertions.assertThat(createdPlc.getCurrentTool().getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(40);
+                softAssertions.assertThat(createdPlc.getCurrentTool().getToolStatus()).as("tool should be marked as autodetected").isEqualTo(ToolStatusType.AUTODETECTED);
+                softAssertions.assertThat(createdPlc.getCurrentTool().getAutomaticMonitoring()).as("tool is created with automaticMonitoring false").isFalse();
+                softAssertions.assertThat(createdPlc.getCurrentTool().getCalculateReferenceCurve()).as("tool should be created with calculationReferenceCurve false").isFalse();
+                softAssertions.assertAll();
+            }
+
+            @Nested @DisplayName("UPDATES HARDWARE INFORMATION")
+            class UpdatesHardwareInformation{
+                @Test @DisplayName("updates serial number")
+                void updatesSerialNumber(){
+                    Plc createdPlc = plcService.connectPlc(newPlc);
+
+                    assertThat(createdPlc.getHardwareInformation().getSerialNumber()).isEqualTo("SN");
+                }
+
+                @Test @DisplayName("updates firmware number")
+                void updatesFirmwareNumber(){
+                    Plc createdPlc = plcService.connectPlc(newPlc);
+
+                    assertThat(createdPlc.getHardwareInformation().getFirmwareNumber()).isEqualTo("FW");
+                }
+            }
+        }
+
+        @Nested @DisplayName("PLC IS DISCONNECTED")
+        class PlcIsDisconnected{
+            @Test @DisplayName("mark plc as disconnected when the connection over OPC UA could not be established")
+            void markPlcAsDisconnectedIfTheConnectionWasNotSuccessful(){
+                Plc plcToBeConnected = Plc.builder().build();
+                plcToBeConnected.markAsConnected();
+
+                when(opcuaConnector.connectPlc(plcToBeConnected)).thenThrow(new OpcuaConnectionException());
+
+                plcService.connectPlc(plcToBeConnected);
+
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+                assertThat(plcToBeConnected.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+            }
+        }
+    }
+
+    @Nested @DisplayName("CONNECT ALL PLCS IN DATABASE")
+    class ConnectAllPlcsInDatabase{
+        @Test @DisplayName("For all plcs in database triggers connectPlc method")
+        void forAllPlcsInDatabaseTriggersConnectPlc(){
+            List<Plc> plcsInDatabase = List.of(Plc.builder().name("first plc").build(), Plc.builder().name("second plc").build());
+
+            when(plcRepository.findAll()).thenReturn(plcsInDatabase);
+            when(opcuaConnector.connectPlc(any())).thenThrow(new OpcuaConnectionException());
+
+            plcService.connectAllPlcsInDatabase();
+
+            verify(plcService,times(2)).connectPlc(any(Plc.class));
         }
     }
 
