@@ -22,13 +22,9 @@ public interface PlcService {
 
     Plc createPlc(Plc plc);
 
-    Plc connectPlc(Plc plc);
-
     void connectAllPlcsInDatabase();
 
     void delete(Long id);
-
-    Plc replace(Long id, Plc updatedPlc);
 
     Plc update(String ipAddress, Consumer<Plc> toUpdate);
 

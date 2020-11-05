@@ -6,6 +6,7 @@ import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,6 +221,59 @@ class PlcRepositorySpec {
             }
 
         }
+    }
+
+    @Nested @DisplayName("OWN QUERIES")
+    class OwnQueries{
+        @Nested @DisplayName("EXISTS BY IP ADDRESS IGNORING ID") @DataJpaTest
+        class ExistsByIpAddressIgnoringId{
+            @Test @DisplayName("returns true when different plc with same ip exists and false if not")
+            void returnsTrueWhenThereIsAnotherPlcWithSameIpAddressAndFalseIfNot(){
+                Plc plcsInDb1 = new TestPlcBuilder().id(1L).name("plc1").ipAddress("192.168.0.1").build();
+                Plc plcsInDb2 = new TestPlcBuilder().id(2L).name("plc2").ipAddress("192.168.0.2").build();
+
+                plcsInDb1 = plcRepository.save(plcsInDb1);
+                plcsInDb2 = plcRepository.save(plcsInDb2);
+
+                SoftAssertions softAssertions = new SoftAssertions();
+                softAssertions.assertThat(plcRepository.existsByIpAddressIgnoringId("192.168.0.1", plcsInDb2.getId()))
+                        .as("there is different PLC with given IP addresss -> true")
+                        .isTrue();
+                softAssertions.assertThat(plcRepository.existsByIpAddressIgnoringId("192.168.0.2", plcsInDb2.getId()))
+                        .as("there is only this PLC with given IP address (not different) -> false")
+                        .isFalse();
+                softAssertions.assertThat(plcRepository.existsByIpAddressIgnoringId("192.168.0.3", plcsInDb2.getId()))
+                        .as("there is no PLC with given IP address -> false")
+                        .isFalse();
+                softAssertions.assertAll();
+            }
+        }
+
+        @Nested @DisplayName("EXISTS BY NAME IGNORING ID") @DataJpaTest
+        class ExistsByNameIgnoringId{
+            @Test @DisplayName("returns true when different plc with same name exists and false if not")
+            void returnsTrueWhenThereIsAnotherPlcWithSameNameAndFalseIfNot(){
+                Plc plcsInDb1 = new TestPlcBuilder().id(1L).name("plc1").ipAddress("192.168.0.1").build();
+                Plc plcsInDb2 = new TestPlcBuilder().id(2L).name("plc2").ipAddress("192.168.0.2").build();
+
+                plcsInDb1 = plcRepository.save(plcsInDb1);
+                plcsInDb2 = plcRepository.save(plcsInDb2);
+
+                SoftAssertions softAssertions = new SoftAssertions();
+                softAssertions.assertThat(plcRepository.existsByNameIgnoringId("plc1", plcsInDb2.getId()))
+                        .as("there is different PLC with given name -> true")
+                        .isTrue();
+                softAssertions.assertThat(plcRepository.existsByNameIgnoringId("plc2", plcsInDb2.getId()))
+                        .as("there is only this PLC with given IP address (not different) -> false")
+                        .isFalse();
+                softAssertions.assertThat(plcRepository.existsByNameIgnoringId("plc3", plcsInDb2.getId()))
+                        .as("there is no PLC with given IP address -> false")
+                        .isFalse();
+                softAssertions.assertAll();
+            }
+        }
+
+
     }
 
     @Test

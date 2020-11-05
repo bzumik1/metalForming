@@ -75,41 +75,7 @@ public class PlcServiceImpl implements PlcService {
     @Override
     public Plc createPlc(Plc plc) {
         validateUniquenessOfPlc(plc);
-        return connectPlc(plc);
-    }
-
-    @Override
-    public Plc connectPlc(Plc plc) {
-        try {
-            OpcuaClient client = opcuaConnector.connectPlc(plc);
-            plc.markAsConnected();
-            plc.getHardwareInformation().setSerialNumber(client.readSerialNumber().get());
-            plc.getHardwareInformation().setFirmwareNumber(client.readFirmwareNumber().get());
-
-            // set current tool
-            Integer currentToolNumber = client.readToolNumber().get();
-            if(plc.getCurrentTool() == null){
-                Tool newTool = Tool.builder()
-                        .toolNumber(currentToolNumber)
-                        .nameFromPlc(client.readToolName().get())
-                        .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
-                        .toolStatus(ToolStatusType.AUTODETECTED)
-                        .automaticMonitoring(false)
-                        .calculateReferenceCurve(false)
-                        .build();
-                plc.addTool(newTool);
-            }
-            plc.setCurrentTool(currentToolNumber);
-
-            log.debug("All attributes of plc were successfully read");
-        } catch (OpcuaConnectionException e){
-            log.warn("Newly created PLC could not be connected");
-            plc.markAsDisconnected();
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Plc attributes could not be updated: {}",e.getMessage());
-        }
-
-        return plcRepository.save(plc);
+        return plcRepository.save(connectPlc(plc));
     }
 
     @Override @Transactional //ToDo should get all data from db
@@ -128,22 +94,6 @@ public class PlcServiceImpl implements PlcService {
         if(oldPlc.isPresent()){
             opcuaConnector.disconnectPlc(oldPlc.get());
             plcRepository.deleteById(id);
-        } else {
-            throw new PlcNotFoundException(id);
-        }
-    }
-
-    @Override
-    public Plc replace(Long id, Plc newPlc) {
-        newPlc.setId(id);
-        Optional<Plc> plcInDb = plcRepository.findById(id);
-        if(plcInDb.isPresent()){
-            if(!plcInDb.get().getIpAddress().equals(newPlc.getIpAddress())){
-                opcuaConnector.disconnectPlc(plcInDb.get());
-                return connectPlc(newPlc);
-            }else{
-                return plcRepository.save(newPlc);
-            }
         } else {
             throw new PlcNotFoundException(id);
         }
@@ -218,7 +168,7 @@ public class PlcServiceImpl implements PlcService {
         }
     }
 
-    @Transactional
+    @Transactional //ToDo should it be transactional?
     @Override
     public Plc update(String ipAddress, Consumer<Plc> updatePlc) {
         Optional<Plc> plcInDb = plcRepository.findByIpAddress(ipAddress);
@@ -229,10 +179,10 @@ public class PlcServiceImpl implements PlcService {
         }
     }
 
-    @Transactional
+
     @Override
     public Plc update(Long id, Consumer<Plc> updatePlc) {
-        Optional<Plc> plcInDb = plcRepository.findById(id);
+        Optional<Plc> plcInDb = plcRepository.findByIdFetchAll(id); //ToDo should it fetch all or fetch when needed
         if(plcInDb.isPresent()){
             return update(plcInDb.get(),updatePlc);
         } else {
@@ -243,23 +193,31 @@ public class PlcServiceImpl implements PlcService {
     private Plc update(Plc plc, Consumer<Plc> updatePlc){
         final Plc oldPlc = plc.toBuilder().build();
         updatePlc.accept(plc);
+
+        //checks if updated plc doesnt collide with plc in database
+        validateUniquenessOfPlc(plc);
+
         //if plc has different IP address then it needs to be reconnected
         if(!plc.getIpAddress().equals(oldPlc.getIpAddress())){
-            log.warn("IP address of plc with id {} was changed to {}",plc.getId(), plc.getIpAddress());
+            log.info("IP address of plc with id {} was changed to {}",plc.getId(), plc.getIpAddress());
             opcuaConnector.disconnectPlc(oldPlc);
             connectPlc(plc);
         }
         return plcRepository.save(plc);
     }
 
+
     private void validateUniquenessOfPlc(Plc plc){
+        boolean ipIsNotUnique = plc.getId() != null ? plcRepository.existsByIpAddressIgnoringId(plc.getIpAddress(), plc.getId()) : plcRepository.existsByIpAddress(plc.getIpAddress());
+        boolean nameIsNotUnique = plc.getId() != null ? plcRepository.existsByNameIgnoringId(plc.getName(), plc.getId()) : plcRepository.existsByName(plc.getName());
+
         StringBuilder exceptionMessage = new StringBuilder();
         String separator = ", ";
-        if(plcRepository.existsByIpAddress(plc.getIpAddress())){
+        if(ipIsNotUnique){
             exceptionMessage.append("PLC with given IP address ").append(plc.getIpAddress()).append(" already exists").append(separator);
         }
 
-        if (plcRepository.existsByName(plc.getName())){
+        if (nameIsNotUnique){
             exceptionMessage.append("PLC with given name ").append(plc.getName()).append(" already exists").append(separator);
         }
 
@@ -267,6 +225,40 @@ public class PlcServiceImpl implements PlcService {
             exceptionMessage.setLength(exceptionMessage.length()-separator.length());
             throw new PlcUniqueConstrainException(exceptionMessage.toString());
         }
+    }
+
+
+    private Plc connectPlc(Plc plc) {
+        try {
+            OpcuaClient client = opcuaConnector.connectPlc(plc);
+            plc.markAsConnected();
+            plc.getHardwareInformation().setSerialNumber(client.readSerialNumber().get());
+            plc.getHardwareInformation().setFirmwareNumber(client.readFirmwareNumber().get());
+
+            // set current tool
+            Integer currentToolNumber = client.readToolNumber().get();
+            if(plc.getCurrentTool() == null){
+                Tool newTool = Tool.builder()
+                        .toolNumber(currentToolNumber)
+                        .nameFromPlc(client.readToolName().get())
+                        .maxSpeedOperation(client.readToolMaxSpeedOperation().get())
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
+                        .build();
+                plc.addTool(newTool);
+            }
+            plc.setCurrentTool(currentToolNumber);
+
+            log.debug("All information about plc were successfully read");
+        } catch (OpcuaConnectionException e){
+            log.warn("Plc with IP address {} could not be connected",plc.getIpAddress());
+            plc.markAsDisconnected();
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn("Information about plc could not be read: {}",e.getMessage());
+        }
+
+        return plc;
     }
 
 
