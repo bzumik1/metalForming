@@ -43,6 +43,15 @@ public interface DtoMapper {
     @Mapping(target = "id", ignore = true)
     Tool toTool(ToolDto.Request.Create toolDto);
 
+    @Mapping(target = "toolStatus", ignore = true)
+    @Mapping(target = "nickName", source = "name")
+    @Mapping(target = "nameFromPlc", ignore = true)
+    @Mapping(target = "referenceCurve", ignore = true)
+    @Mapping(target = "plc", ignore = true)
+    @Mapping(target = "maxSpeedOperation", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    Tool toTool(ToolDto.Request.Update toolDto);
+
     default boolean toReferenceCurveIsCalculated(Curve referenceCurve){
         return referenceCurve!=null;
     }

@@ -48,13 +48,16 @@ public class ToolController {
 
     @PutMapping(path = "/{plcId}/tools/{toolId}")
     public ToolDto.Response.Overview updateToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId, @Valid @RequestBody ToolDto.Request.Update toolDto){
-        Consumer<Tool> updateAllAttributesSentFromFrontEnd = tool -> {
-            tool.setToolNumber(toolDto.getToolNumber());
-            tool.setNickName(toolDto.getName());
-            tool.setNumberOfReferenceCycles(toolDto.getNumberOfReferenceCycles());
-            tool.setCalculateReferenceCurve(toolDto.getCalculateReferenceCurve());
-            tool.setStopReaction(toolDto.getStopReaction());
-            tool.setAutomaticMonitoring(toolDto.getAutomaticMonitoring());
+        final Tool tool = dtoMapper.toTool(toolDto);
+        Consumer<Tool> updateAllAttributesSentFromFrontEnd = toolToUpdate -> {
+            toolToUpdate.setToolNumber(tool.getToolNumber());
+            toolToUpdate.setNickName(tool.getNickName());
+            toolToUpdate.setNumberOfReferenceCycles(tool.getNumberOfReferenceCycles());
+            toolToUpdate.setCalculateReferenceCurve(tool.getCalculateReferenceCurve());
+            toolToUpdate.setAbsoluteTolerance(tool.getAbsoluteTolerance());
+            toolToUpdate.setRelativeTolerance(tool.getRelativeTolerance());
+            toolToUpdate.setStopReaction(tool.getStopReaction());
+            toolToUpdate.setAutomaticMonitoring(tool.getAutomaticMonitoring());
         };
         return dtoMapper.toToolDtoOverview(toolService.update(plcId,toolId,updateAllAttributesSentFromFrontEnd));
     }

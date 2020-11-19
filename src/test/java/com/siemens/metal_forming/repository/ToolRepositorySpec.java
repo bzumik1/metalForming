@@ -1,10 +1,9 @@
 package com.siemens.metal_forming.repository;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import com.siemens.metal_forming.testBuilders.TestToolBuilder;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
@@ -25,6 +24,12 @@ class ToolRepositorySpec {
     CurveRepository curveRepository;
 
     @Autowired
+    AbsoluteToleranceRepository absoluteToleranceRepository;
+
+    @Autowired
+    RelativeToleranceRepository relativeToleranceRepository;
+
+    @Autowired
     PlcRepository plcRepository;
 
     @Autowired
@@ -42,15 +47,38 @@ class ToolRepositorySpec {
 
     @Nested @DisplayName("CASCADE") @DataJpaTest
     class Cascade{
-        @Test @DisplayName("when tool is deleted also curve is deleted") @Disabled("plc needs to be saved first")
+        @Test @DisplayName("when tool is deleted also curve is deleted")
         void deleteAlsoReferenceCurveOfTool(){
-            Curve referenceCurve = testCurveBuilder.randomPoints(100).build();
-            Tool testTool = testToolBuilder.referenceCurve(referenceCurve).build();
+            Curve referenceCurve = new TestCurveBuilder().randomPoints(10).build();
+            Tool tool = new TestToolBuilder().toolNumber(5).referenceCurve(referenceCurve).build();
+            Plc plc = new TestPlcBuilder().addTool(tool).build();
 
-            testTool = toolRepository.save(testTool);
-            toolRepository.deleteById(testTool.getId());
+            plc = plcRepository.save(plc);
+            plc.removeTool(tool);
 
-            assertThat(curveRepository.findAll()).isEmpty();
+            assertThat(toolRepository.findAll()).isEmpty();
+        }
+
+        @Test @DisplayName("when tool is deleted also absolute tolerance is deleted")
+        void deleteAlsoAbsoluteTolerance(){
+            Tool tool = new TestToolBuilder().toolNumber(5).absoluteTolerance(new AbsoluteTolerance(1f,1f)).build();
+            Plc plc = new TestPlcBuilder().addTool(tool).build();
+
+            plc = plcRepository.save(plc);
+            plc.removeTool(tool);
+
+            assertThat(absoluteToleranceRepository.findAll()).isEmpty();
+        }
+
+        @Test @DisplayName("when tool is deleted also relative tolerance is deleted")
+        void deleteRelativeTolerance(){
+            Tool tool = new TestToolBuilder().toolNumber(5).relativeTolerance(new RelativeTolerance(10,10)).build();
+            Plc plc = new TestPlcBuilder().addTool(tool).build();
+
+            plc = plcRepository.save(plc);
+            plc.removeTool(tool);
+
+            assertThat(relativeToleranceRepository.findAll()).isEmpty();
         }
     }
 

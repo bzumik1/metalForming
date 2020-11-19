@@ -2,9 +2,7 @@ package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.dto.log.PointOfTorqueAndSpeedDto;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.PointOfTorqueAndSpeed;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
 import com.siemens.metal_forming.entity.log.ToolInfo;
@@ -65,6 +63,8 @@ class DtoMapperSpec {
                     .maxSpeedOperation(10)
                     .numberOfReferenceCycles(10)
                     .calculateReferenceCurve(true)
+                    .absoluteTolerance(new AbsoluteTolerance(10,10))
+                    .relativeTolerance(new RelativeTolerance(1,1))
                     .referenceCurve(null)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
@@ -78,6 +78,8 @@ class DtoMapperSpec {
             softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getNickName());
             softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());
             softAssertions.assertThat(toolDto.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolWithAllAttributes.getCalculateReferenceCurve());
+            softAssertions.assertThat(toolDto.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteToleranceDto(10,10));
+            softAssertions.assertThat(toolDto.getRelativeTolerance()).as("relativeTolerance").isEqualTo(new RelativeToleranceDto(1,1));
             softAssertions.assertThat(toolDto.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
             softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
             softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
@@ -250,6 +252,8 @@ class DtoMapperSpec {
                     .automaticMonitoring(true)
                     .name("name")
                     .numberOfReferenceCycles(10)
+                    .absoluteTolerance(new AbsoluteToleranceDto(10,10))
+                    .relativeTolerance(new RelativeToleranceDto(1,1))
                     .calculateReferenceCurve(true)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
@@ -262,9 +266,39 @@ class DtoMapperSpec {
             softAssertions.assertThat(tool.getNameFromPlc()).as("nameFromPlc").isNull();
             softAssertions.assertThat(tool.getNickName()).as("nickName").isEqualTo(toolDto.getName());
             softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
+            softAssertions.assertThat(tool.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(10,10));
+            softAssertions.assertThat(tool.getRelativeTolerance()).as("relativeTolerance").isEqualTo(new RelativeTolerance(1,1));
             softAssertions.assertThat(tool.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolDto.getCalculateReferenceCurve());
             softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
             softAssertions.assertThat(tool.getToolStatus()).as("toolStatus").isEqualTo(toolDto.getToolStatus());
+            softAssertions.assertAll();
+        }
+
+        @Test @DisplayName("transforms ToolDto.Request.Update to Plc correctly")
+        void transformsToolDtoRequestUpdateToToolCorrectly(){
+            ToolDto.Request.Update toolDto = ToolDto.Request.Update.builder()
+                    .toolNumber(1)
+                    .automaticMonitoring(true)
+                    .name("name")
+                    .numberOfReferenceCycles(10)
+                    .absoluteTolerance(new AbsoluteToleranceDto(10,10))
+                    .relativeTolerance(new RelativeToleranceDto(1,1))
+                    .calculateReferenceCurve(true)
+                    .stopReaction(StopReactionType.IMMEDIATE)
+                    .build();
+
+            Tool tool = dtoMapper.toTool(toolDto);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(tool.getToolNumber()).as("toolNumber").isEqualTo(toolDto.getToolNumber());
+            softAssertions.assertThat(tool.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolDto.getAutomaticMonitoring());
+            softAssertions.assertThat(tool.getNameFromPlc()).as("nameFromPlc").isNull();
+            softAssertions.assertThat(tool.getNickName()).as("nickName").isEqualTo(toolDto.getName());
+            softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
+            softAssertions.assertThat(tool.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(10,10));
+            softAssertions.assertThat(tool.getRelativeTolerance()).as("relativeTolerance").isEqualTo(new RelativeTolerance(1,1));
+            softAssertions.assertThat(tool.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolDto.getCalculateReferenceCurve());
+            softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
             softAssertions.assertAll();
         }
     }
