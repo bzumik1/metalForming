@@ -1,9 +1,16 @@
 package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,12 +35,61 @@ public class ToolDtoSpec {
 
                 assertThat(toolDto.getToolStatus()).isEqualTo(ToolStatusType.MANUALLY_ADDED);
             }
+
+            @Nested @DisplayName("VALIDATE TOOL DTO REQUEST CREATE")
+            class ValidateToolDtoRequestCreate{
+                Validator validator;
+                @BeforeEach
+                void initialize(){
+                    validator = Validation.buildDefaultValidatorFactory().getValidator();
+                }
+
+                @Test @DisplayName("is invalid when tolerance is invalid")
+                void isInvalidWhenToleranceIsInvalid(){
+                    ToolDto.Request.Create toolDto = ToolDto.Request.Create
+                            .builder()
+                            .tolerance(new RelativeToleranceDto(101,10))
+                            .build();
+
+                    Set<ConstraintViolation<ToolDto.Request.Create>> violations = validator.validate(toolDto);
+
+                    assertThat(violations.stream()
+                            .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("tolerance.torqueTolerance"))
+                            .count()).isEqualTo(1);
+                }
+
+            }
         }
 
         @Nested @DisplayName("UPDATE")
         class Update extends DtoSpec{
             public Update() {
                 super(ToolDto.Request.Update.class);
+            }
+
+            @Nested @DisplayName("VALIDATE TOOL DTO REQUEST UPDATE")
+            class ValidateToolDtoRequestCreate{
+                Validator validator;
+                @BeforeEach
+                void initialize(){
+                    validator = Validation.buildDefaultValidatorFactory().getValidator();
+                }
+
+
+                @Test @DisplayName("is invalid when tolerance is invalid")
+                void isInvalidWhenToleranceIsInvalid(){
+                    ToolDto.Request.Update toolDto = ToolDto.Request.Update
+                            .builder()
+                            .tolerance(new RelativeToleranceDto(101,10))
+                            .build();
+
+                    Set<ConstraintViolation<ToolDto.Request.Update>> violations = validator.validate(toolDto);
+
+                    assertThat(violations.stream()
+                            .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("tolerance.torqueTolerance"))
+                            .count()).isEqualTo(1);
+                }
+
             }
         }
     }

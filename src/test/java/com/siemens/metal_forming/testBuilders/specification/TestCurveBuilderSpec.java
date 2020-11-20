@@ -44,6 +44,13 @@ public class TestCurveBuilderSpec extends TestBuilderSpec {
 
             assertThat(testCurve.getPoints().size()).as("all points were added").isEqualTo(2);
         }
+
+        @Test @DisplayName("adds point to curve")
+        void addsPointToCurve(){
+            Curve testCurve = testCurveBuilder.addPoint(10f,10f).addPoint(5f,5f).build();
+
+            assertThat(testCurve.getPoints()).containsExactly(new CurvePoint(10f,10f), new CurvePoint(5f,5f));
+        }
     }
 
     @Nested @DisplayName("DIRECT SETTING METHODS")

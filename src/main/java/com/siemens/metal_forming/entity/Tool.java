@@ -1,16 +1,17 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.annotations.MaxOneField;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
 @EqualsAndHashCode @ToString
-@Entity @Table(name = "tools")
+@Entity @Table(name = "tools", uniqueConstraints = {@UniqueConstraint(columnNames = {"plc_id","tool_number"})})
 public class Tool{
     @EqualsAndHashCode.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
@@ -34,6 +35,11 @@ public class Tool{
 
     @Column(name = "calculate_reference_curve")
     Boolean calculateReferenceCurve;
+
+    @Valid
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "tolerance_id")
+    Tolerance tolerance;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "stop_reaction")

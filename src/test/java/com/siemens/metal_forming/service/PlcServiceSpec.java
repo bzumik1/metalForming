@@ -205,7 +205,7 @@ class PlcServiceSpec {
 
 
             when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
-            when(curveValidationService.validate(testPlc.getCurrentTool().getReferenceCurve(),measuredCurve))
+            when(curveValidationService.validate(testPlc.getCurrentTool().getTolerance(), testPlc.getCurrentTool().getReferenceCurve(),measuredCurve))
                     .thenReturn(collisionPoints);
             when(logCreator.create(testPlc,measuredCurve,collisionPoints)).thenReturn(logToBeCreated);
             when(opcuaConnector.getClient(testPlc)).thenReturn(client);
@@ -236,7 +236,7 @@ class PlcServiceSpec {
             plcService.processNewCurve("192.168.0.1", measuredCurve);
 
             verify(logService, times(0)).save(any());
-            verify(curveValidationService, times(0)).validate(any(),any());
+            verify(curveValidationService, times(0)).validate(any(),any(),any());
             verify(opcuaConnector, times(0)).getClient(any());
         }
 

@@ -1,9 +1,6 @@
 package com.siemens.metal_forming.testBuilders.specification;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.testBuilders.TestToolBuilder;
@@ -90,6 +87,13 @@ public class TestToolBuilderSpec extends TestBuilderSpec{
             Tool testTool = testToolBuilder.calculateReferenceCurve(true).build();
 
             assertThat(testTool.getCalculateReferenceCurve()).isTrue();
+        }
+
+        @Test @DisplayName("sets tolerance of new tool")
+        void setsToleranceOfNewTool(){
+            Tool testTool = testToolBuilder.tolerance(new AbsoluteTolerance(1,1)).build();
+
+            assertThat(testTool.getTolerance()).isEqualTo(new AbsoluteTolerance(1,1));
         }
 
         @Test @DisplayName("sets stopReaction of new tool")

@@ -2,10 +2,13 @@ package com.siemens.metal_forming.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
 import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.dto.ToolDto;
+import com.siemens.metal_forming.entity.AbsoluteTolerance;
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.RelativeTolerance;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.exception.exceptions.*;
@@ -31,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -78,7 +82,7 @@ public class ToolControllerSpec {
         @Test @DisplayName("triggers dtoMapper and transforms found tools to proper DTOs")
         void triggersDtoMapperAndTransformsToolsIntoDtos() throws Exception {
             List<Tool> tools = List.of(new Tool(),new Tool(), new Tool());
-            Mockito.when(toolService.findAll()).thenReturn(tools);
+            when(toolService.findAll()).thenReturn(tools);
 
             MvcResult mvcResult = mvc.perform(get(findAllPath)).andReturn();
 
@@ -111,7 +115,7 @@ public class ToolControllerSpec {
 
        @Test @DisplayName("returns 404 Not found when PLC with given ID was not in database")
         void returnsNotFoundWhenPlcWasNotInDatabase() throws Exception {
-            Mockito.when(toolService.findAll(1L)).thenThrow(new PlcNotFoundException(1L));
+            when(toolService.findAll(1L)).thenThrow(new PlcNotFoundException(1L));
 
             mvc.perform(get(path,1L)).andExpect(status().isNotFound());
        }
@@ -119,7 +123,7 @@ public class ToolControllerSpec {
        @Test @DisplayName("triggers dtoMapper and transforms found tools to proper DTOs")
         void triggersDtoMapperAndTransformsToolsIntoDtos() throws Exception {
             List<Tool> tools = List.of(new Tool(),new Tool(), new Tool());
-            Mockito.when(toolService.findAll(1L)).thenReturn(tools);
+            when(toolService.findAll(1L)).thenReturn(tools);
 
             mvc.perform(get(path,1L));
 
@@ -184,7 +188,14 @@ public class ToolControllerSpec {
 
         @BeforeEach
         void initialize(){
-            validToolDto = ToolDto.Request.Create.builder().toolNumber(1).numberOfReferenceCycles(10).calculateReferenceCurve(true).stopReaction(StopReactionType.IMMEDIATE).automaticMonitoring(true).build();
+            validToolDto = ToolDto.Request.Create.builder()
+                    .toolNumber(1)
+                    .numberOfReferenceCycles(10)
+                    .calculateReferenceCurve(true)
+                    .tolerance(new AbsoluteToleranceDto(10, 10))
+                    .stopReaction(StopReactionType.IMMEDIATE)
+                    .automaticMonitoring(true)
+                    .build();
         }
 
         @Nested @DisplayName("VALID TOOL")
@@ -194,9 +205,10 @@ public class ToolControllerSpec {
             @BeforeEach
             void initializeForValidTool() throws JsonProcessingException {
                 validToolDtoJson = objectMapper.writeValueAsString(validToolDto);
-                Mockito.when(dtoMapper.toTool(any(ToolDto.Request.Create.class))).thenReturn(Tool.builder()
+                when(dtoMapper.toTool(any(ToolDto.Request.Create.class))).thenReturn(Tool.builder()
                         .toolNumber(1)
                         .numberOfReferenceCycles(10)
+//                        .absoluteTolerance(new AbsoluteTolerance(10, 10))
                         .stopReaction(StopReactionType.IMMEDIATE)
                         .automaticMonitoring(true)
                         .build());
@@ -230,7 +242,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns 409 Conflict when tool with same tool number already exists")
             void returnsConflictWhenToolWithSameToolNumberAlreadyExists() throws Exception {
-                Mockito.when(toolService.create(anyLong(),any(Tool.class))).thenThrow(new ToolUniqueConstrainException(1));
+                when(toolService.create(anyLong(),any(Tool.class))).thenThrow(new ToolUniqueConstrainException(1));
 
                 mvc.perform(post(path,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -240,7 +252,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns correct body with api exception when tool already exists")
             void returnsCorrectBodyWithApiExceptionWhenToolAlreadyExists() throws Exception {
-                Mockito.when(toolService.create(anyLong(),any(Tool.class))).thenThrow(new ToolUniqueConstrainException(1));
+                when(toolService.create(anyLong(),any(Tool.class))).thenThrow(new ToolUniqueConstrainException(1));
 
                 MvcResult mvcResult = mvc.perform(post(path,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -255,7 +267,7 @@ public class ToolControllerSpec {
             @Test @DisplayName("triggers DtoMapper and transforms newly created tool to proper DTO")
             void triggersDtoMapperAndTransformsToolToDto() throws Exception {
                 Tool toolToBeReturn = dtoMapper.toTool(validToolDto).toBuilder().id(1L).build();
-                Mockito.when(toolService.create(anyLong(),any(Tool.class))).thenReturn(toolToBeReturn);
+                when(toolService.create(anyLong(),any(Tool.class))).thenReturn(toolToBeReturn);
 
 
                 mvc.perform(post(path,1L)
@@ -336,7 +348,18 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("triggers toolService when tool was valid")
             void triggersToolServiceWhenValid() throws Exception {
-                Tool toolInDatabase = new Tool();
+                Tool toolInDatabase = Tool.builder().build();
+
+                when(dtoMapper.toTool(any(ToolDto.Request.Update.class))).thenReturn(Tool.builder()
+                        .toolNumber(1)
+                        .nickName("nickName")
+                        .numberOfReferenceCycles(10)
+                        .calculateReferenceCurve(true)
+//                        .absoluteTolerance(new AbsoluteTolerance(1,1))
+//                        .relativeTolerance(null)
+                        .stopReaction(StopReactionType.IMMEDIATE)
+                        .automaticMonitoring(true)
+                        .build());
 
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -348,12 +371,14 @@ public class ToolControllerSpec {
                 toolConsumerCaptor.getValue().accept(toolInDatabase);
 
                 SoftAssertions softAssertions = new SoftAssertions();
-                softAssertions.assertThat(toolInDatabase.getToolNumber()).as("toolNumber").isEqualTo(validToolDto.getToolNumber());
-                softAssertions.assertThat(toolInDatabase.getNickName()).as("nickName").isEqualTo(validToolDto.getName());
-                softAssertions.assertThat(toolInDatabase.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(validToolDto.getNumberOfReferenceCycles());
-                softAssertions.assertThat(toolInDatabase.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(validToolDto.getCalculateReferenceCurve());
-                softAssertions.assertThat(toolInDatabase.getStopReaction()).as("stopReaction").isEqualTo(validToolDto.getStopReaction());
-                softAssertions.assertThat(toolInDatabase.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(validToolDto.getAutomaticMonitoring());
+                softAssertions.assertThat(toolInDatabase.getToolNumber()).as("toolNumber").isEqualTo(1);
+                softAssertions.assertThat(toolInDatabase.getNickName()).as("nickName").isEqualTo("nickName");
+                softAssertions.assertThat(toolInDatabase.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(10);
+                softAssertions.assertThat(toolInDatabase.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(true);
+//                softAssertions.assertThat(toolInDatabase.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(1,1));
+//                softAssertions.assertThat(toolInDatabase.getRelativeTolerance()).as("relativeTolerance").isEqualTo(null);
+                softAssertions.assertThat(toolInDatabase.getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
+                softAssertions.assertThat(toolInDatabase.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(true);
                 softAssertions.assertAll();
             }
 
@@ -367,7 +392,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns 409 Conflict when tool with same tool number already exists")
             void returnsConflictWhenToolWithSameToolNumberAlreadyExists() throws Exception {
-                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolUniqueConstrainException(validToolDto.getToolNumber()));
+                when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolUniqueConstrainException(validToolDto.getToolNumber()));
 
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -377,7 +402,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns 409 Conflict when tool number of autodetected tool was updated")
             void returnsConflictWhenToolNumberOfAutodetectedToolWasUpdated() throws Exception {
-                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolNumberUpdateException());
+                when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolNumberUpdateException());
 
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -387,7 +412,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns 404 Not found when tool with given id was not found")
             void returnsNotFoundWhenToolDoesNotExist() throws Exception {
-                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolNotFoundException(validToolDto.getToolNumber()));
+                when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolNotFoundException(validToolDto.getToolNumber()));
 
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -397,7 +422,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns 404 Not found when plc with given id was not found")
             void returnsNotFoundWhenPlcDoesNotExist() throws Exception {
-                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new PlcNotFoundException(2L));
+                when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new PlcNotFoundException(2L));
 
                 mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -407,7 +432,7 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("returns correct body with api exception when tool already exists")
             void returnsCorrectBodyWithApiExceptionWhenToolAlreadyExists() throws Exception {
-                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolUniqueConstrainException(validToolDto.getToolNumber()));
+                when(toolService.update(anyLong(),anyLong(),any())).thenThrow(new ToolUniqueConstrainException(validToolDto.getToolNumber()));
 
                 MvcResult mvcResult = mvc.perform(put(updatePath,1L,1L)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -422,7 +447,7 @@ public class ToolControllerSpec {
             @Test @DisplayName("triggers DtoMapper and transforms updated tool to proper DTO")
             void triggersDtoMapperAndTransformsUpdatedToolToDto() throws Exception {
                 Tool toolToReturn = new Tool();
-                Mockito.when(toolService.update(anyLong(),anyLong(),any())).thenReturn(toolToReturn);
+                when(toolService.update(anyLong(),anyLong(),any())).thenReturn(toolToReturn);
 
 
                 mvc.perform(put(updatePath,1L,1L)

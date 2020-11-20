@@ -1,8 +1,6 @@
 package com.siemens.metal_forming.testBuilders;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import lombok.AccessLevel;
@@ -18,6 +16,7 @@ public class TestToolBuilder {
     String nickName = "nickName";
     Integer numberOfReferenceCycles = 10;
     Boolean calculateReferenceCurve = false;
+    Tolerance tolerance;
     StopReactionType stopReaction = StopReactionType.IMMEDIATE;
     Boolean automaticMonitoring = true;
     Integer maxSpeedOperation = 60;
@@ -59,6 +58,11 @@ public class TestToolBuilder {
         return this;
     }
 
+    public TestToolBuilder tolerance(Tolerance tolerance){
+        this.tolerance = tolerance;
+        return this;
+    }
+
     public TestToolBuilder stopReaction(StopReactionType stopReaction) {
         this.stopReaction = stopReaction;
         return this;
@@ -93,6 +97,7 @@ public class TestToolBuilder {
         ReflectionTestUtils.setField(toolToReturn, "nickName", nickName);
         ReflectionTestUtils.setField(toolToReturn, "numberOfReferenceCycles", numberOfReferenceCycles);
         ReflectionTestUtils.setField(toolToReturn, "calculateReferenceCurve", calculateReferenceCurve);
+        ReflectionTestUtils.setField(toolToReturn, "tolerance", tolerance);
         ReflectionTestUtils.setField(toolToReturn, "stopReaction", stopReaction);
         ReflectionTestUtils.setField(toolToReturn, "automaticMonitoring", automaticMonitoring);
         ReflectionTestUtils.setField(toolToReturn, "maxSpeedOperation", maxSpeedOperation);

@@ -1,8 +1,10 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,17 +29,16 @@ class ToolSpec extends EntitySpec {
         super(Tool.class);
     }
 
-
-    @BeforeEach
-    void initialize(){
-        tool = new Tool();
-
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        validator = validatorFactory.getValidator();
-    }
-
     @Nested @DisplayName("validation")
     class validation{
+
+        @BeforeEach
+        void initialize(){
+            tool = new Tool();
+
+            ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+            validator = validatorFactory.getValidator();
+        }
 
         @Test @DisplayName("is invalid when tool Number is null")
         void invalidWhenToolIdIsNull(){
@@ -46,6 +47,19 @@ class ToolSpec extends EntitySpec {
             Set<ConstraintViolation<Tool>> violations = validator.validate(tool);
             assertThat(violations.stream()
                     .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("toolNumber"))
+                    .count()).isEqualTo(1);
+        }
+
+
+
+        @Test @DisplayName("is invalid when tolerance is invalid")
+        void isInvalidWhenToleranceIsInvalid(){
+            Tool tool = Tool.builder().tolerance(new RelativeTolerance(101,1)).build();
+
+            Set<ConstraintViolation<Tool>> violations = validator.validate(tool);
+
+            assertThat(violations.stream()
+                    .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("tolerance.torqueTolerance"))
                     .count()).isEqualTo(1);
         }
 
