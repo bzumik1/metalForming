@@ -269,7 +269,7 @@ public class PlcSpec extends EntitySpec {
                 Tool oldTool = new TestToolBuilder().toolNumber(1).build();
                 Plc testPlc = testPlcBuilder.addTool(oldTool).build();
 
-                assertThrows(ToolUniqueConstrainException.class,() -> testPlc.addTool(oldTool));
+                assertThrows(ToolUniqueConstrainException.class,() -> testPlc.addTool(new TestToolBuilder().toolNumber(1).build()));
             }
 
             @Test @DisplayName("throws InvalidToolException when tool is null")

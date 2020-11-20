@@ -46,7 +46,7 @@ public class Plc {
     Tool currentTool;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc", orphanRemoval = true)
-    final Set<Tool> tools = new TreeSet<>(Comparator.comparing(Tool::getToolNumber));
+    final List<Tool> tools = new ArrayList<>();
 
 
 
@@ -77,15 +77,15 @@ public class Plc {
         if(tools == null)throw new InvalidToolsException();
 
         this.tools.clear();
-        tools.forEach(tool -> tool.setPlc(this));
-        this.tools.addAll(tools);
+        tools.forEach(this::addTool);
     }
 
     public void addTool(@NotNull Tool tool){
         if(tool == null) throw new InvalidToolException();
 
+        if(hasToolByToolNumber(tool.getToolNumber())) throw new ToolUniqueConstrainException(tool.getToolNumber());
         tool.setPlc(this);
-        if(!tools.add(tool)) throw new ToolUniqueConstrainException(tool.getToolNumber());
+        tools.add(tool);
     }
 
     public boolean hasToolByToolNumber(@NotNull Integer toolNumber){
