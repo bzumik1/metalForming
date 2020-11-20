@@ -19,7 +19,7 @@ public class RelativeTolerance extends Tolerance{
     @Max(value = 100, message = "Speed tolerance in percentage must be smaller or equal to 100")
     float speedTolerance;
 
-    public RelativeTolerance(int torqueTolerance, int speedTolerance){
+    public RelativeTolerance(float torqueTolerance, float speedTolerance){
         this.torqueTolerance = torqueTolerance;
         this.speedTolerance = speedTolerance;
     }
@@ -32,6 +32,6 @@ public class RelativeTolerance extends Tolerance{
 
     @Override
     public boolean validate(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated) {
-        return false;
+        return getAbsoluteTolerance(referencePoint).validate(referencePoint,pointToBeValidated);
     }
 }
