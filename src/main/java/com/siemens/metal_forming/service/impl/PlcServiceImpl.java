@@ -144,12 +144,12 @@ public class PlcServiceImpl implements PlcService {
             if(!collisionPoints.isEmpty()){
                 log.debug("There were {} collision points on curve",collisionPoints.size());
                 logService.save(logCreator.create(plc, measuredCurve, collisionPoints));
-                OpcuaClient client = opcuaConnector.getClient(plc);
+
                 switch (currentTool.getStopReaction()){
                     case IMMEDIATE:
-                        client.immediateStop();
+                        opcuaConnector.getClient(plc).immediateStop();
                     case TOP_POSITION:
-                        client.topPositionStop();
+                        opcuaConnector.getClient(plc).topPositionStop();
                 }
             } else {
                 log.debug("Curve was without problems.");

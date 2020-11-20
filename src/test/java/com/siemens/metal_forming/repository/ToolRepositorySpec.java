@@ -61,7 +61,7 @@ class ToolRepositorySpec {
 
         @Test @DisplayName("when tool is deleted also absolute tolerance is deleted")
         void deleteAlsoAbsoluteTolerance(){
-            Tool tool = new TestToolBuilder().toolNumber(5).absoluteTolerance(new AbsoluteTolerance(1f,1f)).build();
+            Tool tool = new TestToolBuilder().toolNumber(5).tolerance(new AbsoluteTolerance(1f,1f)).build();
             Plc plc = new TestPlcBuilder().addTool(tool).build();
 
             plc = plcRepository.save(plc);
@@ -72,7 +72,7 @@ class ToolRepositorySpec {
 
         @Test @DisplayName("when tool is deleted also relative tolerance is deleted")
         void deleteRelativeTolerance(){
-            Tool tool = new TestToolBuilder().toolNumber(5).relativeTolerance(new RelativeTolerance(10,10)).build();
+            Tool tool = new TestToolBuilder().toolNumber(5).tolerance(new RelativeTolerance(10,10)).build();
             Plc plc = new TestPlcBuilder().addTool(tool).build();
 
             plc = plcRepository.save(plc);

@@ -16,8 +16,7 @@ public class TestToolBuilder {
     String nickName = "nickName";
     Integer numberOfReferenceCycles = 10;
     Boolean calculateReferenceCurve = false;
-    AbsoluteTolerance absoluteTolerance;
-    RelativeTolerance relativeTolerance;
+    Tolerance tolerance;
     StopReactionType stopReaction = StopReactionType.IMMEDIATE;
     Boolean automaticMonitoring = true;
     Integer maxSpeedOperation = 60;
@@ -59,13 +58,8 @@ public class TestToolBuilder {
         return this;
     }
 
-    public TestToolBuilder absoluteTolerance(AbsoluteTolerance absoluteTolerance){
-        this.absoluteTolerance = absoluteTolerance;
-        return this;
-    }
-
-    public TestToolBuilder relativeTolerance(RelativeTolerance relativeTolerance){
-        this.relativeTolerance = relativeTolerance;
+    public TestToolBuilder tolerance(Tolerance tolerance){
+        this.tolerance = tolerance;
         return this;
     }
 
@@ -103,8 +97,7 @@ public class TestToolBuilder {
         ReflectionTestUtils.setField(toolToReturn, "nickName", nickName);
         ReflectionTestUtils.setField(toolToReturn, "numberOfReferenceCycles", numberOfReferenceCycles);
         ReflectionTestUtils.setField(toolToReturn, "calculateReferenceCurve", calculateReferenceCurve);
-        ReflectionTestUtils.setField(toolToReturn, "absoluteTolerance", absoluteTolerance);
-        ReflectionTestUtils.setField(toolToReturn, "relativeTolerance", relativeTolerance);
+        ReflectionTestUtils.setField(toolToReturn, "tolerance", tolerance);
         ReflectionTestUtils.setField(toolToReturn, "stopReaction", stopReaction);
         ReflectionTestUtils.setField(toolToReturn, "automaticMonitoring", automaticMonitoring);
         ReflectionTestUtils.setField(toolToReturn, "maxSpeedOperation", maxSpeedOperation);

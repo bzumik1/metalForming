@@ -9,9 +9,6 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-@MaxOneField.List({
-        @MaxOneField(first = "absoluteTolerance", second = "relativeTolerance", message = "Maximally one tolerance can be set")
-})
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
 @EqualsAndHashCode @ToString
 @Entity @Table(name = "tools")
@@ -39,14 +36,10 @@ public class Tool{
     @Column(name = "calculate_reference_curve")
     Boolean calculateReferenceCurve;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
-    AbsoluteTolerance absoluteTolerance;
-
     @Valid
     @OneToOne(cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
-    RelativeTolerance relativeTolerance;
+    Tolerance tolerance;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "stop_reaction")
@@ -66,14 +59,4 @@ public class Tool{
     @OneToOne(cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     Curve referenceCurve;
-
-    public void setAbsoluteTolerance(AbsoluteTolerance absoluteTolerance) {
-        if (absoluteTolerance != null) relativeTolerance = null;
-        this.absoluteTolerance = absoluteTolerance;
-    }
-
-    public void setRelativeTolerance(RelativeTolerance relativeTolerance){
-        if (relativeTolerance != null) absoluteTolerance = null;
-        this.relativeTolerance = relativeTolerance;
-    }
 }

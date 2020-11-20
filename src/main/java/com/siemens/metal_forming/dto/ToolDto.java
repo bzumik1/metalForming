@@ -31,10 +31,8 @@ public enum ToolDto {;
             @NotNull(message = "Calculate reference curve must be filled")
             Boolean calculateReferenceCurve;
 
-            AbsoluteToleranceDto absoluteTolerance;
-
             @Valid
-            RelativeToleranceDto relativeTolerance;
+            ToleranceDto tolerance;
 
             @NotNull(message = "Type of stop reaction must be selected")
             StopReactionType stopReaction;
@@ -63,10 +61,8 @@ public enum ToolDto {;
             @NotNull(message = "Calculate reference curve must be filled")
             Boolean calculateReferenceCurve;
 
-            AbsoluteToleranceDto absoluteTolerance;
-
             @Valid
-            RelativeToleranceDto relativeTolerance;
+            ToleranceDto tolerance;
 
             @NotNull(message = "Type of stop reaction must be selected")
             StopReactionType stopReaction;
@@ -86,8 +82,7 @@ public enum ToolDto {;
             String name;
             Integer numberOfReferenceCycles;
             Boolean calculateReferenceCurve;
-            AbsoluteToleranceDto absoluteTolerance;
-            RelativeToleranceDto relativeTolerance;
+            ToleranceDto tolerance;
             StopReactionType stopReaction;
             Boolean referenceCurveIsCalculated;
             Boolean automaticMonitoring;

@@ -3,25 +3,21 @@ package com.siemens.metal_forming.entity;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
-@Getter @Setter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE) @EqualsAndHashCode @ToString
+@Getter @Setter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE) @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Entity
-public class RelativeTolerance {
-    @EqualsAndHashCode.Exclude
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
-    Long id;
+@DiscriminatorValue("RELATIVE")
+public class RelativeTolerance extends Tolerance{
     @Min(value = 0, message = "Torque tolerance in percentage must be greater or equal to 0")
     @Max(value = 100, message = "Torque tolerance in percentage must be smaller or equal to 100")
-    int torqueTolerance;
+    float torqueTolerance;
     @Min(value = 0, message = "Speed tolerance in percentage must be greater or equal to 0")
     @Max(value = 100, message = "Speed tolerance in percentage must be smaller or equal to 100")
-    int speedTolerance;
+    float speedTolerance;
 
     public RelativeTolerance(int torqueTolerance, int speedTolerance){
         this.torqueTolerance = torqueTolerance;
@@ -32,5 +28,10 @@ public class RelativeTolerance {
         float absoluteTorqueTolerance = point.getTorque() * (torqueTolerance/100f);
         float absoluteSpeedTolerance = point.getSpeed() * (speedTolerance/100f);
         return new AbsoluteTolerance(absoluteTorqueTolerance, absoluteSpeedTolerance);
+    }
+
+    @Override
+    public boolean validate(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated) {
+        return false;
     }
 }

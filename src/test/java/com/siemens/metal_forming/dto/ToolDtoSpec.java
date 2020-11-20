@@ -44,32 +44,17 @@ public class ToolDtoSpec {
                     validator = Validation.buildDefaultValidatorFactory().getValidator();
                 }
 
-                @Test @DisplayName("is invalid when includes both tolerances")
-                void isInvalidWhenIncludesBothTolerances(){
-                    ToolDto.Request.Create toolDto = ToolDto.Request.Create
-                            .builder()
-                            .absoluteTolerance(new AbsoluteToleranceDto(1,1))
-                            .relativeTolerance(new RelativeToleranceDto(10,10))
-                            .build();
-
-                    Set<ConstraintViolation<ToolDto.Request.Create>> violations = validator.validate(toolDto);
-
-                    assertThat(violations.stream()
-                            .filter(toolConstraintViolation -> toolConstraintViolation.getMessage().equals("Maximally one tolerance can be set"))
-                            .count()).isEqualTo(1);
-                }
-
                 @Test @DisplayName("is invalid when tolerance is invalid")
                 void isInvalidWhenToleranceIsInvalid(){
                     ToolDto.Request.Create toolDto = ToolDto.Request.Create
                             .builder()
-                            .relativeTolerance(new RelativeToleranceDto(101,10))
+                            .tolerance(new RelativeToleranceDto(101,10))
                             .build();
 
                     Set<ConstraintViolation<ToolDto.Request.Create>> violations = validator.validate(toolDto);
 
                     assertThat(violations.stream()
-                            .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("relativeTolerance.torqueTolerance"))
+                            .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("tolerance.torqueTolerance"))
                             .count()).isEqualTo(1);
                 }
 
@@ -89,32 +74,19 @@ public class ToolDtoSpec {
                 void initialize(){
                     validator = Validation.buildDefaultValidatorFactory().getValidator();
                 }
-                @Test @DisplayName("is invalid when includes both tolerances")
-                void isInvalidWhenIncludesBothTolerances(){
-                    ToolDto.Request.Update toolDto = ToolDto.Request.Update
-                            .builder()
-                            .absoluteTolerance(new AbsoluteToleranceDto(1,1))
-                            .relativeTolerance(new RelativeToleranceDto(10,10))
-                            .build();
 
-                    Set<ConstraintViolation<ToolDto.Request.Update>> violations = validator.validate(toolDto);
-
-                    assertThat(violations.stream()
-                            .filter(toolConstraintViolation -> toolConstraintViolation.getMessage().equals("Maximally one tolerance can be set"))
-                            .count()).isEqualTo(1);
-                }
 
                 @Test @DisplayName("is invalid when tolerance is invalid")
                 void isInvalidWhenToleranceIsInvalid(){
                     ToolDto.Request.Update toolDto = ToolDto.Request.Update
                             .builder()
-                            .relativeTolerance(new RelativeToleranceDto(101,10))
+                            .tolerance(new RelativeToleranceDto(101,10))
                             .build();
 
                     Set<ConstraintViolation<ToolDto.Request.Update>> violations = validator.validate(toolDto);
 
                     assertThat(violations.stream()
-                            .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("relativeTolerance.torqueTolerance"))
+                            .filter(toolConstraintViolation -> toolConstraintViolation.getPropertyPath().toString().equals("tolerance.torqueTolerance"))
                             .count()).isEqualTo(1);
                 }
 

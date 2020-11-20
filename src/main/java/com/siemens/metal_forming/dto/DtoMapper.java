@@ -3,9 +3,7 @@ package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.dto.log.ToolInfoDto;
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.ToolInfo;
 import org.mapstruct.Mapper;
@@ -52,7 +50,25 @@ public interface DtoMapper {
     @Mapping(target = "id", ignore = true)
     Tool toTool(ToolDto.Request.Update toolDto);
 
+    AbsoluteToleranceDto toAbsoluteToleranceDto(AbsoluteTolerance absoluteTolerance);
+    RelativeToleranceDto toRelativeToleranceDto(RelativeTolerance relativeTolerance);
+
+    @Mapping(target = "id", ignore = true)
+    AbsoluteTolerance toAbsoluteTolerance(AbsoluteToleranceDto absoluteToleranceDto);
+    @Mapping(target = "id", ignore = true)
+    RelativeTolerance toRelativeTolerance(RelativeToleranceDto relativeToleranceDto);
+
     default boolean toReferenceCurveIsCalculated(Curve referenceCurve){
         return referenceCurve!=null;
+    }
+    default ToleranceDto toToleranceDto(Tolerance tolerance){
+        if(tolerance instanceof AbsoluteTolerance) return toAbsoluteToleranceDto((AbsoluteTolerance)tolerance);
+        if(tolerance instanceof RelativeTolerance) return toRelativeToleranceDto((RelativeTolerance)tolerance);
+        else return null;
+    }
+    default Tolerance toTolerance(ToleranceDto toleranceDto){
+        if(toleranceDto instanceof AbsoluteToleranceDto) return toAbsoluteTolerance((AbsoluteToleranceDto)toleranceDto);
+        if(toleranceDto instanceof RelativeToleranceDto) return toRelativeTolerance((RelativeToleranceDto)toleranceDto);
+        else return null;
     }
 }

@@ -63,8 +63,7 @@ class DtoMapperSpec {
                     .maxSpeedOperation(10)
                     .numberOfReferenceCycles(10)
                     .calculateReferenceCurve(true)
-                    .absoluteTolerance(new AbsoluteTolerance(10,10))
-                    .relativeTolerance(new RelativeTolerance(1,1))
+                    .tolerance(new AbsoluteTolerance(1,1))
                     .referenceCurve(null)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
@@ -78,8 +77,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getNickName());
             softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());
             softAssertions.assertThat(toolDto.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolWithAllAttributes.getCalculateReferenceCurve());
-            softAssertions.assertThat(toolDto.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteToleranceDto(10,10));
-            softAssertions.assertThat(toolDto.getRelativeTolerance()).as("relativeTolerance").isEqualTo(new RelativeToleranceDto(1,1));
+            softAssertions.assertThat(toolDto.getTolerance()).as("tolerance").isEqualTo(new AbsoluteToleranceDto(1,1));
             softAssertions.assertThat(toolDto.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
             softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
             softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
@@ -252,8 +250,7 @@ class DtoMapperSpec {
                     .automaticMonitoring(true)
                     .name("name")
                     .numberOfReferenceCycles(10)
-                    .absoluteTolerance(new AbsoluteToleranceDto(10,10))
-                    .relativeTolerance(new RelativeToleranceDto(1,1))
+                    .tolerance(new AbsoluteToleranceDto(1,1))
                     .calculateReferenceCurve(true)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
@@ -266,8 +263,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(tool.getNameFromPlc()).as("nameFromPlc").isNull();
             softAssertions.assertThat(tool.getNickName()).as("nickName").isEqualTo(toolDto.getName());
             softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
-            softAssertions.assertThat(tool.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(10,10));
-            softAssertions.assertThat(tool.getRelativeTolerance()).as("relativeTolerance").isEqualTo(new RelativeTolerance(1,1));
+            softAssertions.assertThat(tool.getTolerance()).as("tolerance").isEqualTo(new AbsoluteTolerance(1,1));
             softAssertions.assertThat(tool.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolDto.getCalculateReferenceCurve());
             softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
             softAssertions.assertThat(tool.getToolStatus()).as("toolStatus").isEqualTo(toolDto.getToolStatus());
@@ -281,8 +277,7 @@ class DtoMapperSpec {
                     .automaticMonitoring(true)
                     .name("name")
                     .numberOfReferenceCycles(10)
-                    .absoluteTolerance(new AbsoluteToleranceDto(10,10))
-                    .relativeTolerance(new RelativeToleranceDto(1,1))
+                    .tolerance(new AbsoluteToleranceDto(1,1))
                     .calculateReferenceCurve(true)
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .build();
@@ -295,8 +290,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(tool.getNameFromPlc()).as("nameFromPlc").isNull();
             softAssertions.assertThat(tool.getNickName()).as("nickName").isEqualTo(toolDto.getName());
             softAssertions.assertThat(tool.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolDto.getNumberOfReferenceCycles());
-            softAssertions.assertThat(tool.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(10,10));
-            softAssertions.assertThat(tool.getRelativeTolerance()).as("relativeTolerance").isEqualTo(new RelativeTolerance(1,1));
+            softAssertions.assertThat(tool.getTolerance()).as("tolerance").isEqualTo(new AbsoluteTolerance(1,1));
             softAssertions.assertThat(tool.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolDto.getCalculateReferenceCurve());
             softAssertions.assertThat(tool.getStopReaction()).as("stopReaction").isEqualTo(toolDto.getStopReaction());
             softAssertions.assertAll();

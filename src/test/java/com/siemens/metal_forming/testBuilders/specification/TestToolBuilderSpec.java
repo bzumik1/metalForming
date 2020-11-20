@@ -89,18 +89,11 @@ public class TestToolBuilderSpec extends TestBuilderSpec{
             assertThat(testTool.getCalculateReferenceCurve()).isTrue();
         }
 
-        @Test @DisplayName("sets absoluteTolerance of new tool")
-        void setsAbsoluteToleranceOfNewTool(){
-            Tool testTool = testToolBuilder.absoluteTolerance(new AbsoluteTolerance(10,10)).build();
+        @Test @DisplayName("sets tolerance of new tool")
+        void setsToleranceOfNewTool(){
+            Tool testTool = testToolBuilder.tolerance(new AbsoluteTolerance(1,1)).build();
 
-            assertThat(testTool.getAbsoluteTolerance()).isEqualTo(new AbsoluteTolerance(10,10));
-        }
-
-        @Test @DisplayName("sets relativeTolerance of new tool")
-        void setsRelativeToleranceOfNewTool(){
-            Tool testTool = testToolBuilder.relativeTolerance(new RelativeTolerance(10,10)).build();
-
-            assertThat(testTool.getRelativeTolerance()).isEqualTo(new RelativeTolerance(10,10));
+            assertThat(testTool.getTolerance()).isEqualTo(new AbsoluteTolerance(1,1));
         }
 
         @Test @DisplayName("sets stopReaction of new tool")

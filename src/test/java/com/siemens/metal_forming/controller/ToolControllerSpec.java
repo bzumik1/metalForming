@@ -192,7 +192,7 @@ public class ToolControllerSpec {
                     .toolNumber(1)
                     .numberOfReferenceCycles(10)
                     .calculateReferenceCurve(true)
-                    .absoluteTolerance(new AbsoluteToleranceDto(10, 10))
+                    .tolerance(new AbsoluteToleranceDto(10, 10))
                     .stopReaction(StopReactionType.IMMEDIATE)
                     .automaticMonitoring(true)
                     .build();
@@ -208,7 +208,7 @@ public class ToolControllerSpec {
                 when(dtoMapper.toTool(any(ToolDto.Request.Create.class))).thenReturn(Tool.builder()
                         .toolNumber(1)
                         .numberOfReferenceCycles(10)
-                        .absoluteTolerance(new AbsoluteTolerance(10, 10))
+//                        .absoluteTolerance(new AbsoluteTolerance(10, 10))
                         .stopReaction(StopReactionType.IMMEDIATE)
                         .automaticMonitoring(true)
                         .build());
@@ -348,15 +348,15 @@ public class ToolControllerSpec {
 
             @Test @DisplayName("triggers toolService when tool was valid")
             void triggersToolServiceWhenValid() throws Exception {
-                Tool toolInDatabase = Tool.builder().relativeTolerance(new RelativeTolerance(10,10)).build();
+                Tool toolInDatabase = Tool.builder().build();
 
                 when(dtoMapper.toTool(any(ToolDto.Request.Update.class))).thenReturn(Tool.builder()
                         .toolNumber(1)
                         .nickName("nickName")
                         .numberOfReferenceCycles(10)
                         .calculateReferenceCurve(true)
-                        .absoluteTolerance(new AbsoluteTolerance(1,1))
-                        .relativeTolerance(null)
+//                        .absoluteTolerance(new AbsoluteTolerance(1,1))
+//                        .relativeTolerance(null)
                         .stopReaction(StopReactionType.IMMEDIATE)
                         .automaticMonitoring(true)
                         .build());
@@ -375,8 +375,8 @@ public class ToolControllerSpec {
                 softAssertions.assertThat(toolInDatabase.getNickName()).as("nickName").isEqualTo("nickName");
                 softAssertions.assertThat(toolInDatabase.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(10);
                 softAssertions.assertThat(toolInDatabase.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(true);
-                softAssertions.assertThat(toolInDatabase.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(1,1));
-                softAssertions.assertThat(toolInDatabase.getRelativeTolerance()).as("relativeTolerance").isEqualTo(null);
+//                softAssertions.assertThat(toolInDatabase.getAbsoluteTolerance()).as("absoluteTolerance").isEqualTo(new AbsoluteTolerance(1,1));
+//                softAssertions.assertThat(toolInDatabase.getRelativeTolerance()).as("relativeTolerance").isEqualTo(null);
                 softAssertions.assertThat(toolInDatabase.getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
                 softAssertions.assertThat(toolInDatabase.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(true);
                 softAssertions.assertAll();

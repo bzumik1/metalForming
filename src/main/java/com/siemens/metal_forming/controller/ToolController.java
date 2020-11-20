@@ -54,8 +54,7 @@ public class ToolController {
             toolToUpdate.setNickName(tool.getNickName());
             toolToUpdate.setNumberOfReferenceCycles(tool.getNumberOfReferenceCycles());
             toolToUpdate.setCalculateReferenceCurve(tool.getCalculateReferenceCurve());
-            toolToUpdate.setAbsoluteTolerance(tool.getAbsoluteTolerance());
-            toolToUpdate.setRelativeTolerance(tool.getRelativeTolerance());
+            toolToUpdate.setTolerance(tool.getTolerance());
             toolToUpdate.setStopReaction(tool.getStopReaction());
             toolToUpdate.setAutomaticMonitoring(tool.getAutomaticMonitoring());
         };

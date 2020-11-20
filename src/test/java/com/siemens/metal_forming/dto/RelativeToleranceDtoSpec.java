@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.dto;
 
 import com.siemens.metal_forming.entity.RelativeTolerance;
+import com.siemens.metal_forming.entity.Tolerance;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,9 +30,9 @@ public class RelativeToleranceDtoSpec extends DtoSpec{
         @Test
         @DisplayName("is not valid when torqueTolerance or speedTolerance is smaller than 0 or greater than 100")
         void isInvalidWhenToleranceIsOutOfRange(){
-            RelativeToleranceDto relativeToleranceDto = new RelativeToleranceDto(-10, 120);
+            ToleranceDto tolerance = new RelativeToleranceDto(-10, 120);
 
-            Set<ConstraintViolation<RelativeToleranceDto>> violations = validator.validate(relativeToleranceDto);
+            Set<ConstraintViolation<ToleranceDto>> violations = validator.validate(tolerance);
 
             SoftAssertions softAssertions = new SoftAssertions();
             softAssertions.assertThat(violations

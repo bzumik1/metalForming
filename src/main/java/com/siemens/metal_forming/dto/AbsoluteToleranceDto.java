@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Value;
 
 @Value @Builder(toBuilder = true) @AllArgsConstructor
-public class AbsoluteToleranceDto {
+public class AbsoluteToleranceDto implements ToleranceDto{
     float torqueTolerance;
     float speedTolerance;
 }
