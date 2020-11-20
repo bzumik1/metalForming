@@ -1,10 +1,20 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
+import com.siemens.metal_forming.dto.ToleranceDto;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,6 +23,34 @@ public class AbsoluteToleranceSpec extends EntitySpec {
     public AbsoluteToleranceSpec() {
         super(AbsoluteTolerance.class);
     }
+
+    @Nested @DisplayName("TOLERANCE VALIDATION")
+    class ToleranceValidation{
+        private Validator validator;
+        @BeforeEach
+        void initialize(){
+            validator = Validation.buildDefaultValidatorFactory().getValidator();
+        }
+        @Test
+        @DisplayName("is not valid when torqueTolerance or speedTolerance is smaller than 0")
+        void isInvalidWhenToleranceIsOutOfRange(){
+            Tolerance tolerance = new AbsoluteTolerance(-10, -4);
+
+            Set<ConstraintViolation<Tolerance>> violations = validator.validate(tolerance);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(violations
+                    .stream()
+                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("torqueTolerance"))
+                    .findFirst()).isNotEmpty();
+            softAssertions.assertThat(violations
+                    .stream()
+                    .filter(plcConstraintViolation -> plcConstraintViolation.getPropertyPath().toString().equals("speedTolerance"))
+                    .findFirst()).isNotEmpty();
+            softAssertions.assertAll();
+        }
+    }
+
     @Nested @DisplayName("VALIDATE METHOD")
     class ValidateMethod{
 

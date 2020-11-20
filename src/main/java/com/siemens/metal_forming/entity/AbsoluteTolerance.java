@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.Tolerate;
 
 import javax.persistence.*;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 
@@ -13,8 +14,10 @@ import java.lang.annotation.Annotation;
 @Entity
 @DiscriminatorValue("ABSOLUTE")
 public class AbsoluteTolerance extends Tolerance {
+    @Min(value = 0, message = "Torque tolerance must be greater or equal to 0")
     @Column(nullable = false)
     float torqueTolerance;
+    @Min(value = 0, message = "Speed tolerance must be greater or equal to 0")
     @Column(nullable = false)
     float speedTolerance;
 

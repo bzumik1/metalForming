@@ -27,8 +27,7 @@ public class RelativeToleranceDtoSpec extends DtoSpec{
         void initialize(){
             validator = Validation.buildDefaultValidatorFactory().getValidator();
         }
-        @Test
-        @DisplayName("is not valid when torqueTolerance or speedTolerance is smaller than 0 or greater than 100")
+        @Test @DisplayName("is not valid when torqueTolerance or speedTolerance is smaller than 0 or greater than 100")
         void isInvalidWhenToleranceIsOutOfRange(){
             ToleranceDto tolerance = new RelativeToleranceDto(-10, 120);
 
