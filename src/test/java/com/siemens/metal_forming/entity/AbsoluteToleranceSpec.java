@@ -1,10 +1,8 @@
 package com.siemens.metal_forming.entity;
 
-import com.siemens.metal_forming.entity.AbsoluteTolerance;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -33,7 +31,7 @@ public class AbsoluteToleranceSpec extends EntitySpec {
             PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
             PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
 
-            assertThat(tolerance.validate(referencePoint,pointToBeValidated)).isTrue();
+            assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isTrue();
         }
 
         @CsvSource({
@@ -50,7 +48,7 @@ public class AbsoluteToleranceSpec extends EntitySpec {
             PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
             PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
 
-            assertThat(tolerance.validate(referencePoint,pointToBeValidated)).isFalse();
+            assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isFalse();
         }
 
         @CsvSource({
@@ -71,7 +69,7 @@ public class AbsoluteToleranceSpec extends EntitySpec {
             PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
             PointOfTorqueAndSpeed referencePoint = new CurvePoint(0f,0f);
 
-            assertThat(tolerance.validate(referencePoint,pointToBeValidated)).isEqualTo(result);
+            assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isEqualTo(result);
         }
     }
 

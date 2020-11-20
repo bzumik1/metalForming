@@ -5,6 +5,7 @@ import com.siemens.metal_forming.entity.CurvePoint;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ import java.util.stream.Stream;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TestCurveBuilder{
     Long id;
-    List<CurvePoint> points = generateRandomPoints(100);
+    List<CurvePoint> points = new ArrayList<>();
 
 
 
@@ -29,6 +30,11 @@ public class TestCurveBuilder{
 
     public TestCurveBuilder points(CurvePoint... points){
         this.points = Arrays.asList(points);
+        return this;
+    }
+
+    public TestCurveBuilder addPoint(float torque, float speed){
+        this.points.add(new CurvePoint(torque,speed));
         return this;
     }
 

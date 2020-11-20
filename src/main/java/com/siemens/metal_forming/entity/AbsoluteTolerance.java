@@ -24,7 +24,7 @@ public class AbsoluteTolerance extends Tolerance {
     }
 
     @Override
-    public boolean validate(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated) {
+    public boolean isInTolerance(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated) {
         //for one of tolerances the validation can not be done with equation of ellipse
         if(speedTolerance == 0 && torqueTolerance ==0) return referencePoint.equals(pointToBeValidated);
         if(speedTolerance ==0)

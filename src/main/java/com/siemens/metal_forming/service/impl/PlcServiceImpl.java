@@ -41,7 +41,12 @@ public class PlcServiceImpl implements PlcService {
     private final LogCreator logCreator;
 
     @Autowired
-    public PlcServiceImpl(PlcRepository plcRepository, OpcuaConnector opcuaConnector, @Qualifier("CurveValidationServiceMock") CurveValidationService curveValidationService, ReferenceCurveCalculationService referenceCurveCalculationService, LogService logService, LogCreator logCreator) {
+    public PlcServiceImpl(PlcRepository plcRepository,
+                          OpcuaConnector opcuaConnector,
+                          @Qualifier("CurveValidationServiceImpl") CurveValidationService curveValidationService,
+                          ReferenceCurveCalculationService referenceCurveCalculationService,
+                          LogService logService,
+                          LogCreator logCreator) {
         this.plcRepository = plcRepository;
         this.opcuaConnector = opcuaConnector;
         this.curveValidationService = curveValidationService;
@@ -139,10 +144,9 @@ public class PlcServiceImpl implements PlcService {
 
         //Validation of reference curve
         if(currentTool.getAutomaticMonitoring()){
-            Set<CollisionPoint> collisionPoints = curveValidationService.validate(currentTool.getReferenceCurve(),measuredCurve);
+            Set<CollisionPoint> collisionPoints = curveValidationService.validate(currentTool.getTolerance(), currentTool.getReferenceCurve(),measuredCurve);
 
             if(!collisionPoints.isEmpty()){
-                log.debug("There were {} collision points on curve",collisionPoints.size());
                 logService.save(logCreator.create(plc, measuredCurve, collisionPoints));
 
                 switch (currentTool.getStopReaction()){
@@ -151,8 +155,6 @@ public class PlcServiceImpl implements PlcService {
                     case TOP_POSITION:
                         opcuaConnector.getClient(plc).topPositionStop();
                 }
-            } else {
-                log.debug("Curve was without problems.");
             }
         } else {
             log.debug("New curve wasn't validated because automatic monitoring for current tool with toolNumber {} is disabled",currentTool.getToolNumber());

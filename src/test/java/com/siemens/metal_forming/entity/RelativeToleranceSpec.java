@@ -2,7 +2,6 @@ package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import org.assertj.core.api.SoftAssertions;
-import org.hibernate.annotations.Cascade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,7 +12,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,7 +81,7 @@ public class RelativeToleranceSpec extends EntitySpec {
             PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
             PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
 
-            assertThat(tolerance.validate(referencePoint,pointToBeValidated)).isTrue();
+            assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isTrue();
         }
 
         @CsvSource({
@@ -100,7 +98,7 @@ public class RelativeToleranceSpec extends EntitySpec {
             PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
             PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
 
-            assertThat(tolerance.validate(referencePoint,pointToBeValidated)).isFalse();
+            assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isFalse();
         }
 
         @CsvSource({
@@ -121,7 +119,7 @@ public class RelativeToleranceSpec extends EntitySpec {
             PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
             PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
 
-            assertThat(tolerance.validate(referencePoint,pointToBeValidated)).isEqualTo(result);
+            assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isEqualTo(result);
         }
     }
 }

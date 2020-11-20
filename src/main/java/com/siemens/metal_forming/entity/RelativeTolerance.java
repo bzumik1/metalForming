@@ -31,7 +31,7 @@ public class RelativeTolerance extends Tolerance{
     }
 
     @Override
-    public boolean validate(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated) {
-        return getAbsoluteTolerance(referencePoint).validate(referencePoint,pointToBeValidated);
+    public boolean isInTolerance(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated) {
+        return getAbsoluteTolerance(referencePoint).isInTolerance(referencePoint,pointToBeValidated);
     }
 }

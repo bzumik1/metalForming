@@ -16,5 +16,5 @@ public abstract class Tolerance {
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
-    public abstract boolean validate(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated);
+    public abstract boolean isInTolerance(PointOfTorqueAndSpeed referencePoint, PointOfTorqueAndSpeed pointToBeValidated);
 }
