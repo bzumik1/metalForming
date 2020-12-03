@@ -137,7 +137,7 @@ public class PlcServiceImpl implements PlcService {
         plcRepository.save(plc);
     }
 
-    @Override
+    @Override @Transactional
     public void processNewCurve(String ipAddress, Curve measuredCurve) {
         Plc plc = plcRepository.findByIpAddress(ipAddress).orElseThrow(() -> new PlcNotFoundException("Plc with IP address "+ipAddress+" was not found."));
         Tool currentTool = plc.getCurrentTool();

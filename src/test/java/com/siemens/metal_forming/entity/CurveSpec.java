@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
+import com.siemens.metal_forming.exception.exceptions.CurveCreationException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,9 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import javax.validation.*;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -35,6 +38,26 @@ class CurveSpec  extends EntitySpec {
         assertThat(curve.getPoints()).isNotNull();
     }
 
+    @Nested @DisplayName("CONSTRUCTOR FROM LIST OF SPEED AND TORQUE")
+    class ConstructorFromListOfSpeedAndTorque{
+        @Test @DisplayName("throws Exception when speed and torque have different lengths")
+        void throwsExceptionWhenSpeedAndTorqueHaveDifferentLength(){
+            List<Float> torque = List.of(1f, 2f, 3f);
+            List<Float> speed = List.of(1f, 2f);
+
+            assertThrows(CurveCreationException.class, () -> new Curve(torque,speed));
+        }
+
+        @Test @DisplayName("creates curve with correct points")
+        void createsCurveWithCorrectPoints(){
+            List<Float> torque = List.of(1f, 2f);
+            List<Float> speed = List.of(1f, 2f);
+
+            Curve curve = new Curve(torque, speed);
+
+            assertThat(curve.getPoints()).containsExactly(new CurvePoint(1f, 1f), new CurvePoint(2f, 2f));
+        }
+    }
 
     @Nested @DisplayName("VALIDATION")
     class validation{
