@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 
 @Getter @NoArgsConstructor @AllArgsConstructor @SuperBuilder
 @FieldDefaults(level = AccessLevel.PRIVATE) @EqualsAndHashCode
-@MappedSuperclass
+@MappedSuperclass @ToString
 public abstract class PointOfTorqueAndSpeed {
     public PointOfTorqueAndSpeed(Float torque,Float speed){
         this.torque = torque;

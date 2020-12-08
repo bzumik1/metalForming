@@ -6,6 +6,7 @@ import com.siemens.metal_forming.entity.CurvePoint;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.opcua.OpcuaClient;
 import com.siemens.metal_forming.opcua.configuration.OpcuaConfigurationImpl;
+import com.siemens.metal_forming.opcua.structure.HmiTrend;
 import com.siemens.metal_forming.service.PlcService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -20,10 +21,7 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
-import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.eclipse.milo.opcua.stack.core.types.builtin.*;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
@@ -39,7 +37,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -60,14 +57,13 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
     static final NodeId immediateStopIndicatorNode = configuration.getImmediateStopIndicator().getNode();
     static final NodeId topPositionStopIndicatorNode = configuration.getTopPositionStopIndicator().getNode();
 
-    static final NodeId motorSpeedArrayNode = configuration.getMotorSpeedArray().getNode();
-    static final NodeId motorTorqueArrayNode = configuration.getMotorTorqueArray().getNode();
-    static final NodeId readCurveDataIndicatorNode = configuration.getReadCurveDataIndicator().getNode();
+    static final NodeId hmiTrendNode = configuration.getHmiTrend().getNode();
 
 
     public OpcuaClientImpl(OpcUaClientConfig config, UaStackClient stackClient, String ipAddress) {
         super(config, stackClient);
         this.ipAddress = ipAddress;
+        registerHmiTrendCodec(this);
         this.addSessionActivityListener(new SessionActivityListener(){
             private boolean firstRun = true;
             @Override
@@ -225,28 +221,17 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
         plcService.changeCurrentTool(ipAddress,toolNumber);
     }
 
-    private void onReadCurveDataIndicatorChange(DataValue value) {
-        boolean readCurveDataIndicator = (boolean)value.getValue().getValue();
-        if(readCurveDataIndicator){ //checks for rising edge
-            log.debug("Curve for plc with ip {} can be read", ipAddress);
-            try {
-                final Float[] speedArray = readFloatArray(motorSpeedArrayNode).get();
-                final Float[] torqueArray = readFloatArray(motorTorqueArrayNode).get();
-                log.debug("Speed data for curve are {}", Arrays.toString(speedArray));
-                log.debug("Torque data for curve are {}", Arrays.toString(torqueArray));
+    private void onHmiTrendChange(DataValue value) {
+        Variant variant = value.getValue();
+        ExtensionObject xo = (ExtensionObject) variant.getValue();
+        HmiTrend hmiTrend = (HmiTrend) xo.decode(getSerializationContext());
 
-                List<CurvePoint> curvePoints = new ArrayList<>();
-                for(int i = 0; i<360; i++){
-                    curvePoints.add(new CurvePoint(torqueArray[i], speedArray[i]));
-                }
+        log.debug("Received curve for PLC with id {}", ipAddress);
+        Curve measuredCurve = new Curve(hmiTrend.getTorque(), hmiTrend.getSpeed());
+        log.debug("Torque: {}", hmiTrend.getTorque());
+        log.debug("Speed: {}", hmiTrend.getSpeed());
 
-                Curve measuredCurve = Curve.builder().points(curvePoints).build();
-
-                plcService.processNewCurve(ipAddress,measuredCurve);
-            } catch (InterruptedException|ExecutionException e) {
-                log.error("There was problem with reading torque and speed data for curve");
-            }
-        }
+        plcService.processNewCurve(ipAddress,measuredCurve);
     }
     /////////////////////////////////SUBSCRIPTION ACTIONS
 
@@ -264,7 +249,7 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
         return subscribe(serialNumberNode, 1000,this::onSerialNumberChange)
                 .thenCompose(nothing -> subscribe(firmwareNumberNode,1000,this::onFirmwareNumberChange))
                 .thenCompose(nothing -> subscribe(toolNumberNode,1,this::onToolNumberChange))
-                .thenCompose(nothing -> subscribe(readCurveDataIndicatorNode,1,this::onReadCurveDataIndicatorChange))
+                .thenCompose(nothing -> subscribe(hmiTrendNode,1,this::onHmiTrendChange))
 
                 .whenComplete((nothing,ex) -> {
                     if(ex != null){
@@ -325,5 +310,16 @@ public class OpcuaClientImpl extends OpcUaClient implements OpcuaClient {
                 .thenCompose(subscription -> subscription.createMonitoredItems(TimestampsToReturn.Both, createRequests.apply(subscription),onItemCreated))
                 .thenApply(object -> null);
     }
-    /////////////////////////////////SUBSCRIPTION
+
+
+
+    // REGISTER DECODERS
+    private void registerHmiTrendCodec(OpcUaClient client) {
+        NodeId binaryEncodingId = HmiTrend.BINARY_ENCODING_ID
+                .local(client.getNamespaceTable())
+                .orElseThrow(() -> new IllegalStateException("namespace not found"));
+
+        // Register codec with the client DataTypeManager instance
+        client.getDataTypeManager().registerCodec(binaryEncodingId, new HmiTrend.Codec().asBinaryCodec());
+    }
 }

@@ -24,9 +24,7 @@ public abstract class OpcuaConfiguration {
     OpcuaNodeConfiguration immediateStopIndicator;
     OpcuaNodeConfiguration topPositionStopIndicator;
 
-    OpcuaNodeConfiguration motorSpeedArray;
-    OpcuaNodeConfiguration motorTorqueArray;
-    OpcuaNodeConfiguration readCurveDataIndicator;
+    OpcuaNodeConfiguration hmiTrend;
 
 
     @Setter @Getter
