@@ -1,4 +1,4 @@
-package com.siemens.metal_forming.opcua.configuration;
+package com.siemens.metal_forming.connection.opcua.configuration;
 
 import lombok.AccessLevel;
 import lombok.Getter;

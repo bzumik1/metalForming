@@ -1,13 +1,11 @@
 package com.siemens.metal_forming.repository;
 
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,7 +23,15 @@ public interface PlcRepository extends JpaRepository<Plc,Long> {
             "from Plc plc where plc.name = ?1 and plc.id != ?2")
     boolean existsByNameIgnoringId(String name, Long id);
 
-    @EntityGraph(attributePaths = {"tools","connection","hardwareInformation","motorCurve"})
+    @EntityGraph(attributePaths = {"tools", "connection","hardwareInformation","motorCurve"})
     @Query("SELECT plc FROM Plc plc WHERE plc.id = ?1")
     Optional<Plc> findByIdFetchAll(Long id);
+
+    @EntityGraph(attributePaths = {"tools"})
+    @Query("SELECT plc FROM Plc plc WHERE plc.ipAddress = ?1")
+    Optional<Plc> findByIpAddressFetchTools(String ipAddress);
+
+    @EntityGraph(attributePaths = {"tools"})
+    @Query("SELECT plc FROM Plc plc WHERE plc.id = ?1")
+    Optional<Plc> findByIdFetchTools(Long id);
 }
