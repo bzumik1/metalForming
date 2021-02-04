@@ -10,44 +10,69 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Getter @Setter  @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter @Setter
+@Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "plcs")
 public class Plc {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    private
     Long id;
 
     @NotBlank(message = "Name must be filled")
     @Column(nullable = false, unique = true)
+    private
     String name;
 
     @ValidIpAddress
     @Column(name = "ip_address", nullable = false, unique = true)
+    private
     String ipAddress;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "hardware_information_id")
-    final HardwareInformation hardwareInformation = new HardwareInformation();
+    private final HardwareInformation hardwareInformation = new HardwareInformation();
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "connection_id", nullable = false)
-    final Connection connection = new Connection();
+    private final Connection connection = new Connection();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "curve_id")
+    private
     Curve motorCurve;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "current_tool")
+    private
     Tool currentTool;
 
+    @Singular("addTool")
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "plc", orphanRemoval = true)
-    final List<Tool> tools = new ArrayList<>();
+    private final List<Tool> tools;
 
+    public Plc(Long id, @NotBlank(message = "Name must be filled") String name, @ValidIpAddress String ipAddress, Curve motorCurve, Tool currentTool, List<Tool> tools) {
+        this.id = id;
+        this.name = name;
+        this.ipAddress = ipAddress;
+        this.motorCurve = motorCurve;
+        this.currentTool = currentTool;
+        this.tools = new ArrayList<>();
+
+        //Sets plc for each tool
+        tools.forEach(t -> {t.setPlc(this); addTool(t);});
+    }
+
+    public Plc() {
+        tools = new ArrayList<>();
+    }
 
 
     public void markAsConnected(){

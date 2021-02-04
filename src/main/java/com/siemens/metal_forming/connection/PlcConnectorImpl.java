@@ -2,7 +2,7 @@ package com.siemens.metal_forming.connection;
 
 
 
-import com.siemens.metal_forming.service.CurveValidationService;
+import com.siemens.metal_forming.service.AutomaticMonitoringService;
 import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
 import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ public class PlcConnectorImpl implements PlcConnector {
     @Autowired
     private PlcAutomaticUpdateServiceImpl plcUpdateService;
     @Autowired
-    private CurveValidationService curveValidationService;
+    private AutomaticMonitoringService automaticMonitoringService;
     @Autowired
     private ReferenceCurveCalculationService referenceCurveCalculationService;
     private final PlcDataProvider plcDataProvider;
@@ -72,7 +72,7 @@ public class PlcConnectorImpl implements PlcConnector {
     }
 
     private void registerForCurveValidation(PlcData plcData){
-        plcData.registerMeasuredCurveObserver(curveValidationService);
+        plcData.registerMeasuredCurveObserver(automaticMonitoringService);
     }
 
     private void registerForReferenceCurveCalculation(PlcData plcData){

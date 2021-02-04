@@ -28,8 +28,7 @@ public class PlcServiceImpl implements PlcService {
     private final DtoMapper dtoMapper;
 
     @Autowired
-    public PlcServiceImpl(PlcRepository plcRepository,
-                          PlcConnector plcConnector, DtoMapper dtoMapper) {
+    public PlcServiceImpl(PlcRepository plcRepository, PlcConnector plcConnector, DtoMapper dtoMapper) {
         this.plcRepository = plcRepository;
         this.plcConnector = plcConnector;
         this.dtoMapper = dtoMapper;
@@ -73,6 +72,11 @@ public class PlcServiceImpl implements PlcService {
 
     @Override
     public PlcDto.Response.Overview update(Long id, PlcDto.Request.Update plcDto) {
+        Plc plcContainingUpdatedAttributes = Plc.builder().id(id).name(plcDto.getName()).ipAddress(plcDto.getIpAddress()).build();
+
+        //checks if updated plc doesnt collide with plc in database
+        validateUniquenessOfPlc(plcContainingUpdatedAttributes);
+
         Plc plcToUpdate = plcRepository.findByIdFetchAll(id).orElseThrow(() -> new PlcNotFoundException(id)); //ToDo should it fetch all or fetch when needed
         Plc oldPlc = plcToUpdate.toBuilder().build();
 
@@ -80,8 +84,7 @@ public class PlcServiceImpl implements PlcService {
         plcToUpdate.setName(plcDto.getName());
         plcToUpdate.setIpAddress(plcDto.getIpAddress());
 
-        //checks if updated plc doesnt collide with plc in database
-        validateUniquenessOfPlc(plcToUpdate);
+
 
         //if plc has different IP address then it needs to be reconnected
         if(!plcToUpdate.getIpAddress().equals(oldPlc.getIpAddress())){

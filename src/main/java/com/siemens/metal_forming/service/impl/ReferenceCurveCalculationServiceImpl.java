@@ -24,78 +24,57 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalculationService {
-    private final PlcRepository plcRepository;
     private final ToolRepository toolRepository;
-    private final Map<Long, ReferenceCurveCalculation> calculations = new HashMap<>(); //ToDo - should be thread save
+    private final Map<String, ReferenceCurveCalculation> calculations = new HashMap<>(); //ToDo - should be thread save
 
     @Autowired
-    public ReferenceCurveCalculationServiceImpl(PlcRepository plcRepository, ToolRepository toolRepository) {
-        this.plcRepository = plcRepository;
+    public ReferenceCurveCalculationServiceImpl(ToolRepository toolRepository) {
         this.toolRepository = toolRepository;
     }
 
     @Transactional
     @Override
     public void onMeasuredCurveChange(PlcData plcData) {
-        Optional<Plc> optionalPlcInDb = plcRepository.findByIpAddress(plcData.getIpAddress());
-        if(optionalPlcInDb.isPresent()){
-            Plc plcInDb = optionalPlcInDb.get();
-            Tool currentTool = plcInDb.getCurrentTool();
-            Curve measuredCurve = plcData.getMeasuredCurve();
+        final String ipAddress = plcData.getIpAddress();
+        final Curve measuredCurve = plcData.getMeasuredCurve();
+
+        Optional<Tool> toolInDb = toolRepository.findByPlcIpAddressAndToolNumber(ipAddress, plcData.getToolNumber());
+        if(toolInDb.isPresent()){
+            Tool currentTool = toolInDb.get();
 
             if(currentTool.getCalculateReferenceCurve()){
-                Optional<ReferenceCurveCalculation> calculation = getReferenceCurveCalculation(currentTool.getId());
-                if(calculation.isEmpty()){
-                    addCalculation(currentTool.getId(),currentTool.getNumberOfReferenceCycles());
+                ReferenceCurveCalculation calculation = calculations.get(ipAddress);
+                if(calculation==null){
+                    log.debug("Starting working on calculation of reference curve with {} cycles for tool with id: {}", currentTool.getNumberOfReferenceCycles(), currentTool.getId());
+                    calculation = new ReferenceCurveCalculation(currentTool.getNumberOfReferenceCycles());
+                    calculations.put(ipAddress, calculation);
                 }
-                calculate(currentTool.getId(), measuredCurve);
+
+
+                Optional<Curve> referenceCurve = calculation.calculate(measuredCurve);
+
+                if(referenceCurve.isPresent()){
+                    currentTool.setReferenceCurve(referenceCurve.get());
+                    currentTool.setCalculateReferenceCurve(false);
+                    toolRepository.save(currentTool);
+                    calculations.remove(ipAddress);
+                    log.debug("Reference curve for tool with id {} was successfully calculated",currentTool.getId());
+                }
             }
         } else {
-            log.warn("During reference curve calculation for tool of PLC with IP address {}, the PLC wasn't found in database", plcData.getIpAddress());
+            log.warn("During reference curve calculation for tool of PLC with IP address {}, the tool wasn't found in database", ipAddress);
         }
     }
 
     @Override
     public void onToolNumberChange(PlcData plcData) {
-        Optional<Plc> optionalPlcInDb = plcRepository.findByIpAddress(plcData.getIpAddress());
-        if(optionalPlcInDb.isPresent()){
-            Plc plcInDb = optionalPlcInDb.get();
-            removeCalculation(plcInDb.getCurrentTool().getId()); //Todo this could be problem because the tool can be changed before calculation is deleted
-        } else {
-            log.warn("During cancellation of reference curve calculation for tool of PLC with IP address {}, the PLC wasn't found in database", plcData.getIpAddress());
-        }
-    }
+        final String ipAddress = plcData.getIpAddress();
 
-    private void removeCalculation(long toolId) {
-        log.debug("Removing calculation of reference curve for tool with id: {}", toolId);
-        calculations.remove(toolId);
-    }
-
-
-    private void addCalculation(long toolId, int numberOfReferenceCycles) {
-        log.debug("Starting working on calculation of reference curve with {} cycles for tool with id: {}", numberOfReferenceCycles, toolId);
-        calculations.put(toolId, new ReferenceCurveCalculation(numberOfReferenceCycles));
-    }
-
-
-    private void calculate(long toolId, Curve newCurveForCalculation) {
-        log.debug("Adding curve to calculation of reference curve for tool with id: {}", toolId);
-        Optional<ReferenceCurveCalculation> calculation = getReferenceCurveCalculation(toolId);
-
-        Optional<Curve> referenceCurve = calculation.orElseThrow(() -> new CalculationNotFoundException(toolId))
-                .calculate(newCurveForCalculation);
-
-        if(referenceCurve.isPresent()){
-            Tool toolInDb = toolRepository.findById(toolId).orElseThrow(() -> new ToolNotFoundException(toolId));
-            toolInDb.setReferenceCurve(referenceCurve.get());
-            toolInDb.setCalculateReferenceCurve(false);
-            toolRepository.save(toolInDb);
-            log.debug("Reference curve for tool with id {} was successfully calculated",toolId);
+        if(calculations.containsKey(ipAddress)){
+            log.debug("Tool changed during reference curve calculation so calculation of reference curve for tool of PLC with ip: {} was canceled.", ipAddress);
+            calculations.remove(ipAddress);
         }
     }
 
 
-    private Optional<ReferenceCurveCalculation> getReferenceCurveCalculation(long toolId) {
-        return Optional.ofNullable(calculations.get(toolId));
-    }
 }

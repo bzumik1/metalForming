@@ -30,7 +30,7 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
             plcInDb.getHardwareInformation().setFirmwareNumber(plcData.getFirmwareNumber());
             plcRepository.save(plcInDb);
         } else {
-            log.warn("Firmware number of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
+            log.error("Firmware number of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
         }
     }
 
@@ -43,7 +43,7 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
             plcInDb.getHardwareInformation().setSerialNumber(plcData.getSerialNumber());
             plcRepository.save(plcInDb);
         } else {
-            log.warn("Serial number of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
+            log.error("Serial number of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
         }
     }
 
@@ -79,7 +79,7 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
 
             plcRepository.save(plcInDb);
         } else {
-            log.warn("Current tool of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
+            log.error("Current tool of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
         }
     }
 
@@ -92,7 +92,7 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
             plcInDb.setConnectionStatus(plcData.getConnectionStatus());
             plcRepository.save(plcInDb);
         } else {
-            log.warn("Connection status of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
+            log.error("Connection status of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
         }
     }
 }

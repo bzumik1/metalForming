@@ -8,6 +8,7 @@ import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfigurati
 import com.siemens.metal_forming.connection.opcua.structure.HmiTrend;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.SessionActivityListener;
@@ -41,7 +42,7 @@ import java.util.function.Function;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Slf4j
+@Slf4j @SuperBuilder
 public class PlcDataOpcua extends PlcData {
     OpcUaClient client;
     final OpcuaConfiguration configuration;

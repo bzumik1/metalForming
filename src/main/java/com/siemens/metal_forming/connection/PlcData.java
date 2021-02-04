@@ -4,14 +4,16 @@ import com.siemens.metal_forming.connection.observer.*;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Setter @FieldDefaults(level = AccessLevel.PRIVATE)
+@Setter @FieldDefaults(level = AccessLevel.PRIVATE) @SuperBuilder
 public abstract class PlcData implements SerialNumberSource, FirmwareNumberSource, ToolNameSource, ToolNumberSource, MeasuredCurveSource, ConnectionStatusSource {
     @Getter
     protected final String ipAddress;
