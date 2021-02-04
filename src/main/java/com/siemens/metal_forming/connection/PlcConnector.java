@@ -1,8 +1,11 @@
 package com.siemens.metal_forming.connection;
 
 
+import com.siemens.metal_forming.entity.Plc;
+
 public interface PlcConnector {
-    PlcData connectPlc(String ipAddress);
-    void disconnectPlc(String ipAddress);
-    PlcData getPlcData(String ipAddress);
+    Plc connect(Plc plc);
+    Plc disconnect(Plc plc);
+    void disconnect(String ipAddress);
+
 }

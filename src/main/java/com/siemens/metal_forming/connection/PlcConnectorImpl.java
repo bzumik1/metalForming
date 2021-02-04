@@ -2,6 +2,10 @@ package com.siemens.metal_forming.connection;
 
 
 
+import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.service.AutomaticMonitoringService;
 import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
 import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
@@ -29,28 +33,28 @@ public class PlcConnectorImpl implements PlcConnector {
     }
 
     @Override
-    public PlcData connectPlc(String ipAddress){
-        Optional<PlcData> oldPlcData = Optional.ofNullable(plcDataMap.get(ipAddress));
+    public Plc connect(Plc plc){
+        PlcData plcData = plcDataMap.get(plc.getIpAddress());
 
-        if(oldPlcData.isEmpty()){
-            PlcData plcData = plcDataProvider.getPlcData(ipAddress);
-            plcDataMap.put(ipAddress, plcData);
+        if(plcData==null){
+            plcData = plcDataProvider.getPlcData(plc.getIpAddress());
+            plcDataMap.put(plc.getIpAddress(), plcData);
             registerForAutomaticPlcInformationUpdate(plcData);
             registerForCurveValidation(plcData);
             registerForReferenceCurveCalculation(plcData);
-            return plcData;
         } else {
-            log.warn("OPC UA client for plc with IP address {} already exist, existing one is returned", ipAddress);
-            return oldPlcData.get();
+            log.warn("OPC UA client for plc with IP address {} already exist, existing one is returned", plc.getIpAddress());
         }
+
+        return updatePlcInformation(plc,plcData);
     }
 
     @Override
-    public void disconnectPlc(String ipAddress){
-        Optional<PlcData> oldPlcData = Optional.ofNullable(plcDataMap.get(ipAddress));
+    public void disconnect(String ipAddress){
+        PlcData oldPlcData = plcDataMap.get(ipAddress);
 
-        if(oldPlcData.isPresent()){
-            oldPlcData.get().disconnect();
+        if(oldPlcData!=null){
+            oldPlcData.disconnect();
             plcDataMap.remove(ipAddress);
         } else {
             log.warn("OPC UA client for plc with IP address {} did not exist",ipAddress);
@@ -58,9 +62,39 @@ public class PlcConnectorImpl implements PlcConnector {
     }
 
     @Override
-    public PlcData getPlcData(String ipAddress) {
-        Optional<PlcData> opcuaClient = Optional.ofNullable(plcDataMap.get(ipAddress));
-        return opcuaClient.orElseGet(() -> connectPlc(ipAddress));
+    public Plc disconnect(Plc plc){
+        disconnect(plc.getIpAddress());
+        plc.markAsDisconnected();
+        return plc;
+    }
+
+    private Plc updatePlcInformation(Plc plc, PlcData plcData) {
+        if(plcData.getConnectionStatus() == ConnectionStatus.CONNECTED){
+            plc.markAsConnected();
+            plc.getHardwareInformation().setSerialNumber(plcData.getSerialNumber());
+            plc.getHardwareInformation().setFirmwareNumber(plcData.getFirmwareNumber());
+
+            // set current tool
+            Integer currentToolNumber = plcData.getToolNumber();
+            if(plc.getCurrentTool() == null){
+                Tool newTool = Tool.builder()
+                        .toolNumber(currentToolNumber)
+                        .nameFromPlc(plcData.getToolName())
+                        .maxSpeedOperation(plcData.getMaxOperationSpeed())
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
+                        .build();
+                plc.addTool(newTool);
+            }
+            plc.setCurrentTool(currentToolNumber);
+            log.debug("All information about plc were successfully read");
+
+        } else {
+            plc.markAsDisconnected();
+        }
+
+        return plc;
     }
 
     private void registerForAutomaticPlcInformationUpdate(PlcData plcData){

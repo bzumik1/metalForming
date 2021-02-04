@@ -1,13 +1,9 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.connection.PlcConnector;
-import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
-import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
 import com.siemens.metal_forming.repository.PlcRepository;
@@ -15,10 +11,8 @@ import com.siemens.metal_forming.service.PlcService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service @Slf4j
@@ -48,27 +42,15 @@ public class PlcServiceImpl implements PlcService {
     public PlcDto.Response.Overview createPlc(PlcDto.Request.Create plcDto) {
         Plc plcToBeCreated = dtoMapper.toPlc(plcDto);
         validateUniquenessOfPlc(plcToBeCreated);
-        return dtoMapper.toPlcDtoOverview(plcRepository.save(connectPlc(plcToBeCreated)));
-    }
-
-    @Override @Transactional //ToDo should fetch all from db?, Shouldn't be here?
-    public void connectAllPlcsInDatabase() {
-        List<Plc> plcs = plcRepository.findAll().stream()
-                .map(plc -> CompletableFuture.supplyAsync(() -> this.connectPlc(plc)))
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
-        log.info("Trying to connect to plcs with IP addresses: {} over OPC UA", plcs.stream().map(Plc::getIpAddress).collect(Collectors.joining(", ")));
-        log.info("Plcs with IP addresses: {} were successfully connected.", plcs.stream().filter(Plc::isConnected).map(Plc::getIpAddress).collect(Collectors.joining(", ")));
-        plcRepository.saveAll(plcs);
+        return dtoMapper.toPlcDtoOverview(plcRepository.save(plcConnector.connect(plcToBeCreated)));
     }
 
     @Override
     public void delete(Long id) {
         Plc oldPlc = plcRepository.findById(id).orElseThrow(() -> new PlcNotFoundException(id));
-        plcConnector.disconnectPlc(oldPlc.getIpAddress());
+        plcConnector.disconnect(oldPlc.getIpAddress());
         plcRepository.deleteById(id);
     }
-
 
     @Override
     public PlcDto.Response.Overview update(Long id, PlcDto.Request.Update plcDto) {
@@ -89,8 +71,8 @@ public class PlcServiceImpl implements PlcService {
         //if plc has different IP address then it needs to be reconnected
         if(!plcToUpdate.getIpAddress().equals(oldPlc.getIpAddress())){
             log.info("IP address of plc with id {} was changed to {}",plcToUpdate.getId(),plcToUpdate.getIpAddress());
-            plcConnector.disconnectPlc(oldPlc.getIpAddress());
-            connectPlc(plcToUpdate);
+            plcConnector.disconnect(oldPlc.getIpAddress());
+            plcConnector.connect(plcToUpdate);
         }
         return dtoMapper.toPlcDtoOverview(plcRepository.save(plcToUpdate));
     }
@@ -115,37 +97,4 @@ public class PlcServiceImpl implements PlcService {
             throw new PlcUniqueConstrainException(exceptionMessage.toString());
         }
     }
-
-
-    private Plc connectPlc(Plc plc) {
-        PlcData plcData = plcConnector.connectPlc(plc.getIpAddress());
-        if(plcData.getConnectionStatus() == ConnectionStatus.CONNECTED){
-            plc.markAsConnected();
-            plc.getHardwareInformation().setSerialNumber(plcData.getSerialNumber());
-            plc.getHardwareInformation().setFirmwareNumber(plcData.getFirmwareNumber());
-
-            // set current tool
-            Integer currentToolNumber = plcData.getToolNumber();
-            if(plc.getCurrentTool() == null){
-                Tool newTool = Tool.builder()
-                        .toolNumber(currentToolNumber)
-                        .nameFromPlc(plcData.getToolName())
-                        .maxSpeedOperation(plcData.getMaxOperationSpeed())
-                        .toolStatus(ToolStatusType.AUTODETECTED)
-                        .automaticMonitoring(false)
-                        .calculateReferenceCurve(false)
-                        .build();
-                plc.addTool(newTool);
-            }
-            plc.setCurrentTool(currentToolNumber);
-            log.debug("All information about plc were successfully read");
-
-        } else {
-            plc.markAsDisconnected();
-        }
-
-        return plc;
-    }
-
-
 }

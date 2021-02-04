@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -38,7 +39,6 @@ class PlcServiceSpec {
     @Mock private PlcRepository plcRepository;
     @Mock private PlcConnector plcConnector;
     @Mock private DtoMapper dtoMapper;
-    @Mock private PlcData plcData;
 
     @Captor ArgumentCaptor<Plc> plcCaptor;
 
@@ -53,80 +53,24 @@ class PlcServiceSpec {
     class CreatePlc{
         @Nested @DisplayName("PLC IS CONNECTED")
         class PlcIsConnected{
-            @Test @DisplayName("updates PLC information from PlcData")
-            void updatesPlcInformationFromPlcData(){
+            @Test @DisplayName("connects PLC and saves it to database")
+            void connectsPlcAndSavesItToDatabase(){
                 PlcDto.Request.Create plcDto = PlcDto.Request.Create.builder().name("newPlc").ipAddress("192.168.0.1").build();
                 Plc newPlc = Plc.builder().name("newPlc").ipAddress("192.168.0.1").build();
-                PlcData plcData = PlcDataOpcua.builder()
-                        .connectionStatus(ConnectionStatus.CONNECTED)
-                        .serialNumber("SN 01")
-                        .firmwareNumber("FW 01")
-                        .MaxOperationSpeed(10)
-                        .toolName("newTool")
-                        .toolNumber(1)
-                        .build();
 
-                when(plcConnector.connectPlc("192.168.0.1")).thenReturn(plcData);
                 when(dtoMapper.toPlc(plcDto)).thenReturn(newPlc);
                 when(plcRepository.existsByName("newPlc")).thenReturn(false);
                 when(plcRepository.existsByIpAddress("192.168.0.1")).thenReturn(false);
+                when(plcConnector.connect(newPlc)).thenAnswer(returnsFirstArg());
 
                 plcService.createPlc(plcDto);
 
-                verify(plcRepository, times(1)).save(plcCaptor.capture());
-                Plc plcStoredToDb = plcCaptor.getValue();
-                Tool toolStoredToDb = plcStoredToDb.getCurrentTool();
-
-                SoftAssertions softAssertions = new SoftAssertions();
-                // plc
-                softAssertions.assertThat(plcStoredToDb.getName()).as("plcName should be set").isEqualTo("newPlc");
-                softAssertions.assertThat(plcStoredToDb.getIpAddress()).as("ipAddress should be set").isEqualTo("192.168.0.1");
-                softAssertions.assertThat(plcStoredToDb.getConnection().getStatus()).as("connection status should be set").isEqualTo(ConnectionStatus.CONNECTED);
-                softAssertions.assertThat(plcStoredToDb.getHardwareInformation().getSerialNumber()).as("serialNumber should be set").isEqualTo("SN 01");
-                softAssertions.assertThat(plcStoredToDb.getHardwareInformation().getFirmwareNumber()).as("firmwareNumber should be set").isEqualTo("FW 01");
-
-                //tool
-                softAssertions.assertThat(plcStoredToDb.getTools().size()).as("tool should be added").isEqualTo(1);
-                softAssertions.assertThat(toolStoredToDb).as("tool should be selected as current tool").isNotNull();
-                softAssertions.assertThat(toolStoredToDb.getToolNumber()).as("tool should be created with correct number").isEqualTo(1);
-                softAssertions.assertThat(toolStoredToDb.getNameFromPlc()).as("tool should be created with correct name").isEqualTo("newTool");
-                softAssertions.assertThat(toolStoredToDb.getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(10);
-                softAssertions.assertThat(toolStoredToDb.getToolStatus()).as("tool should be marked as autodetected").isEqualTo(ToolStatusType.AUTODETECTED);
-                softAssertions.assertThat(toolStoredToDb.getAutomaticMonitoring()).as("tool is created with automaticMonitoring false").isFalse();
-                softAssertions.assertThat(toolStoredToDb.getCalculateReferenceCurve()).as("tool should be created with calculationReferenceCurve false").isFalse();
-
-                softAssertions.assertAll();
+                verify(plcConnector, times(1).description("Plc should be connected")).connect(newPlc);
+                verify(plcRepository, times(1).description("Plc should be stored to database")).save(newPlc);
             }
         }
 
-        @Nested @DisplayName("PLC IS DISCONNECTED")
-        class PlcIsDisconnected{
-            @Test @DisplayName("mark plc as disconnected when the connection over OPC UA could not be established")
-            void markPlcAsDisconnectedIfTheConnectionWasNotSuccessful(){
-                PlcDto.Request.Create plcDto = PlcDto.Request.Create.builder().name("newPlc").ipAddress("192.168.0.1").build();
-                Plc newPlc = Plc.builder().name("newPlc").ipAddress("192.168.0.1").build();
-                PlcData plcData = PlcDataOpcua.builder()
-                        .connectionStatus(ConnectionStatus.DISCONNECTED)
-                        .build();
 
-                when(plcConnector.connectPlc("192.168.0.1")).thenReturn(plcData);
-                when(dtoMapper.toPlc(plcDto)).thenReturn(newPlc);
-                when(plcRepository.existsByName("newPlc")).thenReturn(false);
-                when(plcRepository.existsByIpAddress("192.168.0.1")).thenReturn(false);
-
-                plcService.createPlc(plcDto);
-
-                verify(plcRepository, times(1)).save(plcCaptor.capture());
-                Plc plcStoredToDb = plcCaptor.getValue();
-
-                SoftAssertions softAssertions = new SoftAssertions();
-                softAssertions.assertThat(plcStoredToDb.getTools()).as("plc has no tools").isEmpty();
-                softAssertions.assertThat(plcStoredToDb.getConnection().getStatus()).as("plc is disconnected").isEqualTo(ConnectionStatus.DISCONNECTED);
-                softAssertions.assertThat(plcStoredToDb.getName()).as("plcName is set").isEqualTo("newPlc");
-                softAssertions.assertThat(plcStoredToDb.getIpAddress()).as("ipAddress is set").isEqualTo("192.168.0.1");
-                softAssertions.assertAll();
-            }
-        }
 
         @Nested @DisplayName("UNIQUE VIOLATION")
         class UniqueViolation{
@@ -134,11 +78,8 @@ class PlcServiceSpec {
             void throwsExceptionWhenIpAddressIsNotUnique(){
                 PlcDto.Request.Create plcDto = PlcDto.Request.Create.builder().name("newPlc").ipAddress("192.168.0.1").build();
                 Plc newPlc = Plc.builder().name("newPlc").ipAddress("192.168.0.1").build();
-                PlcData plcData = PlcDataOpcua.builder()
-                        .connectionStatus(ConnectionStatus.DISCONNECTED)
-                        .build();
 
-                when(plcConnector.connectPlc("192.168.0.1")).thenReturn(plcData);
+                when(plcConnector.connect(newPlc)).thenReturn(newPlc);
                 when(dtoMapper.toPlc(plcDto)).thenReturn(newPlc);
                 when(plcRepository.existsByName("newPlc")).thenReturn(false);
                 when(plcRepository.existsByIpAddress("192.168.0.1")).thenReturn(true);
@@ -150,11 +91,8 @@ class PlcServiceSpec {
             void throwsExceptionWhenNameIsNotUnique(){
                 PlcDto.Request.Create plcDto = PlcDto.Request.Create.builder().name("newPlc").ipAddress("192.168.0.1").build();
                 Plc newPlc = Plc.builder().name("newPlc").ipAddress("192.168.0.1").build();
-                PlcData plcData = PlcDataOpcua.builder()
-                        .connectionStatus(ConnectionStatus.DISCONNECTED)
-                        .build();
 
-                when(plcConnector.connectPlc("192.168.0.1")).thenReturn(plcData);
+                when(plcConnector.connect(newPlc)).thenReturn(newPlc);
                 when(dtoMapper.toPlc(plcDto)).thenReturn(newPlc);
                 when(plcRepository.existsByName("newPlc")).thenReturn(true);
                 when(plcRepository.existsByIpAddress("192.168.0.1")).thenReturn(false);
@@ -166,11 +104,8 @@ class PlcServiceSpec {
             void throwsExceptionWhenNameAnIpAreNotUnique(){
                 PlcDto.Request.Create plcDto = PlcDto.Request.Create.builder().name("newPlc").ipAddress("192.168.0.1").build();
                 Plc newPlc = Plc.builder().name("newPlc").ipAddress("192.168.0.1").build();
-                PlcData plcData = PlcDataOpcua.builder()
-                        .connectionStatus(ConnectionStatus.DISCONNECTED)
-                        .build();
 
-                when(plcConnector.connectPlc("192.168.0.1")).thenReturn(plcData);
+                when(plcConnector.connect(newPlc)).thenReturn(newPlc);
                 when(dtoMapper.toPlc(plcDto)).thenReturn(newPlc);
                 when(plcRepository.existsByName("newPlc")).thenReturn(true);
                 when(plcRepository.existsByIpAddress("192.168.0.1")).thenReturn(true);
@@ -178,24 +113,6 @@ class PlcServiceSpec {
                 String message = assertThrows(PlcUniqueConstrainException.class,() -> plcService.createPlc(plcDto)).getMessage();
                 assertThat(message).contains("IP address").contains("name");
             }
-        }
-    }
-
-    @Nested @DisplayName("CONNECT ALL PLCS IN DATABASE")
-    class ConnectAllPlcsInDatabase{
-        @Test @DisplayName("For all plcs in database triggers connectPlc method")
-        void forAllPlcsInDatabaseTriggersConnectPlc(){
-            List<Plc> plcsInDatabase = List.of(Plc.builder().name("first plc").build(), Plc.builder().name("second plc").build());
-            PlcData plcData = PlcDataOpcua.builder()
-                    .connectionStatus(ConnectionStatus.DISCONNECTED)
-                    .build();
-
-            when(plcRepository.findAll()).thenReturn(plcsInDatabase);
-            when(plcConnector.connectPlc(any())).thenReturn(plcData);
-
-            plcService.connectAllPlcsInDatabase();
-
-            verify(plcConnector,times(2)).connectPlc(any());
         }
     }
 
@@ -212,7 +129,7 @@ class PlcServiceSpec {
                 plcService.delete(1L);
 
                 verify(plcRepository,Mockito.times(1)).deleteById(1L);
-                verify(plcConnector, times(1)).disconnectPlc("192.168.0.1");
+                verify(plcConnector, times(1)).disconnect("192.168.0.1");
             }
         }
 
@@ -304,12 +221,13 @@ class PlcServiceSpec {
                 PlcDto.Request.Update plcDto = PlcDto.Request.Update.builder().name("oldPlc").ipAddress("192.168.0.2").build();
 
                 when(plcRepository.findByIdFetchAll(1L)).thenReturn(Optional.of(plcInDb));
-                when(plcConnector.connectPlc("192.168.0.2")).thenReturn(plcData);
 
                 plcService.update(1L, plcDto);
 
-                verify(plcConnector,times(1)).disconnectPlc("192.168.0.1");
-                verify(plcConnector,times(1)).connectPlc("192.168.0.2");
+                verify(plcConnector,times(1)).disconnect("192.168.0.1");
+                verify(plcConnector,times(1)).connect(plcCaptor.capture());
+
+                assertThat(plcCaptor.getValue().getIpAddress()).isEqualTo("192.168.0.2");
             }
         }
 

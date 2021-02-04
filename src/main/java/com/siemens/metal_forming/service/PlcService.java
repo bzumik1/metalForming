@@ -13,8 +13,6 @@ public interface PlcService {
 
     PlcDto.Response.Overview createPlc(PlcDto.Request.Create plcDto);
 
-    void connectAllPlcsInDatabase();
-
     void delete(Long id);
 
     PlcDto.Response.Overview update(Long id, PlcDto.Request.Update plcDto);

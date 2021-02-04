@@ -236,8 +236,6 @@ public class PlcDataOpcua extends PlcData {
         setMeasuredCurve(new Curve(hmiTrend.getTorque(), hmiTrend.getSpeed()));
 
         log.debug("Measured curve of PLC with IP address {} has changed to:\n\tTorque:{}\n\tSpeed: {}", ipAddress, hmiTrend.getTorque(), hmiTrend.getSpeed());
-
-        notifyMeasuredCurveObservers();
     }
 
     private void registerHmiTrendCodec(OpcUaClient client) {
