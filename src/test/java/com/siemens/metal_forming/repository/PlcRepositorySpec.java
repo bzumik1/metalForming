@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.repository;
 
 import com.siemens.metal_forming.entity.*;
-import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import lombok.AccessLevel;
@@ -18,10 +17,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.persistence.PersistenceException;
 import javax.validation.ConstraintViolationException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;

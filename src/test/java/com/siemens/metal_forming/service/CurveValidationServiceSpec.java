@@ -1,12 +1,12 @@
 package com.siemens.metal_forming.service;
 
+
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.exception.exceptions.IncompatibleCurvesException;
 import com.siemens.metal_forming.service.impl.CurveValidationServiceImpl;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,14 +14,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
-@DisplayName("<= CURVE VALIDATION SERVICE SPECIFICATION =>")
+@DisplayName("<= CURVE VALIDATOR SPECIFICATION =>")
 public class CurveValidationServiceSpec {
-    CurveValidationService curveValidationService;
+    private CurveValidationService curveValidationService;
 
     @BeforeEach
     void initialize(){
         curveValidationService = new CurveValidationServiceImpl();
     }
+
 
     @Test @DisplayName("throws IncompatibleCurvesException when curves doesn't have same length")
     void throwsIncompatibleCurvesExceptionWhenCurvesDoesNotHaveSameLength(){
@@ -29,7 +30,7 @@ public class CurveValidationServiceSpec {
         Curve measuredCurve = new TestCurveBuilder().randomPoints(10).build();
         Tolerance tolerance = new AbsoluteTolerance(100,100);
 
-        assertThrows(IncompatibleCurvesException.class, () ->curveValidationService.validate(tolerance,referenceCurve,measuredCurve));
+        assertThrows(IncompatibleCurvesException.class, () -> curveValidationService.validate(tolerance,referenceCurve,measuredCurve));
     }
 
     @Test @DisplayName("returns set of collision points")

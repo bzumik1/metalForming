@@ -16,4 +16,6 @@ public interface ToolRepository extends JpaRepository<Tool, Long> {
 
     @Query(value = "SELECT * FROM tools WHERE plc_id = ?1 AND tool_number = ?2", nativeQuery = true)
     Optional<Tool> findByPlcIdAndToolNumber(Long plcId, Integer toolNumber);
+
+    Optional<Tool> findByPlcIpAddressAndToolNumber(String ipAddress, Integer toolNumber);
 }

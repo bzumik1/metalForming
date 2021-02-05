@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.service.impl;
 
+import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
@@ -17,69 +19,80 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final PlcRepository plcRepository;
-    private final PlcService plcService;
+    private final DtoMapper dtoMapper;
 
     @Autowired
-    public ToolServiceImpl( ToolRepository toolRepository, PlcRepository plcRepository, PlcService plcService) {
+    public ToolServiceImpl( ToolRepository toolRepository, PlcRepository plcRepository, DtoMapper dtoMapper) {
         this.toolRepository = toolRepository;
         this.plcRepository = plcRepository;
-        this.plcService = plcService;
+        this.dtoMapper = dtoMapper;
     }
 
     @Override
-    public List<Tool> findAll(Long plcId) {
+    public List<ToolDto.Response.Overview> findAll(Long plcId) {
         if(!plcRepository.existsById(plcId)){
             throw new PlcNotFoundException(plcId);
         }
-        return toolRepository.findAllByPlcId(plcId);
+        return toolRepository.findAllByPlcId(plcId).stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList());
     }
 
     @Override
-    public List<Tool> findAll() {
-        return toolRepository.findAll();
+    public List<ToolDto.Response.Overview> findAll() {
+        return toolRepository.findAll().stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList());
     }
 
     @Override
     public void delete(Long plcId, Long toolId){
-        Consumer<Plc> updatePlc = plc -> {
-            Tool toolToBeRemoved = plc.getToolById(toolId);
-            plc.removeTool(toolToBeRemoved);
-        };
-        plcService.update(plcId,updatePlc);
+        Plc plcInDb = plcRepository.findByIdFetchTools(plcId).orElseThrow(() -> new PlcNotFoundException(plcId));
+
+        Tool toolToBeRemoved = plcInDb.getToolById(toolId);
+        plcInDb.removeTool(toolToBeRemoved);
+
+        plcRepository.save(plcInDb);
     }
 
     @Override
-    public Tool create(Long plcId, Tool tool){
-        Plc updatedPlc = plcService.update(plcId, plc -> plc.addTool(tool));
-        return updatedPlc.getToolByToolNumber(tool.getToolNumber());
+    public ToolDto.Response.Overview create(Long plcId, ToolDto.Request.Create toolDto){
+        Tool newTool = dtoMapper.toTool(toolDto);
+        Plc plcInDb = plcRepository.findByIdFetchTools(plcId).orElseThrow(() -> new PlcNotFoundException(plcId));
+
+        plcInDb.addTool(newTool);
+
+        return dtoMapper.toToolDtoOverview(plcRepository.save(plcInDb).getToolByToolNumber(newTool.getToolNumber()));
     }
 
     @Transactional
     @Override
-    public Tool update(Long plcId, Long toolId, Consumer<Tool> updateTool) {
-        Consumer<Plc> updatePlc = plc -> {
-            Tool toolToBeUpdated = plc.getToolById(toolId);
-            final Integer oldToolNumber = toolToBeUpdated.getToolNumber();
-            plc.removeTool(toolToBeUpdated);
-            updateTool.accept(toolToBeUpdated);
-            if(!toolToBeUpdated.getToolNumber().equals(oldToolNumber) && toolToBeUpdated.getToolStatus() == ToolStatusType.AUTODETECTED){
-                throw new ToolNumberUpdateException();
-            }
-            plc.addTool(toolToBeUpdated);
-        };
-        return plcService.update(plcId,updatePlc).getToolById(toolId);
-    }
+    public ToolDto.Response.Overview update(Long plcId, Long toolId, ToolDto.Request.Update toolDto) {
+        Plc plcInDb = plcRepository.findByIdFetchTools(plcId).orElseThrow(() -> new PlcNotFoundException(plcId));
 
-    @Override
-    public void updateReferenceCurve(Long toolId, Curve referenceCurve) {
-        Tool toolInDb = toolRepository.findById(toolId).orElseThrow(() -> new ToolNotFoundException(toolId));
-        toolInDb.setReferenceCurve(referenceCurve);
-        toolInDb.setCalculateReferenceCurve(false);
-        toolRepository.save(toolInDb);
+        Tool updatedTool = dtoMapper.toTool(toolDto);
+        Tool toolToUpdate = plcInDb.getToolById(toolId);
+        final Integer oldToolNumber = toolToUpdate.getToolNumber();
+        plcInDb.removeTool(toolToUpdate);
+
+
+        toolToUpdate.setToolNumber(updatedTool.getToolNumber());
+        toolToUpdate.setNickName(updatedTool.getNickName());
+        toolToUpdate.setNumberOfReferenceCycles(updatedTool.getNumberOfReferenceCycles());
+        toolToUpdate.setCalculateReferenceCurve(updatedTool.getCalculateReferenceCurve());
+        toolToUpdate.setTolerance(updatedTool.getTolerance());
+        toolToUpdate.setStopReaction(updatedTool.getStopReaction());
+        toolToUpdate.setAutomaticMonitoring(updatedTool.getAutomaticMonitoring());
+
+
+        if(!toolToUpdate.getToolNumber().equals(oldToolNumber) && toolToUpdate.getToolStatus() == ToolStatusType.AUTODETECTED){
+            throw new ToolNumberUpdateException();
+        }
+        plcInDb.addTool(toolToUpdate);
+
+
+        return dtoMapper.toToolDtoOverview(plcRepository.save(plcInDb).getToolById(toolId));
     }
 }

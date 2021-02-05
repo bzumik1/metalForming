@@ -4,6 +4,7 @@ import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Tolerance;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.exception.exceptions.IncompatibleCurvesException;
+import com.siemens.metal_forming.service.CurveValidationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +12,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@Service("CurveValidationServiceImpl")
-@Slf4j
-public class CurveValidationServiceImpl implements com.siemens.metal_forming.service.CurveValidationService {
+@Slf4j @Service
+public class CurveValidationServiceImpl implements CurveValidationService {
+
     @Override
     public Set<CollisionPoint> validate(Tolerance tolerance, Curve referenceCurve, Curve measuredCurve) {
         log.info("starting curve validation");

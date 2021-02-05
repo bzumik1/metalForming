@@ -7,5 +7,5 @@ import com.siemens.metal_forming.entity.log.CollisionPoint;
 import java.util.Set;
 
 public interface CurveValidationService {
-    Set<CollisionPoint>  validate(Tolerance tolerance, Curve referenceCurve, Curve measuredCurve);
+    Set<CollisionPoint> validate(Tolerance tolerance, Curve referenceCurve, Curve measuredCurve);
 }

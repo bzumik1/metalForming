@@ -2,6 +2,8 @@ package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.assertj.core.api.SoftAssertions;
@@ -17,6 +19,7 @@ import javax.validation.ValidatorFactory;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -81,6 +84,43 @@ class ToolSpec extends EntitySpec {
             Tool tool2 = Tool.builder().id(2L).toolNumber(2).build();
 
             assertThat(tool1.equals(tool2)).isEqualTo(false);
+        }
+    }
+
+    @Nested @DisplayName("SET TOOL NUMBER")
+    class SetToolNumber{
+        @Test @DisplayName("throws exception when toolNumber is changed for autodetected tool")
+        void throwsExceptionWhenToolNumberIsUpdatedForAutodetectedTool(){
+            Tool testTool = Tool.builder().toolNumber(1).toolStatus(ToolStatusType.AUTODETECTED).build();
+
+            assertThrows(ToolNumberUpdateException.class, () -> testTool.setToolNumber(2));
+        }
+
+        @Test @DisplayName("toolNumber can be set for first time for autodetected tool")
+        void toolNumberCanBeSetForFirstTImeForAutodetectedTool(){
+            Tool testTool = Tool.builder().toolStatus(ToolStatusType.AUTODETECTED).build();
+
+            testTool.setToolNumber(1);
+
+            assertThat(testTool.getToolNumber()).isEqualTo(1);
+        }
+
+        @Test @DisplayName("toolNumber of autodetected tool can be set to same value")
+        void toolNumberOfAutodetectedToolCanBeSetToSameVale(){
+            Tool testTool = Tool.builder().toolStatus(ToolStatusType.AUTODETECTED).toolNumber(1).build();
+
+            testTool.setToolNumber(1);
+
+            assertThat(testTool.getToolNumber()).isEqualTo(1);
+        }
+
+        @Test @DisplayName("toolNumber can be updatede for other tool statuses")
+        void toolNumberCanBeUpdatedForOtherToolStatuses(){
+            Tool testTool = Tool.builder().toolStatus(ToolStatusType.MANUALLY_ADDED).toolNumber(1).build();
+
+            testTool.setToolNumber(2);
+
+            assertThat(testTool.getToolNumber()).isEqualTo(2);
         }
     }
 }

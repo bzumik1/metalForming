@@ -1,6 +1,6 @@
 package com.siemens.metal_forming.opcua.structure;
 
-import org.assertj.core.api.SoftAssertions;
+import com.siemens.metal_forming.connection.opcua.structure.HmiTrend;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

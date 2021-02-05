@@ -1,8 +1,8 @@
 package com.siemens.metal_forming.entity;
 
-import com.siemens.metal_forming.annotations.MaxOneField;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -59,4 +59,12 @@ public class Tool{
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reference_curve_id")
     Curve referenceCurve;
+
+    public void setToolNumber(Integer toolNumber){
+        if(toolStatus == ToolStatusType.AUTODETECTED && this.toolNumber != null && !this.toolNumber.equals(toolNumber) ){
+            throw new ToolNumberUpdateException();
+        }
+
+        this.toolNumber = toolNumber;
+    }
 }

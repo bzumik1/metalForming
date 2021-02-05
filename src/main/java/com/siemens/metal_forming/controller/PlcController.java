@@ -20,31 +20,25 @@ import java.util.stream.Collectors;
 @RequestMapping(path = "/plcs")
 public class PlcController {
     private final PlcService plcService;
-    private final DtoMapper dtoMapper;
 
-    public PlcController(@Autowired PlcService plcService, DtoMapper dtoMapper) {
+    public PlcController(@Autowired PlcService plcService) {
         this.plcService = plcService;
-        this.dtoMapper = dtoMapper;
     }
 
     @GetMapping
     public ResponseEntity<List<PlcDto.Response.Overview>> getAllPlcs(){
-        return ResponseEntity.ok(plcService.findAll().stream().map(dtoMapper::toPlcDtoOverview).collect(Collectors.toList()));
+        return ResponseEntity.ok(plcService.findAll());
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ResponseEntity<PlcDto.Response.Overview> createPlc(@Valid @RequestBody PlcDto.Request.Create plcDto){
-        Plc plc = dtoMapper.toPlc(plcDto);
-        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.createPlc(plc)), HttpStatus.CREATED);
+    public PlcDto.Response.Overview createPlc(@Valid @RequestBody PlcDto.Request.Create plcDto){
+        return plcService.createPlc(plcDto);
     }
 
     @PutMapping(path = "/{plcId}")
-    public ResponseEntity<PlcDto.Response.Overview> updatePlc(@PathVariable Long plcId, @Valid @RequestBody PlcDto.Request.Update plcDto){
-        Consumer<Plc> attributesToUpdate = plc -> {
-            plc.setName(plcDto.getName());
-            plc.setIpAddress(plcDto.getIpAddress());
-        };
-        return new ResponseEntity<>(dtoMapper.toPlcDtoOverview(plcService.update(plcId,attributesToUpdate)),HttpStatus.OK);
+    public PlcDto.Response.Overview updatePlc(@PathVariable Long plcId, @Valid @RequestBody PlcDto.Request.Update plcDto){
+        return plcService.update(plcId, plcDto);
     }
 
     @DeleteMapping(path = "/{plcId}")

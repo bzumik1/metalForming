@@ -20,45 +20,32 @@ import java.util.stream.Collectors;
 @RequestMapping(path = "/plcs")
 public class ToolController {
     private final ToolService toolService;
-    private final DtoMapper dtoMapper;
 
 
 
-    public ToolController(@Autowired ToolService toolService, DtoMapper dtoMapper) {
+    public ToolController(@Autowired ToolService toolService) {
         this.toolService = toolService;
-        this.dtoMapper = dtoMapper;
     }
 
     @GetMapping(path = "/tools")
     public List<ToolDto.Response.Overview> getAllTools(){
-        return toolService.findAll().stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList());
+        return toolService.findAll();
     }
 
     @GetMapping(path = "/{plcId}/tools")
     public List<ToolDto.Response.Overview> getAllTools(@PathVariable Long plcId){
-        return toolService.findAll(plcId).stream().map(dtoMapper::toToolDtoOverview).collect(Collectors.toList());
+        return toolService.findAll(plcId);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{plcId}/tools")
     public ToolDto.Response.Overview createTool(@PathVariable Long plcId,@Valid @RequestBody Create toolDto){
-        Tool tool = dtoMapper.toTool(toolDto);
-        return dtoMapper.toToolDtoOverview(toolService.create(plcId,tool));
+        return toolService.create(plcId, toolDto);
     }
 
     @PutMapping(path = "/{plcId}/tools/{toolId}")
     public ToolDto.Response.Overview updateToolByPlcIdAndToolId(@PathVariable Long plcId, @PathVariable Long toolId, @Valid @RequestBody ToolDto.Request.Update toolDto){
-        final Tool tool = dtoMapper.toTool(toolDto);
-        Consumer<Tool> updateAllAttributesSentFromFrontEnd = toolToUpdate -> {
-            toolToUpdate.setToolNumber(tool.getToolNumber());
-            toolToUpdate.setNickName(tool.getNickName());
-            toolToUpdate.setNumberOfReferenceCycles(tool.getNumberOfReferenceCycles());
-            toolToUpdate.setCalculateReferenceCurve(tool.getCalculateReferenceCurve());
-            toolToUpdate.setTolerance(tool.getTolerance());
-            toolToUpdate.setStopReaction(tool.getStopReaction());
-            toolToUpdate.setAutomaticMonitoring(tool.getAutomaticMonitoring());
-        };
-        return dtoMapper.toToolDtoOverview(toolService.update(plcId,toolId,updateAllAttributesSentFromFrontEnd));
+        return toolService.update(plcId,toolId,toolDto);
     }
 
     @DeleteMapping(path = "/{plcId}/tools/{toolId}")

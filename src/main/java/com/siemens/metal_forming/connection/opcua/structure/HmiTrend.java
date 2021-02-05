@@ -1,4 +1,4 @@
-package com.siemens.metal_forming.opcua.structure;
+package com.siemens.metal_forming.connection.opcua.structure;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -19,7 +19,7 @@ public class HmiTrend implements UaStructure {
     List<Float> torque;
     List<Float> speed;
 
-    HmiTrend(Float[] torque, Float[] speed){
+    public HmiTrend(Float[] torque, Float[] speed){
         this.torque = List.of(torque);
         this.speed = List.of(speed);
     }

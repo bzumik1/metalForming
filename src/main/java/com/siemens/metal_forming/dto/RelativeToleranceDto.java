@@ -1,12 +1,13 @@
 package com.siemens.metal_forming.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
-@Value @Builder(toBuilder = true)
+@Value @Builder(toBuilder = true) @AllArgsConstructor
 public class RelativeToleranceDto implements ToleranceDto{
     @Min(value = 0, message = "Torque tolerance in percentage must be greater or equal to 0")
     @Max(value = 100, message = "Torque tolerance in percentage must be smaller or equal to 100")
