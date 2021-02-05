@@ -24,10 +24,12 @@ public interface DtoMapper {
     LogDto.Response.Overview toLogDtoOverview(Log log);
 
 
+
     @Mapping(target = "name", expression = "java(toolInfo.getNickName() != null  ? toolInfo.getNickName() : toolInfo.getNameFromPlc())")
     ToolInfoDto toToolInfoDto(ToolInfo toolInfo);
 
     //@Mapping(target = "tools", ignore = true)
+    @Mapping(target = "tools", ignore = true)
     @Mapping(target = "motorCurve", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "currentTool",ignore = true)

@@ -1,10 +1,12 @@
 package com.siemens.metal_forming.entity.log;
 
+import com.siemens.metal_forming.entity.Tolerance;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 @Getter @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -35,4 +37,9 @@ public final class ToolInfo {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, updatable = false)
     StopReactionType stopReaction;
+
+    @Valid
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "tolerance_id")
+    Tolerance tolerance;
 }

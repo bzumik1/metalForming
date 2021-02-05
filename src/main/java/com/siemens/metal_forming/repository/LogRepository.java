@@ -18,7 +18,7 @@ public interface LogRepository extends JpaRepository<Log,Long> {
 
     void deleteAllByIdIn(Iterable<Long> ids);
 
-    @EntityGraph(attributePaths = {"measuredCurve.points", "motorCurve.points", "referenceCurve.points", "collisionPoints", "plcInformation", "toolInformation"})
+    @EntityGraph(attributePaths = {"measuredCurve.points", "motorCurve.points", "referenceCurve.points", "collisionPoints", "plcInformation", "toolInformation", "toolInformation.tolerance"})
     Optional<Log> findById(Long id);
 
     @Query("select l.id from Log l where l.id in :ids")

@@ -1,9 +1,9 @@
 package com.siemens.metal_forming.entity.log;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
+import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
+import com.siemens.metal_forming.dto.RelativeToleranceDto;
+import com.siemens.metal_forming.dto.ToleranceDto;
+import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
@@ -35,6 +35,7 @@ public interface LogCreator {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "toolId", source = "id")
+    @Mapping(target = "tolerance", source = "tolerance", qualifiedByName = "toleranceWithoutId")
     ToolInfo toToolInfo(Tool tool);
 
     @Named("deepCurveWithoutId")
@@ -46,6 +47,18 @@ public interface LogCreator {
 
     @Mapping(target = "id", ignore = true)
     CollisionPoint toCollisionPoint(CollisionPoint collisionPoint);
+
+    @Mapping(target = "id", ignore = true)
+    AbsoluteTolerance toAbsoluteTolerance(AbsoluteTolerance absoluteTolerance);
+    @Mapping(target = "id", ignore = true)
+    RelativeTolerance toRelativeTolerance(RelativeTolerance relativeTolerance);
+
+    @Named("toleranceWithoutId")
+    default Tolerance toTolerance(Tolerance tolerance){
+        if(tolerance instanceof AbsoluteTolerance) return toAbsoluteTolerance((AbsoluteTolerance) tolerance);
+        if(tolerance instanceof RelativeTolerance) return toRelativeTolerance((RelativeTolerance) tolerance);
+        else return null;
+    }
 }
 
 

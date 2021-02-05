@@ -98,6 +98,7 @@ class DtoMapperSpec {
                             .toolNumber(1)
                             .toolId(1L)
                             .stopReaction(StopReactionType.IMMEDIATE)
+                            .tolerance(new RelativeTolerance(10, 10))
                             .build())
                     .plcInformation(PlcInfo.builder()
                             .id(1L)
@@ -124,6 +125,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(logDto.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(logDto.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(logDto.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
+            softAssertions.assertThat(logDto.getToolInformation().getTolerance()).as("tolerance").isEqualTo(new RelativeToleranceDto(10,10));
 
             //PlcInformation
             softAssertions.assertThat(logDto.getPlcInformation().getName()).as("plcName").isEqualTo("plcName");
@@ -193,6 +195,7 @@ class DtoMapperSpec {
                             .toolNumber(1)
                             .toolId(1L)
                             .stopReaction(StopReactionType.IMMEDIATE)
+                            .tolerance(new RelativeTolerance(10,10))
                             .build())
                     .plcInformation(PlcInfo.builder()
                             .id(1L)
@@ -219,6 +222,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(logDto.getToolInformation().getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(logDto.getToolInformation().getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(logDto.getToolInformation().getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
+            softAssertions.assertThat(logDto.getToolInformation().getTolerance()).as("tolerance").isEqualTo(new RelativeToleranceDto(10,10));
 
             //PlcInformation
             softAssertions.assertThat(logDto.getPlcInformation().getName()).as("plcName").isEqualTo("plcName");

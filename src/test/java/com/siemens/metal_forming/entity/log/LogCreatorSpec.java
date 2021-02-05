@@ -165,6 +165,7 @@ class LogCreatorSpec {
                     .id(1L)
                     .toolNumber(1)
                     .stopReaction(StopReactionType.IMMEDIATE)
+                    .tolerance(new RelativeTolerance(10,10))
                     .build();
 
             ToolInfo toolInfo = logCreator.toToolInfo(originalTool);
@@ -175,6 +176,7 @@ class LogCreatorSpec {
             softAssertions.assertThat(toolInfo.getToolId()).as("toolId").isEqualTo(1L);
             softAssertions.assertThat(toolInfo.getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(toolInfo.getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
+            softAssertions.assertThat(toolInfo.getTolerance()).as("tolerance").isEqualTo(new RelativeTolerance(10,10));
             softAssertions.assertAll();
         }
     }
