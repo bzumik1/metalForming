@@ -39,7 +39,6 @@ public interface LogCreator {
     ToolInfo toToolInfo(Tool tool);
 
     @Named("deepCurveWithoutId")
-    @Mapping(target = "id", ignore = true)
     Curve toCurveWithoutId(Curve curve);
 
     @Mapping(target = "id", ignore = true)

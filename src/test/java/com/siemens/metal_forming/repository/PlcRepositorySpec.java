@@ -37,9 +37,6 @@ class PlcRepositorySpec {
     PlcRepository plcRepository;
 
     @Autowired
-    CurveRepository curveRepository;
-
-    @Autowired
     ToolRepository toolRepository;
 
     @Autowired
@@ -69,17 +66,7 @@ class PlcRepositorySpec {
 
         @Nested @DisplayName("DELETING PLC") @DataJpaTest
         class DeletingPlc{
-            @Test @DisplayName("when PLC is deleted also motorCurve is deleted")
-            void deletesAlsoCurve(){
-                Curve motorCurve = testCurveBuilder.randomPoints(100).build();
-                Plc testPlc = testPlcBuilder.motorCurve(motorCurve).build();
 
-                Plc plc = plcRepository.save(testPlc);
-                plcRepository.deleteById(plc.getId());
-                Optional<Curve> curveInDb = curveRepository.findById(plc.getMotorCurve().getId());
-
-                assertThat(curveInDb).isNotPresent();
-            }
 
             @Test @DisplayName("when PLC is deleted also hardwareInformation are deleted")
             void deletesAlsoHardwareInformation(){

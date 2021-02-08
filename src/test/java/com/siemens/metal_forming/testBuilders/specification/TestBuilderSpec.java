@@ -38,17 +38,6 @@ abstract class TestBuilderSpec {
             assertThat(missingAttributes).as("missing attributes are: "+ missingAttributes).isEmpty();
         }
 
-        @Test @DisplayName("has default value for id null")
-        void defaultIdValueIsNull() throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException {
-            Object builder = builderClass.getConstructor().newInstance();
-            Field id = builderClass.getDeclaredField("id");
-            id.setAccessible(true);
-            Long idDefaultValue = (Long)id.get(builder);
-            id.setAccessible(false);
-
-            assertThat(idDefaultValue).as("built class should have id null but it was: "+idDefaultValue).isNull();
-        }
-
         @Test @DisplayName("has all fields private")
         void hasAllFieldsPrivate(){
             String nonPrivateFields = Arrays.stream(builderClass.getDeclaredFields())

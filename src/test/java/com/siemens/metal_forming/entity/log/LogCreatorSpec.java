@@ -44,7 +44,7 @@ class LogCreatorSpec {
         @Test @DisplayName("id of log should be null")
         void idOfLogShouldBeNull(){
             Plc plcForLog = testPlcBuilder.id(1L).build();
-            Curve measuredCurve = testCurveBuilder.id(1L).build();
+            Curve measuredCurve = testCurveBuilder.randomPoints(1).build();
             Set<CollisionPoint> collisionPoints = Stream
                     .generate(() -> CollisionPoint.builder().id(1L).speed((float)Math.random()).torque((float)Math.random()).build())
                     .limit(2)
@@ -184,14 +184,6 @@ class LogCreatorSpec {
     @Nested @DisplayName("COPY CURVE WITHOUT ID")
     class CopyCurveWithoutId{
 
-        @Test @DisplayName("doesn't copy id of the curve")
-        void doesNotCopyIdOfPlc(){
-            Curve originalCurve = testCurveBuilder.id(1L).build();
-
-            Curve copyOfOriginalCurve = logCreator.toCurveWithoutId(originalCurve);
-
-            assertThat(copyOfOriginalCurve.getId()).isNull();
-        }
 
         @Test @DisplayName("copies all required attributes")
         void copiesAllRequiredAttributesFromPlc(){

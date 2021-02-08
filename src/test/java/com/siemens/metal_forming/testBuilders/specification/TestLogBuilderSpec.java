@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,29 +79,29 @@ public class TestLogBuilderSpec extends TestBuilderSpec{
 
         @Test @DisplayName("sets measuredCurve of new log")
         void setsMeasuredCurveOfNewLog(){
-            Curve measuredCurve = Curve.builder().id(1L).build();
+            Curve measuredCurve = Curve.builder().points(List.of(new CurvePoint(1f,1f))).build();
 
             Log testLog = testLogBuilder.measuredCurve(measuredCurve).build();
 
-            assertThat(testLog.getMeasuredCurve().getId()).isEqualTo(1L);
+            assertThat(testLog.getMeasuredCurve().getPoints()).containsExactly(new CurvePoint(1f,1f));
         }
 
         @Test @DisplayName("sets motorCurve of new log")
         void setsMotorCurveOfNewLog(){
-            Curve motorCurve = Curve.builder().id(1L).build();
+            Curve motorCurve = Curve.builder().points(List.of(new CurvePoint(1f,1f))).build();
 
             Log testLog = testLogBuilder.motorCurve(motorCurve).build();
 
-            assertThat(testLog.getMotorCurve().getId()).isEqualTo(1L);
+            assertThat(testLog.getMotorCurve().getPoints()).containsExactly(new CurvePoint(1f,1f));
         }
 
         @Test @DisplayName("sets referenceCurve of new log")
         void setsReferenceCurveOfNewLog(){
-            Curve referenceCurve = Curve.builder().id(1L).build();
+            Curve referenceCurve = Curve.builder().points(List.of(new CurvePoint(1f,1f))).build();
 
             Log testLog = testLogBuilder.referenceCurve(referenceCurve).build();
 
-            assertThat(testLog.getReferenceCurve().getId()).isEqualTo(1L);
+            assertThat(testLog.getReferenceCurve().getPoints()).containsExactly(new CurvePoint(1f,1f));
         }
 
         @Test @DisplayName("sets collisionPoints of new log")

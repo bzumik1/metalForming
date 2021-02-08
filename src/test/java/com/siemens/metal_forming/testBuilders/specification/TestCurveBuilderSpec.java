@@ -55,13 +55,6 @@ public class TestCurveBuilderSpec extends TestBuilderSpec {
 
     @Nested @DisplayName("DIRECT SETTING METHODS")
     class DirectSettingMethods{
-        @Test @DisplayName("sets id of new curve")
-        void setsIdOfNewCurve(){
-            Curve testCurve = testCurveBuilder.id(99L).build();
-
-            assertThat(testCurve.getId()).isEqualTo(99L);
-        }
-
         @Test @DisplayName("sets points of new curve")
         void setsPointsOfNewCurve(){
             List<CurvePoint> testPoints = Stream.generate(() -> new CurvePoint(1.1F,1.1F))

@@ -28,9 +28,6 @@ class LogRepositorySpec {
     CollisionPointsRepository collisionPointsRepository;
 
     @Autowired
-    CurveRepository curveRepository;
-
-    @Autowired
     PlcInfoRepository plcInfoRepository;
 
     @Autowired
@@ -55,36 +52,6 @@ class LogRepositorySpec {
             logRepository.deleteById(id);
 
             assertThat(collisionPointsRepository.findAll()).isEmpty();
-        }
-
-        @Test @DisplayName("deletes motorCurve when log is deleted")
-        void deletesMotorCurveWhenLogIsDeleted(){
-            Log testLog = testLogBuilder.randomMotorCurve(100).build();
-
-            Long id = logRepository.save(testLog).getId();
-            logRepository.deleteById(id);
-
-            assertThat(curveRepository.findAll()).isEmpty();
-        }
-
-        @Test @DisplayName("deletes referenceCurve when log is deleted")
-        void deletesReferenceCurveWhenLogIsDeleted(){
-            Log testLog = testLogBuilder.randomReferenceCurve(100).build();
-
-            Long id = logRepository.save(testLog).getId();
-            logRepository.deleteById(id);
-
-            assertThat(curveRepository.findAll()).isEmpty();
-        }
-
-        @Test @DisplayName("deletes measuredCurve when log is deleted")
-        void deletesMeasuredCurveWhenLogIsDeleted(){
-            Log testLog = testLogBuilder.randomMeasuredCurve(100).build();
-
-            Long id = logRepository.save(testLog).getId();
-            logRepository.deleteById(id);
-
-            assertThat(curveRepository.findAll()).isEmpty();
         }
 
         @Test @DisplayName("deletes toolInformation when log is deleted")

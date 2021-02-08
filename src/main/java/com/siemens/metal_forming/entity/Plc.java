@@ -2,6 +2,7 @@ package com.siemens.metal_forming.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.annotations.ValidIpAddress;
+import com.siemens.metal_forming.entity.converter.CurveConverter;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.*;
 import lombok.*;
@@ -44,10 +45,10 @@ public class Plc {
     @JoinColumn(name = "connection_id", nullable = false)
     private final Connection connection = new Connection();
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "curve_id")
-    private
-    Curve motorCurve;
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "motor_curve", length = 10000)
+    @Convert(converter = CurveConverter.class)
+    private Curve motorCurve;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "current_tool")

@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.entity.converter.CurveConverter;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
@@ -56,8 +57,9 @@ public class Tool{
     @Column(name = "tool_status", nullable = false) @Enumerated(EnumType.STRING)
     ToolStatusType toolStatus;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "reference_curve_id")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "reference_curve", length = 10000)
+    @Convert(converter = CurveConverter.class)
     Curve referenceCurve;
 
     public void setToolNumber(Integer toolNumber){

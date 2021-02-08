@@ -13,15 +13,10 @@ import java.util.stream.Stream;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TestCurveBuilder{
-    Long id;
     List<CurvePoint> points = new ArrayList<>();
 
 
 
-    public TestCurveBuilder id(Long id){
-        this.id = id;
-        return this;
-    }
 
     public TestCurveBuilder points(List<CurvePoint> points){
         this.points = points;
@@ -44,7 +39,7 @@ public class TestCurveBuilder{
     }
 
     public Curve build(){
-        return new Curve(id,points);
+        return new Curve(points);
     }
 
     private List<CurvePoint> generateRandomPoints(int numberOfPoints){

@@ -21,9 +21,6 @@ class ToolRepositorySpec {
     ToolRepository toolRepository;
 
     @Autowired
-    CurveRepository curveRepository;
-
-    @Autowired
     AbsoluteToleranceRepository absoluteToleranceRepository;
 
     @Autowired
