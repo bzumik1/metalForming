@@ -1,14 +1,9 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcConnector;
-import com.siemens.metal_forming.connection.PlcData;
-import com.siemens.metal_forming.connection.opcua.PlcDataOpcua;
 import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.Tool;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
-import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.PlcUniqueConstrainException;
 
@@ -28,7 +23,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

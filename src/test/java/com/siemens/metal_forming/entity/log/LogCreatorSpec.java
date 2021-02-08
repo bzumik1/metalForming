@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.entity.log;
 
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
@@ -15,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,15 +39,15 @@ class LogCreatorSpec {
     }
 
     @Nested @DisplayName("LOG FROM PLC, MEASURED CURVE AND COLLISION POINTS")
-    class LogFromPlcMeasuredCurveAndCollisionPoints{
+    class LogFromPlcMeasuredCurveAndPointOfTorqueAndSpeeds{
 
 
         @Test @DisplayName("id of log should be null")
         void idOfLogShouldBeNull(){
             Plc plcForLog = testPlcBuilder.id(1L).build();
             Curve measuredCurve = testCurveBuilder.randomPoints(1).build();
-            Set<CollisionPoint> collisionPoints = Stream
-                    .generate(() -> CollisionPoint.builder().id(1L).speed((float)Math.random()).torque((float)Math.random()).build())
+            Set<PointOfTorqueAndSpeed> collisionPoints = Stream
+                    .generate(() ->  new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()))
                     .limit(2)
                     .collect(Collectors.toSet());
 
@@ -66,8 +67,8 @@ class LogCreatorSpec {
                             .build())
                     .build();
             Curve measuredCurve =testCurveBuilder.randomPoints(30).build();
-            Set<CollisionPoint> collisionPoints = Stream
-                    .generate(() -> CollisionPoint.builder().id(1L).speed((float)Math.random()).torque((float)Math.random()).build())
+            Set<PointOfTorqueAndSpeed> collisionPoints = Stream
+                    .generate(() -> new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()))
                     .limit(2)
                     .collect(Collectors.toSet());
 
@@ -177,58 +178,6 @@ class LogCreatorSpec {
             softAssertions.assertThat(toolInfo.getToolNumber()).as("toolNumber").isEqualTo(1);
             softAssertions.assertThat(toolInfo.getStopReaction()).as("stopReaction").isEqualTo(StopReactionType.IMMEDIATE);
             softAssertions.assertThat(toolInfo.getTolerance()).as("tolerance").isEqualTo(new RelativeTolerance(10,10));
-            softAssertions.assertAll();
-        }
-    }
-
-    @Nested @DisplayName("COPY CURVE WITHOUT ID")
-    class CopyCurveWithoutId{
-
-
-        @Test @DisplayName("copies all required attributes")
-        void copiesAllRequiredAttributesFromPlc(){
-            Curve originalCurve = testCurveBuilder
-                    .points(
-                            CurvePoint.builder().speed(1.1F).torque(1.1F).build(),
-                            CurvePoint.builder().speed(2.2F).torque(2.2F).build())
-                    .build();
-
-            Curve curveCopy = logCreator.toCurveWithoutId(originalCurve);
-
-            assertThat(curveCopy.getPoints()).containsAll(originalCurve.getPoints());
-        }
-
-        @Test @DisplayName("deep copy curve - creates new curve with same points")
-        void deepCopyCurve(){
-            Curve originalCurve = testCurveBuilder
-                    .points(
-                            CurvePoint.builder().speed(1.1F).torque(1.1F).build(),
-                            CurvePoint.builder().speed(2.2F).torque(2.2F).build())
-                    .build();
-            Curve curveCopy = logCreator.toCurveWithoutId(originalCurve);
-
-            SoftAssertions softAssertions = new SoftAssertions();
-            softAssertions.assertThat(curveCopy)
-                    .as("curve is not same object")
-                    .isNotSameAs(originalCurve);
-            IntStream.range(0, curveCopy.getPoints().size())
-                    .forEach(i -> softAssertions.assertThat(curveCopy.getPoints().get(i))
-                            .as("points should not be same objects")
-                            .isNotSameAs(originalCurve.getPoints().get(i)));
-            softAssertions.assertAll();
-        }
-
-        @Test @DisplayName("doesn't copy id of points")
-        void doesNotCopyIdOfPoints(){
-            Curve originalCurve = testCurveBuilder
-                    .points(
-                            CurvePoint.builder().id(1L).speed(1.1F).torque(1.1F).build(),
-                            CurvePoint.builder().id(2L).speed(2.2F).torque(2.2F).build())
-                    .build();
-            Curve curveCopy = logCreator.toCurveWithoutId(originalCurve);
-
-            SoftAssertions softAssertions = new SoftAssertions();
-            curveCopy.getPoints().forEach(curvePoint -> softAssertions.assertThat(curvePoint.getId()).isNull());
             softAssertions.assertAll();
         }
     }

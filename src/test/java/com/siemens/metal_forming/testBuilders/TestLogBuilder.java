@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.testBuilders;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
 import com.siemens.metal_forming.entity.log.ToolInfo;
@@ -20,9 +20,9 @@ public class TestLogBuilder {
     Long id;
     Timestamp createdOn = new Timestamp(System.currentTimeMillis());
     Curve measuredCurve = new TestCurveBuilder().randomPoints(100).build();
-    Curve motorCurve = new TestCurveBuilder().randomPoints(100).build();;
-    Curve referenceCurve = new TestCurveBuilder().randomPoints(100).build();;
-    Set<CollisionPoint> collisionPoints = Set.of(new CollisionPoint(1.1F,1.1F),new CollisionPoint(2.2F,2.2F));
+    Curve motorCurve = new TestCurveBuilder().randomPoints(100).build();
+    Curve referenceCurve = new TestCurveBuilder().randomPoints(100).build();
+    Set<PointOfTorqueAndSpeed> collisionPoints = Set.of(new PointOfTorqueAndSpeed(1.1F,1.1F),new PointOfTorqueAndSpeed(2.2F,2.2F));
     PlcInfo plcInformation = PlcInfo.builder().name("plcName").firmwareNumber("FW 001").serialNumber("SN 001").ipAddress("192.168.0.1").build();
     ToolInfo toolInformation = ToolInfo.builder().nameFromPlc("toolName").toolId(1L).toolNumber(1).stopReaction(StopReactionType.IMMEDIATE).build();
     String comment;
@@ -67,14 +67,14 @@ public class TestLogBuilder {
         return this;
     }
 
-    public TestLogBuilder collisionPoints(Set<CollisionPoint> collisionPoints){
+    public TestLogBuilder collisionPoints(Set<PointOfTorqueAndSpeed> collisionPoints){
         this.collisionPoints = collisionPoints;
         return this;
     }
 
-    public TestLogBuilder randomCollisionPoints(int numberOfPoints){
+    public TestLogBuilder randomPointOfTorqueAndSpeeds(int numberOfPoints){
         this.collisionPoints = Stream
-                .generate(() -> new CollisionPoint((float)Math.random(),(float)Math.random()))
+                .generate(() -> new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()))
                 .limit(numberOfPoints)
                 .collect(Collectors.toSet());
         return this;

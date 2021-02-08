@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.testBuilders;
 
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;

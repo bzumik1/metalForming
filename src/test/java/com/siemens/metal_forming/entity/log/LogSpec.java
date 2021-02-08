@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.entity.log;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.abstractSpec.ImmutableEntitySpec;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.testBuilders.TestLogBuilder;
@@ -47,15 +47,15 @@ class LogSpec extends ImmutableEntitySpec {
             Log log1 = Log.builder()
                     .id(1L)
                     .measuredCurve(Curve.builder()
-                            .points(List.of(new CurvePoint(1.1f, 1.1f)))
+                            .points(List.of(new PointOfTorqueAndSpeed(1.1f, 1.1f)))
                             .build())
                     .motorCurve(Curve.builder()
-                            .points(List.of(new CurvePoint(2.2f, 2.2f)))
+                            .points(List.of(new PointOfTorqueAndSpeed(2.2f, 2.2f)))
                             .build())
                     .referenceCurve(Curve.builder()
-                            .points(List.of(new CurvePoint(3.3f, 3.3f)))
+                            .points(List.of(new PointOfTorqueAndSpeed(3.3f, 3.3f)))
                             .build())
-                    .collisionPoints(Set.of(new CollisionPoint(1.1f, 1.1f)))
+                    .collisionPoints(Set.of(new PointOfTorqueAndSpeed(1.1f, 1.1f)))
                     .plcInformation(PlcInfo.builder()
                             .name("plcName")
                             .ipAddress("192.168.0.1")
@@ -74,15 +74,15 @@ class LogSpec extends ImmutableEntitySpec {
             Log log2 = Log.builder()
                     .id(2L)
                     .measuredCurve(Curve.builder()
-                            .points(List.of(new CurvePoint(1.1f, 1.1f)))
+                            .points(List.of(new PointOfTorqueAndSpeed(1.1f, 1.1f)))
                             .build())
                     .motorCurve(Curve.builder()
-                            .points(List.of(new CurvePoint(2.2f, 2.2f)))
+                            .points(List.of(new PointOfTorqueAndSpeed(2.2f, 2.2f)))
                             .build())
                     .referenceCurve(Curve.builder()
-                            .points(List.of(new CurvePoint(3.3f, 3.3f)))
+                            .points(List.of(new PointOfTorqueAndSpeed(3.3f, 3.3f)))
                             .build())
-                    .collisionPoints(Set.of(new CollisionPoint(1.1f, 1.1f)))
+                    .collisionPoints(Set.of(new PointOfTorqueAndSpeed(1.1f, 1.1f)))
                     .plcInformation(PlcInfo.builder()
                             .name("plcName")
                             .ipAddress("192.168.0.1")

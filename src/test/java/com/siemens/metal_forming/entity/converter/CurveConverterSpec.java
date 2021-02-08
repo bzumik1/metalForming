@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.entity.converter;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,8 +23,8 @@ public class CurveConverterSpec {
     void convertsCorrectlyToDatabase(){
         final Curve curve = Curve.builder()
                 .points(List.of(
-                        new CurvePoint(1f,1f),
-                        new CurvePoint(2f,2f)))
+                        new PointOfTorqueAndSpeed(1f,1f),
+                        new PointOfTorqueAndSpeed(2f,2f)))
                 .build();
 
         assertThat(curveConverter.convertToDatabaseColumn(curve)).isEqualTo("1.0,1.0;2.0,2.0");
@@ -35,8 +35,8 @@ public class CurveConverterSpec {
         final String dataInDatabase = "1.0,1.0;2.0,2.0";
         final Curve curve = Curve.builder()
                 .points(List.of(
-                        new CurvePoint(1f,1f),
-                        new CurvePoint(2f,2f)))
+                        new PointOfTorqueAndSpeed(1f,1f),
+                        new PointOfTorqueAndSpeed(2f,2f)))
                 .build();
 
         assertThat(curveConverter.convertToEntityAttribute(dataInDatabase)).isEqualTo(curve);

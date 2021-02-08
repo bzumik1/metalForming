@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 
 @Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)

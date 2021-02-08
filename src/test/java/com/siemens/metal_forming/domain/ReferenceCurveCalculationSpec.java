@@ -1,20 +1,12 @@
 package com.siemens.metal_forming.domain;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
 import com.siemens.metal_forming.exception.exceptions.IncompatibleCurvesException;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("<= REFERENCE CURVE CALCULATION SPECIFICATION =>")
@@ -24,14 +16,14 @@ public class ReferenceCurveCalculationSpec {
     void throwsExceptionWhenCurveHasNotSameLength(){
         ReferenceCurveCalculation referenceCurveCalculation = new ReferenceCurveCalculation(2);
         Curve curve1 = Curve.builder()
-                .points(List.of(new CurvePoint(1f,1f),
-                                new CurvePoint(2f,2f)))
+                .points(List.of(new PointOfTorqueAndSpeed(1f,1f),
+                                new PointOfTorqueAndSpeed(2f,2f)))
                 .build();
 
         Curve curve2 = Curve.builder()
-                .points(List.of(new CurvePoint(1f,1f),
-                                new CurvePoint(2f,2f),
-                                new CurvePoint(3f,3f)))
+                .points(List.of(new PointOfTorqueAndSpeed(1f,1f),
+                                new PointOfTorqueAndSpeed(2f,2f),
+                                new PointOfTorqueAndSpeed(3f,3f)))
                 .build();
 
         referenceCurveCalculation.calculate(curve1);
@@ -46,23 +38,23 @@ public class ReferenceCurveCalculationSpec {
 
         Curve curve1 = Curve.builder()
                 .points(List.of(
-                        new CurvePoint(20f,40f),
-                        new CurvePoint(30f,60f),
-                        new CurvePoint(40f,80f)))
+                        new PointOfTorqueAndSpeed(20f,40f),
+                        new PointOfTorqueAndSpeed(30f,60f),
+                        new PointOfTorqueAndSpeed(40f,80f)))
                 .build();
 
         Curve curve2 = Curve.builder()
                 .points(List.of(
-                        new CurvePoint(25f,42f),
-                        new CurvePoint(38f,65f),
-                        new CurvePoint(43f,80f)))
+                        new PointOfTorqueAndSpeed(25f,42f),
+                        new PointOfTorqueAndSpeed(38f,65f),
+                        new PointOfTorqueAndSpeed(43f,80f)))
                 .build();
 
         Curve curve3 = Curve.builder()
                 .points(List.of(
-                        new CurvePoint(15f,38f),
-                        new CurvePoint(32f,70f),
-                        new CurvePoint(43f,80f)))
+                        new PointOfTorqueAndSpeed(15f,38f),
+                        new PointOfTorqueAndSpeed(32f,70f),
+                        new PointOfTorqueAndSpeed(43f,80f)))
                 .build();
 
         SoftAssertions softAssertions = new SoftAssertions();
@@ -71,9 +63,9 @@ public class ReferenceCurveCalculationSpec {
         softAssertions.assertThat(referenceCurveCalculation.calculate(curve2)).isEmpty();
         softAssertions.assertThat(referenceCurveCalculation.calculate(curve3).get().getPoints())
                 .containsExactly(
-                        new CurvePoint(20f, 40f),
-                        new CurvePoint(100f/3f,65f),
-                        new CurvePoint(42f, 80f));
+                        new PointOfTorqueAndSpeed(20f, 40f),
+                        new PointOfTorqueAndSpeed(100f/3f,65f),
+                        new PointOfTorqueAndSpeed(42f, 80f));
         softAssertions.assertAll();
     }
 }

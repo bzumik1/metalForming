@@ -1,9 +1,7 @@
 package com.siemens.metal_forming.controller;
 
-import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.dto.ToolDto.Request.Create;
-import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.service.ToolService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Tag(name = "Tools")
 @RestController

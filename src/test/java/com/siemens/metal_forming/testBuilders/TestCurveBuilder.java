@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.testBuilders;
 
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
@@ -13,23 +13,23 @@ import java.util.stream.Stream;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TestCurveBuilder{
-    List<CurvePoint> points = new ArrayList<>();
+    List<PointOfTorqueAndSpeed> points = new ArrayList<>();
 
 
 
 
-    public TestCurveBuilder points(List<CurvePoint> points){
+    public TestCurveBuilder points(List<PointOfTorqueAndSpeed> points){
         this.points = points;
         return this;
     }
 
-    public TestCurveBuilder points(CurvePoint... points){
+    public TestCurveBuilder points(PointOfTorqueAndSpeed... points){
         this.points = Arrays.asList(points);
         return this;
     }
 
     public TestCurveBuilder addPoint(float torque, float speed){
-        this.points.add(new CurvePoint(torque,speed));
+        this.points.add(new PointOfTorqueAndSpeed(torque,speed));
         return this;
     }
 
@@ -42,8 +42,8 @@ public class TestCurveBuilder{
         return new Curve(points);
     }
 
-    private List<CurvePoint> generateRandomPoints(int numberOfPoints){
-        return Stream.generate(() -> new CurvePoint((float)Math.random(),(float)Math.random()))
+    private List<PointOfTorqueAndSpeed> generateRandomPoints(int numberOfPoints){
+        return Stream.generate(() -> new PointOfTorqueAndSpeed((float)Math.random(),(float)Math.random()))
                 .limit(numberOfPoints)
                 .collect(Collectors.toList());
     }

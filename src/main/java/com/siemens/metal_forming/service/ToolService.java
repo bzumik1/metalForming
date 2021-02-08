@@ -1,11 +1,8 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.dto.ToolDto;
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Tool;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public interface ToolService {
     List<ToolDto.Response.Overview> findAll(Long plcId);

@@ -1,8 +1,9 @@
 package com.siemens.metal_forming.service;
 
 
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.*;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.exception.exceptions.IncompatibleCurvesException;
 import com.siemens.metal_forming.service.impl.CurveValidationServiceImpl;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
@@ -34,7 +35,7 @@ public class CurveValidationServiceSpec {
     }
 
     @Test @DisplayName("returns set of collision points")
-    void returnsSetOfCollisionPoints(){
+    void returnsSetOfPointOfTorqueAndSpeeds(){
         Curve referenceCurve = new TestCurveBuilder()
                 .addPoint(100,100)
                 .addPoint(100,100)
@@ -48,7 +49,7 @@ public class CurveValidationServiceSpec {
         Tolerance tolerance = new AbsoluteTolerance(10,10);
 
         assertThat(curveValidationService.validate(tolerance,referenceCurve,measuredCurve))
-                .containsExactly(new CollisionPoint(102f,111f), new CollisionPoint(89f,103f));
+                .containsExactly(new PointOfTorqueAndSpeed(102f,111f), new PointOfTorqueAndSpeed(89f,103f));
     }
 
 }

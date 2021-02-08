@@ -2,18 +2,12 @@ package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.Tool;
-import com.siemens.metal_forming.exception.exceptions.CalculationNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
-import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
-import com.siemens.metal_forming.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

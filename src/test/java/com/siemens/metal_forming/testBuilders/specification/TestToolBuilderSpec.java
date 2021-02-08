@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.testBuilders.specification;
 
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
@@ -127,7 +129,7 @@ public class TestToolBuilderSpec extends TestBuilderSpec{
         @Test @DisplayName("sets referenceCurve of new tool")
         void setsReferenceCurveOfNewTool(){
             Curve testCurve = Curve.builder()
-                    .points(Stream.generate(() -> new CurvePoint(1.1F,1.1F)).limit(3).collect(Collectors.toList()))
+                    .points(Stream.generate(() -> new PointOfTorqueAndSpeed(1.1F,1.1F)).limit(3).collect(Collectors.toList()))
                     .build();
             Tool testTool = testToolBuilder.referenceCurve(testCurve).build();
 

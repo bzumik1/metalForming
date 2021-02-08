@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +26,11 @@ public class RelativeToleranceSpec extends EntitySpec {
 
     @Nested @DisplayName("GET ABSOLUTE TOLERANCE")
     class GetAbsoluteTolerance{
-        @Test @DisplayName("returns correct absolute tolernace")
+        @Test @DisplayName("returns correct absolute tolerance")
         void returnsCorrectAbsoluteTolerance(){
             RelativeTolerance relativeTolerance = new RelativeTolerance(50, 50);
 
-            AbsoluteTolerance absoluteTolerance = relativeTolerance.getAbsoluteTolerance(new CurvePoint(100F,200F));
+            AbsoluteTolerance absoluteTolerance = relativeTolerance.getAbsoluteTolerance(new PointOfTorqueAndSpeed(100F,200F));
 
             assertThat(absoluteTolerance).isEqualTo(new AbsoluteTolerance(50F,100F));
         }
@@ -44,7 +45,7 @@ public class RelativeToleranceSpec extends EntitySpec {
         void initialize(){
             validator = Validation.buildDefaultValidatorFactory().getValidator();
         }
-        @Test @DisplayName("is not valid when torqueTolerance or speedTolerance is smaller than 0 or greather than 100")
+        @Test @DisplayName("is not valid when torqueTolerance or speedTolerance is smaller than 0 or greater than 100")
         void isInvalidWhenToleranceIsOutOfRange(){
             RelativeTolerance relativeTolerance = new RelativeTolerance(-10, 120);
 
@@ -78,8 +79,8 @@ public class RelativeToleranceSpec extends EntitySpec {
         @DisplayName("returns true if point is in tolerance")
         void returnsTrueIfPointIsInTolerance(float torque, float speed){
             Tolerance tolerance = new RelativeTolerance(10,5);
-            PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
-            PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
+            PointOfTorqueAndSpeed referencePoint = new PointOfTorqueAndSpeed(100f,100f);
+            PointOfTorqueAndSpeed pointToBeValidated = new PointOfTorqueAndSpeed(torque,speed);
 
             assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isTrue();
         }
@@ -95,8 +96,8 @@ public class RelativeToleranceSpec extends EntitySpec {
         @DisplayName("returns false if point is out of tolerance")
         void returnsFalseIfPointIsOutOfTolerance(float torque, float speed){
             Tolerance tolerance = new RelativeTolerance(10,5);
-            PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
-            PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
+            PointOfTorqueAndSpeed referencePoint = new PointOfTorqueAndSpeed(100f,100f);
+            PointOfTorqueAndSpeed pointToBeValidated = new PointOfTorqueAndSpeed(torque,speed);
 
             assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isFalse();
         }
@@ -116,8 +117,8 @@ public class RelativeToleranceSpec extends EntitySpec {
                                                          float speedTolerance,
                                                          boolean result){
             Tolerance tolerance = new RelativeTolerance(torqueTolerance, speedTolerance);
-            PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
-            PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
+            PointOfTorqueAndSpeed pointToBeValidated = new PointOfTorqueAndSpeed(torque,speed);
+            PointOfTorqueAndSpeed referencePoint = new PointOfTorqueAndSpeed(100f,100f);
 
             assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isEqualTo(result);
         }

@@ -1,10 +1,9 @@
 package com.siemens.metal_forming.connection;
 
 import com.siemens.metal_forming.connection.observer.*;
-import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;

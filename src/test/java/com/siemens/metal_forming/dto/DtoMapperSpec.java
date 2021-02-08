@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.dto;
 
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.dto.log.PointOfTorqueAndSpeedDto;
 import com.siemens.metal_forming.entity.*;
@@ -17,8 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.sql.Timestamp;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = DtoMapperImpl.class)
 @DisplayName("<= DTO MAPPER SPECIFICATION =>")
@@ -107,7 +106,7 @@ class DtoMapperSpec {
                             .serialNumber("SN 001")
                             .firmwareNumber("FW 001")
                             .build())
-                    .randomCollisionPoints(2)
+                    .randomPointOfTorqueAndSpeeds(2)
                     .randomMeasuredCurve(50)
                     .randomMotorCurve(50)
                     .randomReferenceCurve(50)
@@ -133,7 +132,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(logDto.getPlcInformation().getSerialNumber()).as("serialNumber").isEqualTo("SN 001");
             softAssertions.assertThat(logDto.getPlcInformation().getFirmwareNumber()).as("firmwareNumber").isEqualTo("FW 001");
 
-            //CollisionPoints
+            //PointOfTorqueAndSpeeds
             boolean isSame;
             for(PointOfTorqueAndSpeedDto pointDto:logDto.getCollisionPoints()){
                 isSame = false;
@@ -204,7 +203,7 @@ class DtoMapperSpec {
                             .serialNumber("SN 001")
                             .firmwareNumber("FW 001")
                             .build())
-                    .randomCollisionPoints(2)
+                    .randomPointOfTorqueAndSpeeds(2)
                     .randomMeasuredCurve(50)
                     .randomMotorCurve(50)
                     .randomReferenceCurve(50)

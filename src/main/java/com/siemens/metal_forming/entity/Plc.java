@@ -2,6 +2,7 @@ package com.siemens.metal_forming.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.annotations.ValidIpAddress;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.converter.CurveConverter;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.*;

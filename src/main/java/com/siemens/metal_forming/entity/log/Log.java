@@ -1,11 +1,12 @@
 package com.siemens.metal_forming.entity.log;
 
-import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
+import com.siemens.metal_forming.entity.converter.CollisionPointsConverter;
 import com.siemens.metal_forming.entity.converter.CurveConverter;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -44,9 +45,11 @@ public final class Log {
     @Convert(converter = CurveConverter.class)
     Curve referenceCurve;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "log_id",updatable = false, nullable = false)
-    Set<CollisionPoint> collisionPoints;
+    @NotNull
+    @Column(name = "collision_points", length = 10000)
+    @Basic(fetch = FetchType.LAZY)
+    @Convert(converter = CollisionPointsConverter.class)
+    Set<PointOfTorqueAndSpeed> collisionPoints;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
@@ -59,5 +62,6 @@ public final class Log {
     ToolInfo toolInformation;
 
     @NonFinal
+    @Column(name = "comment", length = 1000)
     String comment;
 }

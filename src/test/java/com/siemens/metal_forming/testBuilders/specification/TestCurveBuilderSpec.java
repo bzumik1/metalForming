@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.testBuilders.specification;
 
-import com.siemens.metal_forming.entity.*;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import org.junit.jupiter.api.*;
 
@@ -38,8 +39,8 @@ public class TestCurveBuilderSpec extends TestBuilderSpec {
         void addsGivenPoints(){
             Curve testCurve = testCurveBuilder
                     .points(
-                            CurvePoint.builder().speed(1.1F).torque(1.1F).build(),
-                            CurvePoint.builder().speed(2.2F).torque(2.2F).build())
+                            new PointOfTorqueAndSpeed(1.1F,1.1F),
+                            new PointOfTorqueAndSpeed(2.2F,2.2F))
                     .build();
 
             assertThat(testCurve.getPoints().size()).as("all points were added").isEqualTo(2);
@@ -49,7 +50,7 @@ public class TestCurveBuilderSpec extends TestBuilderSpec {
         void addsPointToCurve(){
             Curve testCurve = testCurveBuilder.addPoint(10f,10f).addPoint(5f,5f).build();
 
-            assertThat(testCurve.getPoints()).containsExactly(new CurvePoint(10f,10f), new CurvePoint(5f,5f));
+            assertThat(testCurve.getPoints()).containsExactly(new PointOfTorqueAndSpeed(10f,10f), new PointOfTorqueAndSpeed(5f,5f));
         }
     }
 
@@ -57,7 +58,7 @@ public class TestCurveBuilderSpec extends TestBuilderSpec {
     class DirectSettingMethods{
         @Test @DisplayName("sets points of new curve")
         void setsPointsOfNewCurve(){
-            List<CurvePoint> testPoints = Stream.generate(() -> new CurvePoint(1.1F,1.1F))
+            List<PointOfTorqueAndSpeed> testPoints = Stream.generate(() -> new PointOfTorqueAndSpeed(1.1F,1.1F))
                     .limit(5)
                     .collect(Collectors.toList());
             Curve testCurve = testCurveBuilder.points(testPoints).build();

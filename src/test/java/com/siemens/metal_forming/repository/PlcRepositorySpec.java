@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.repository;
 
 import com.siemens.metal_forming.entity.*;
-import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -43,18 +42,12 @@ class PlcRepositorySpec {
     HardwareInformationRepository hardwareInformationRepository;
 
     @Autowired
-    CurvePointRepository curvePointRepository;
-
-    @Autowired
     ConnectionRepository connectionRepository;
-
-    TestCurveBuilder testCurveBuilder;
 
     TestPlcBuilder testPlcBuilder;
 
     @BeforeEach
     void initialize(){
-        testCurveBuilder = new TestCurveBuilder();
         testPlcBuilder = new TestPlcBuilder();
     }
 
@@ -221,7 +214,7 @@ class PlcRepositorySpec {
 
                 SoftAssertions softAssertions = new SoftAssertions();
                 softAssertions.assertThat(plcRepository.existsByIpAddressIgnoringId("192.168.0.1", plcsInDb2.getId()))
-                        .as("there is different PLC with given IP addresss -> true")
+                        .as("there is different PLC with given IP address -> true")
                         .isTrue();
                 softAssertions.assertThat(plcRepository.existsByIpAddressIgnoringId("192.168.0.2", plcsInDb2.getId()))
                         .as("there is only this PLC with given IP address (not different) -> false")

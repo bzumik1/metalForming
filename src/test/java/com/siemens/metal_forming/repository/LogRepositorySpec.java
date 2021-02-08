@@ -25,9 +25,6 @@ class LogRepositorySpec {
     LogRepository logRepository;
 
     @Autowired
-    CollisionPointsRepository collisionPointsRepository;
-
-    @Autowired
     PlcInfoRepository plcInfoRepository;
 
     @Autowired
@@ -44,15 +41,6 @@ class LogRepositorySpec {
 
     @Nested @DisplayName("CASCADE") @DataJpaTest
     class Cascade{
-        @Test @DisplayName("deletes collision points when log is deleted")
-        void deletesCollisionPointsWhenLogIsDeleted(){
-            Log testLog = testLogBuilder.randomCollisionPoints(3).build();
-
-            Long id = logRepository.save(testLog).getId();
-            logRepository.deleteById(id);
-
-            assertThat(collisionPointsRepository.findAll()).isEmpty();
-        }
 
         @Test @DisplayName("deletes toolInformation when log is deleted")
         void deletesToolInformationWhenLogIsDeleted(){

@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.testBuilders.specification;
 
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
@@ -128,7 +130,7 @@ class TestPlcBuilderSpec extends TestBuilderSpec{
         @Test @DisplayName("sets motorCurve of new plc")
         void setsMotorCurveOfNewPlc(){
             Curve testCurve = Curve.builder()
-                    .points(Stream.generate(() -> new CurvePoint(1.1F,1.1F)).limit(10).collect(Collectors.toList()))
+                    .points(Stream.generate(() -> new PointOfTorqueAndSpeed(1.1F,1.1F)).limit(10).collect(Collectors.toList()))
                     .build();
             Plc testPlc = testPlcBuilder
                     .motorCurve(testCurve)

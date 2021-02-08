@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.testBuilders.specification;
 
-import com.siemens.metal_forming.entity.*;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.entity.log.PlcInfo;
 import com.siemens.metal_forming.entity.log.ToolInfo;
@@ -53,8 +53,8 @@ public class TestLogBuilderSpec extends TestBuilderSpec{
         }
 
         @Test @DisplayName("adds random collisionPoints for new log")
-        void addsRandomCollisionPointsForNewLog(){
-            Log testLog = testLogBuilder.randomCollisionPoints(20).build();
+        void addsRandomPointOfTorqueAndSpeedsForNewLog(){
+            Log testLog = testLogBuilder.randomPointOfTorqueAndSpeeds(20).build();
 
             assertThat(testLog.getCollisionPoints()).hasSize(20);
         }
@@ -79,34 +79,34 @@ public class TestLogBuilderSpec extends TestBuilderSpec{
 
         @Test @DisplayName("sets measuredCurve of new log")
         void setsMeasuredCurveOfNewLog(){
-            Curve measuredCurve = Curve.builder().points(List.of(new CurvePoint(1f,1f))).build();
+            Curve measuredCurve = Curve.builder().points(List.of(new PointOfTorqueAndSpeed(1f,1f))).build();
 
             Log testLog = testLogBuilder.measuredCurve(measuredCurve).build();
 
-            assertThat(testLog.getMeasuredCurve().getPoints()).containsExactly(new CurvePoint(1f,1f));
+            assertThat(testLog.getMeasuredCurve().getPoints()).containsExactly(new PointOfTorqueAndSpeed(1f,1f));
         }
 
         @Test @DisplayName("sets motorCurve of new log")
         void setsMotorCurveOfNewLog(){
-            Curve motorCurve = Curve.builder().points(List.of(new CurvePoint(1f,1f))).build();
+            Curve motorCurve = Curve.builder().points(List.of(new PointOfTorqueAndSpeed(1f,1f))).build();
 
             Log testLog = testLogBuilder.motorCurve(motorCurve).build();
 
-            assertThat(testLog.getMotorCurve().getPoints()).containsExactly(new CurvePoint(1f,1f));
+            assertThat(testLog.getMotorCurve().getPoints()).containsExactly(new PointOfTorqueAndSpeed(1f,1f));
         }
 
         @Test @DisplayName("sets referenceCurve of new log")
         void setsReferenceCurveOfNewLog(){
-            Curve referenceCurve = Curve.builder().points(List.of(new CurvePoint(1f,1f))).build();
+            Curve referenceCurve = Curve.builder().points(List.of(new PointOfTorqueAndSpeed(1f,1f))).build();
 
             Log testLog = testLogBuilder.referenceCurve(referenceCurve).build();
 
-            assertThat(testLog.getReferenceCurve().getPoints()).containsExactly(new CurvePoint(1f,1f));
+            assertThat(testLog.getReferenceCurve().getPoints()).containsExactly(new PointOfTorqueAndSpeed(1f,1f));
         }
 
         @Test @DisplayName("sets collisionPoints of new log")
-        void setsCollisionPointsOfNewLog(){
-            Set<CollisionPoint> collisionPoints = Set.of(new CollisionPoint(1.1F,1.1F), new CollisionPoint(2.2F,2.2F));
+        void setsPointOfTorqueAndSpeedsOfNewLog(){
+            Set<PointOfTorqueAndSpeed> collisionPoints = Set.of(new PointOfTorqueAndSpeed(1.1F,1.1F), new PointOfTorqueAndSpeed(2.2F,2.2F));
 
             Log testLog = testLogBuilder.collisionPoints(collisionPoints).build();
 

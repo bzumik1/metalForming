@@ -1,8 +1,9 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.*;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.LogCreator;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.repository.LogRepository;
@@ -72,7 +73,7 @@ public class AutomaticMonitoringServiceSpec {
 
             when(plcData.getIpAddress()).thenReturn("192.168.0.1");
             when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
-            when(curveValidationService.validate(any(), any(), any())).thenReturn(Set.of(new CollisionPoint(1f,1f)));
+            when(curveValidationService.validate(any(), any(), any())).thenReturn(Set.of(new PointOfTorqueAndSpeed(1f,1f)));
 
             automaticMonitoringService.onMeasuredCurveChange(plcData);
 

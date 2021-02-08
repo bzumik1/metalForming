@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.connection.opcua;
 
 import com.siemens.metal_forming.connection.*;
-import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.OpcuaClientException;
 import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfiguration;

@@ -394,7 +394,7 @@ public class PlcSpec extends EntitySpec {
 
         @Nested @DisplayName("HAS TOOL BY TOOL NUMBER")
         class HasToolByToolNumber{
-            @Test @DisplayName("returns true if plc has tool with given tool nuber")
+            @Test @DisplayName("returns true if plc has tool with given tool number")
             void returnsTrueWhenPlcHasToolWithGivenToolNumber(){
                 Tool currentTool = Tool.builder().toolNumber(99).build();
                 Plc plc = testPlcBuilder.randomTools(2).currentTool(currentTool).build();

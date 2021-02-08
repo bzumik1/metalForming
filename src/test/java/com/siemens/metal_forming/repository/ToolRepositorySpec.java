@@ -1,16 +1,15 @@
 package com.siemens.metal_forming.repository;
 
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import com.siemens.metal_forming.testBuilders.TestPlcBuilder;
 import com.siemens.metal_forming.testBuilders.TestToolBuilder;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -17,6 +17,6 @@ public class HardwareInformation {
     @Column(name = "serial_number")
     String serialNumber;
 
-    @Column(name = "firmwareNumber")
+    @Column(name = "firmware_number")
     String firmwareNumber;
 }

@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.dto;
 
 
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.dto.log.ToolInfoDto;
 import com.siemens.metal_forming.entity.*;
