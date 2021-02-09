@@ -1,7 +1,5 @@
 package com.siemens.metal_forming.dto;
 
-import com.siemens.metal_forming.entity.RelativeTolerance;
-import com.siemens.metal_forming.entity.Tolerance;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

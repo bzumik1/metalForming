@@ -1,7 +1,5 @@
 package com.siemens.metal_forming.dto;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

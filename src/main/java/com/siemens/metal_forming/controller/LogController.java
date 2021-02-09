@@ -5,7 +5,6 @@ import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.service.LogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

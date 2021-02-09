@@ -1,14 +1,8 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
-import com.siemens.metal_forming.connection.opcua.PlcDataOpcua;
-import com.siemens.metal_forming.domain.ReferenceCurveCalculation;
-import com.siemens.metal_forming.entity.Curve;
-import com.siemens.metal_forming.entity.CurvePoint;
-import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.Tool;
-import com.siemens.metal_forming.exception.exceptions.CalculationNotFoundException;
-import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.impl.ReferenceCurveCalculationServiceImpl;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
@@ -24,11 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

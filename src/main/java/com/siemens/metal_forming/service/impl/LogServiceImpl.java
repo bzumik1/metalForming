@@ -6,7 +6,6 @@ import com.siemens.metal_forming.repository.LogRepository;
 import com.siemens.metal_forming.service.LogService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

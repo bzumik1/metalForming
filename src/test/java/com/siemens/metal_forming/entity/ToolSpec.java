@@ -1,12 +1,10 @@
 package com.siemens.metal_forming.entity;
 
-import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @DisplayName("<= TOOL SPECIFICATION =>")
 class ToolSpec extends EntitySpec {
     Validator validator;
-    Tool tool;
 
     public ToolSpec() {
         super(Tool.class);
@@ -37,8 +34,6 @@ class ToolSpec extends EntitySpec {
 
         @BeforeEach
         void initialize(){
-            tool = new Tool();
-
             ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
             validator = validatorFactory.getValidator();
         }
@@ -114,7 +109,7 @@ class ToolSpec extends EntitySpec {
             assertThat(testTool.getToolNumber()).isEqualTo(1);
         }
 
-        @Test @DisplayName("toolNumber can be updatede for other tool statuses")
+        @Test @DisplayName("toolNumber can be updated for other tool statuses")
         void toolNumberCanBeUpdatedForOtherToolStatuses(){
             Tool testTool = Tool.builder().toolStatus(ToolStatusType.MANUALLY_ADDED).toolNumber(1).build();
 

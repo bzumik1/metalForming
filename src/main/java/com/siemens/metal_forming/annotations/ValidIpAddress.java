@@ -2,7 +2,6 @@ package com.siemens.metal_forming.annotations;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
-import javax.validation.ReportAsSingleViolation;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.lang.annotation.*;

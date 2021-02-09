@@ -3,22 +3,13 @@ package com.siemens.metal_forming.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
-import com.siemens.metal_forming.dto.DtoMapper;
-import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.dto.ToolDto;
-import com.siemens.metal_forming.entity.AbsoluteTolerance;
-import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.entity.RelativeTolerance;
-import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.exception.exceptions.*;
 import com.siemens.metal_forming.service.ToolService;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,14 +19,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ToolController.class)

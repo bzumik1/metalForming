@@ -1,8 +1,8 @@
 package com.siemens.metal_forming.service.impl;
 
-import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.Tolerance;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.exception.exceptions.IncompatibleCurvesException;
 import com.siemens.metal_forming.service.CurveValidationService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,13 +16,13 @@ import java.util.stream.IntStream;
 public class CurveValidationServiceImpl implements CurveValidationService {
 
     @Override
-    public Set<CollisionPoint> validate(Tolerance tolerance, Curve referenceCurve, Curve measuredCurve) {
+    public Set<PointOfTorqueAndSpeed> validate(Tolerance tolerance, Curve referenceCurve, Curve measuredCurve) {
         log.info("starting curve validation");
         if(referenceCurve.getPoints().size() != measuredCurve.getPoints().size()) throw new IncompatibleCurvesException();
 
-        Set<CollisionPoint> collisionPoints =  IntStream.range(0,referenceCurve.getPoints().size())
+        Set<PointOfTorqueAndSpeed> collisionPoints =  IntStream.range(0,referenceCurve.getPoints().size())
                 .filter(i -> !tolerance.isInTolerance(referenceCurve.getPoints().get(i), measuredCurve.getPoints().get(i)))
-                .mapToObj(i -> new CollisionPoint(measuredCurve.getPoints().get(i).getTorque(), measuredCurve.getPoints().get(i).getSpeed()))
+                .mapToObj(i -> new PointOfTorqueAndSpeed(measuredCurve.getPoints().get(i).getTorque(), measuredCurve.getPoints().get(i).getSpeed()))
                 .collect(Collectors.toSet());
 
         if(collisionPoints.isEmpty())

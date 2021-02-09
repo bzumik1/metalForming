@@ -2,23 +2,19 @@ package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.dto.DtoMapper;
 import com.siemens.metal_forming.dto.ToolDto;
-import com.siemens.metal_forming.entity.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
-import com.siemens.metal_forming.service.PlcService;
 import com.siemens.metal_forming.service.ToolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service

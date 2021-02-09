@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.entity;
 
-import com.siemens.metal_forming.dto.AbsoluteToleranceDto;
-import com.siemens.metal_forming.dto.ToleranceDto;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,8 +65,8 @@ public class AbsoluteToleranceSpec extends EntitySpec {
         @DisplayName("returns true if point is in tolerance")
         void returnsTrueIfPointIsInTolerance(float torque, float speed){
             Tolerance tolerance = new AbsoluteTolerance(10,11);
-            PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
-            PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
+            PointOfTorqueAndSpeed referencePoint = new PointOfTorqueAndSpeed(100f,100f);
+            PointOfTorqueAndSpeed pointToBeValidated = new PointOfTorqueAndSpeed(torque,speed);
 
             assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isTrue();
         }
@@ -83,8 +82,8 @@ public class AbsoluteToleranceSpec extends EntitySpec {
         @DisplayName("returns false if point is out of tolerance")
         void returnsFalseIfPointIsOutOfTolerance(float torque, float speed){
             Tolerance tolerance = new AbsoluteTolerance(10,11);
-            PointOfTorqueAndSpeed referencePoint = new CurvePoint(100f,100f);
-            PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
+            PointOfTorqueAndSpeed referencePoint = new PointOfTorqueAndSpeed(100f,100f);
+            PointOfTorqueAndSpeed pointToBeValidated = new PointOfTorqueAndSpeed(torque,speed);
 
             assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isFalse();
         }
@@ -104,8 +103,8 @@ public class AbsoluteToleranceSpec extends EntitySpec {
                                                          float speedTolerance,
                                                          boolean result){
             Tolerance tolerance = new AbsoluteTolerance(torqueTolerance,speedTolerance);
-            PointOfTorqueAndSpeed pointToBeValidated = new CurvePoint(torque,speed);
-            PointOfTorqueAndSpeed referencePoint = new CurvePoint(0f,0f);
+            PointOfTorqueAndSpeed pointToBeValidated = new PointOfTorqueAndSpeed(torque,speed);
+            PointOfTorqueAndSpeed referencePoint = new PointOfTorqueAndSpeed(0f,0f);
 
             assertThat(tolerance.isInTolerance(referencePoint,pointToBeValidated)).isEqualTo(result);
         }

@@ -1,5 +1,6 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

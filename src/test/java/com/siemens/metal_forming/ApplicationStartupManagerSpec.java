@@ -1,10 +1,7 @@
 package com.siemens.metal_forming;
 
 import com.siemens.metal_forming.connection.PlcConnector;
-import com.siemens.metal_forming.connection.PlcData;
-import com.siemens.metal_forming.connection.opcua.PlcDataOpcua;
 import com.siemens.metal_forming.entity.Plc;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.repository.PlcRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +15,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import java.util.List;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DisplayName("<= APPLICATION STARTUP MANAGER SPECIFICATION =>")

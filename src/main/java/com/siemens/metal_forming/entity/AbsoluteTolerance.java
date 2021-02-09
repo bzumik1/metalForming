@@ -1,13 +1,11 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.Tolerate;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import java.lang.annotation.Annotation;
 
 @Getter @Setter @NoArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE) @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)

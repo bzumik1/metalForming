@@ -1,7 +1,6 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.dto.PlcDto;
-import com.siemens.metal_forming.entity.Plc;
 
 import java.util.List;
 

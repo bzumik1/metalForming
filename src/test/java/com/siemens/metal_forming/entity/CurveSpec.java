@@ -1,5 +1,7 @@
 package com.siemens.metal_forming.entity;
 
+import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import com.siemens.metal_forming.exception.exceptions.CurveCreationException;
 import lombok.AccessLevel;
@@ -55,7 +57,7 @@ class CurveSpec  extends EntitySpec {
 
             Curve curve = new Curve(torque, speed);
 
-            assertThat(curve.getPoints()).containsExactly(new CurvePoint(1f, 1f), new CurvePoint(2f, 2f));
+            assertThat(curve.getPoints()).containsExactly(new PointOfTorqueAndSpeed(1f, 1f), new PointOfTorqueAndSpeed(2f, 2f));
         }
     }
 
@@ -68,7 +70,7 @@ class CurveSpec  extends EntitySpec {
         }
 
         @Test @DisplayName("is invalid when measuredCurve points are null")
-        void isInvalidWhenCurvePointsAreNull(){
+        void isInvalidWhenPointOfTorqueAndSpeedsAreNull(){
             curve.setPoints(null);
             Set<ConstraintViolation<Curve>> violations = validator.validate(curve);
             assertThat(violations.stream()

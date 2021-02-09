@@ -1,10 +1,10 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.connection.PlcData;
-import com.siemens.metal_forming.entity.Curve;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
 import com.siemens.metal_forming.entity.Tool;
-import com.siemens.metal_forming.entity.log.CollisionPoint;
 import com.siemens.metal_forming.entity.log.LogCreator;
 import com.siemens.metal_forming.repository.LogRepository;
 import com.siemens.metal_forming.repository.PlcRepository;
@@ -44,7 +44,7 @@ public class AutomaticMonitoringServiceImpl implements AutomaticMonitoringServic
             log.debug("Validating measured curve of PLC with id {} in database",plcInDb);
 
             if(currentTool.getAutomaticMonitoring()){
-                Set<CollisionPoint> collisionPoints = curveValidationService.validate(currentTool.getTolerance(), currentTool.getReferenceCurve(),measuredCurve);
+                Set<PointOfTorqueAndSpeed> collisionPoints = curveValidationService.validate(currentTool.getTolerance(), currentTool.getReferenceCurve(),measuredCurve);
 
                 if(!collisionPoints.isEmpty()){
                     //Creates log in database
