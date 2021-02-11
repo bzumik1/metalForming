@@ -8,11 +8,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Setter @FieldDefaults(level = AccessLevel.PRIVATE) @SuperBuilder
+@Setter @FieldDefaults(level = AccessLevel.PRIVATE) @SuperBuilder @Slf4j
 public abstract class PlcData implements SerialNumberSource, FirmwareNumberSource, ToolNameSource, ToolNumberSource, MeasuredCurveSource, ConnectionStatusSource {
     @Getter
     protected final String ipAddress;
@@ -23,7 +24,7 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     @Getter
     String toolName;
     @Getter
-    int toolNumber;
+    Integer toolNumber;
     @Getter
     Curve measuredCurve;
     //@Getter
@@ -47,33 +48,51 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
 
 
     public void setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
-        notifySerialNumberObservers();
+        if(serialNumber != null && !serialNumber.equals(this.serialNumber)){
+            log.debug("Serial number of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress, this.serialNumber, serialNumber);
+            this.serialNumber = serialNumber;
+            notifySerialNumberObservers();
+        }
     }
 
     public void setFirmwareNumber(String firmwareNumber) {
-        this.firmwareNumber = firmwareNumber;
-        notifyFirmwareNumberObservers();
+        if(firmwareNumber != null && !firmwareNumber.equals(this.firmwareNumber)){
+            log.debug("Firmware number of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress, this.firmwareNumber, firmwareNumber);
+            this.firmwareNumber = firmwareNumber;
+            notifyFirmwareNumberObservers();
+        }
     }
 
     public void setToolName(String toolName) {
-        this.toolName = toolName;
-        notifyToolNameObservers();
+        if(toolName != null && !toolName.equals(this.toolName)){
+            log.debug("Tool name of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress,this.toolName, toolName);
+            this.toolName = toolName;
+            notifyToolNameObservers();
+        }
     }
 
-    public void setToolNumber(int toolNumber) {
-        this.toolNumber = toolNumber;
-        notifyToolNumberObservers();
+    public void setToolNumber(Integer toolNumber) {
+        if(toolNumber != null && !toolNumber.equals(this.toolNumber)){
+            log.debug("Tool number of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress, this.toolNumber, toolNumber);
+            this.toolNumber = toolNumber;
+            notifyToolNumberObservers();
+        }
     }
 
     public void setMeasuredCurve(Curve measuredCurve) {
-        this.measuredCurve = measuredCurve;
-        notifyMeasuredCurveObservers();
+        if(measuredCurve != null && !measuredCurve.equals(this.measuredCurve)){
+            log.debug("Measured curve of PLC with IP address {} has changed to:\n\tTorque:{}\n\tSpeed: {}", ipAddress, measuredCurve.getTorqueValues(), measuredCurve.getSpeedValues());
+            this.measuredCurve = measuredCurve;
+            notifyMeasuredCurveObservers();
+        }
     }
 
     public void setConnectionStatus(ConnectionStatus connectionStatus) {
-        this.connectionStatus = connectionStatus;
-        notifyConnectionStatusObservers();
+        if(connectionStatus != null && !connectionStatus.equals(this.connectionStatus)){
+            log.debug("Connection status of PLC with IP address {} has changed from \"{}\" to \"{}\"", ipAddress, this.connectionStatus, connectionStatus);
+            this.connectionStatus = connectionStatus;
+            notifyConnectionStatusObservers();
+        }
     }
 
     @Override

@@ -222,22 +222,18 @@ public class PlcDataOpcua extends PlcData {
 
     private void onSerialNumberChange(DataValue value) {
         setSerialNumber((String)value.getValue().getValue());
-        log.debug("Serial number of PLC with IP address {} has changed to \"{}\"",ipAddress,getSerialNumber());
     }
 
     private void onFirmwareNumberChange(DataValue value) {
         setFirmwareNumber((String)value.getValue().getValue());
-        log.debug("Firmware number of PLC with IP address {} has changed to \"{}\"",ipAddress,getFirmwareNumber());
     }
 
     private void onToolNumberChange(DataValue value) {
         setToolNumber((int)value.getValue().getValue());
-        log.debug("Tool number of PLC with IP address {} has changed to \"{}\"",ipAddress, getToolNumber());
     }
 
     private void onToolNameChange(DataValue value) {
         setToolName((String)value.getValue().getValue());
-        log.debug("Tool name of PLC with IP address {} has changed to \"{}\"",ipAddress, getToolName());
     }
 
     private void onHmiTrendChange(DataValue value) {
@@ -245,8 +241,6 @@ public class PlcDataOpcua extends PlcData {
         ExtensionObject xo = (ExtensionObject) variant.getValue();
         HmiTrend hmiTrend = (HmiTrend) xo.decode(client.getSerializationContext());
         setMeasuredCurve(new Curve(hmiTrend.getTorque(), hmiTrend.getSpeed()));
-
-        log.debug("Measured curve of PLC with IP address {} has changed to:\n\tTorque:{}\n\tSpeed: {}", ipAddress, hmiTrend.getTorque(), hmiTrend.getSpeed());
     }
 
     private void registerHmiTrendCodec(OpcUaClient client) {

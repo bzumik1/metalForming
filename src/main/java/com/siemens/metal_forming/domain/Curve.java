@@ -23,4 +23,12 @@ public class Curve {
                 .mapToObj(i -> new PointOfTorqueAndSpeed(torque.get(i), speed.get(i)))
                 .collect(Collectors.toUnmodifiableList());
     }
+
+    public List<Float> getTorqueValues(){
+        return points.stream().map(PointOfTorqueAndSpeed::getTorque).collect(Collectors.toList());
+    }
+
+    public List<Float> getSpeedValues(){
+        return points.stream().map(PointOfTorqueAndSpeed::getSpeed).collect(Collectors.toList());
+    }
 }
