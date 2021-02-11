@@ -46,6 +46,8 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 public class PlcDataOpcua extends PlcData {
     OpcUaClient client;
     final OpcuaConfiguration configuration;
+    boolean reconnecting = true;
+    int reconnectionNumber = 0;
 
     public PlcDataOpcua(OpcuaConfiguration configuration, String ipAddress){
         super(ipAddress);
@@ -65,7 +67,12 @@ public class PlcDataOpcua extends PlcData {
 
     @Override
     public void disconnect() {
-        client.disconnect();
+        removeAllObservers();
+        if(client != null){
+            client.disconnect();
+        } else {
+            reconnecting = false;
+        }
     }
 
 
@@ -122,7 +129,9 @@ public class PlcDataOpcua extends PlcData {
         } catch (InterruptedException | ExecutionException e){
             log.warn("OPC UA connection for PLC with IP {} could not be established: {}",ipAddress, e.getMessage());
             setConnectionStatus(ConnectionStatus.DISCONNECTED);
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(this::reconnect);
+            if(reconnecting){
+                CompletableFuture.runAsync(this::reconnect);
+            }
         } catch (UaException e){
             log.warn("OPC UA client for plc with ip {} could not be created: {}",ipAddress,e.getMessage());
             e.printStackTrace();
@@ -135,6 +144,8 @@ public class PlcDataOpcua extends PlcData {
     }
 
     private void reconnect(){
+        reconnectionNumber++;
+        log.debug("Attempt to connect PLC with IP address {} number: {}",ipAddress,reconnectionNumber);
         try {
             Thread.sleep(2000);
             createClient();
@@ -240,7 +251,7 @@ public class PlcDataOpcua extends PlcData {
 
     private void registerHmiTrendCodec(OpcUaClient client) {
         NodeId binaryEncodingId = HmiTrend.BINARY_ENCODING_ID
-                .local(client.getNamespaceTable())
+                .toNodeId(client.getNamespaceTable())
                 .orElseThrow(() -> new IllegalStateException("namespace not found"));
 
         // Register codec with the client DataTypeManager instance

@@ -41,7 +41,7 @@ public class AutomaticMonitoringServiceImpl implements AutomaticMonitoringServic
             Plc plcInDb = optionalPlcInDb.get();
             Tool currentTool = optionalPlcInDb.get().getCurrentTool();
             Curve measuredCurve = plcData.getMeasuredCurve();
-            log.debug("Validating measured curve of PLC with id {} in database",plcInDb);
+            log.debug("Validating measured curve of PLC with id {} in database",plcInDb.getId());
 
             if(currentTool.getAutomaticMonitoring()){
                 Set<PointOfTorqueAndSpeed> collisionPoints = curveValidationService.validate(currentTool.getTolerance(), currentTool.getReferenceCurve(),measuredCurve);

@@ -178,6 +178,15 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
         }
     }
 
+    protected void removeAllObservers(){
+        serialNumberObservers.clear();
+        firmwareNumberObservers.clear();
+        toolNameObservers.clear();
+        toolNumberObservers.clear();
+        measuredCurveObservers.clear();
+        connectionStatusObservers.clear();
+    }
+
 
     public abstract void immediateStop();
     public abstract void topPositionStop();
