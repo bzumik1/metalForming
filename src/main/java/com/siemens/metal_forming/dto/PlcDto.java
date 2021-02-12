@@ -51,5 +51,11 @@ public enum PlcDto {;
             Long id;
             Integer toolNumber;
         }
+
+        @Value @Builder
+        public static class NewTool{
+            Long id;
+            ToolDto.Response.Overview newTool;
+        }
     }
 }

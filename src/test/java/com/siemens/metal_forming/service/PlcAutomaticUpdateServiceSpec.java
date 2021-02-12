@@ -2,6 +2,7 @@ package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.dto.PlcDto;
+import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.dto.WebSocketDtoMapper;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
@@ -102,8 +103,8 @@ public class PlcAutomaticUpdateServiceSpec {
 
     @Nested @DisplayName("CHANGE CURRENT TOOL")
     class ChangeCurrentTool{
-        @Test @DisplayName("sends updated connection status over websocket")
-        void sendsUpdatedConnectionStatusOverWebSocket(){
+        @Test @DisplayName("sends current tool number status over websocket")
+        void sendsCurrentToolNumberOverWebSocket(){
             Plc plcInDatabase = Plc.builder().addTool(Tool.builder().toolNumber(1).build()).build();
             PlcDto.Response.CurrentTool plcDto = PlcDto.Response.CurrentTool.builder().id(1L).toolNumber(1).build();
 
@@ -115,6 +116,21 @@ public class PlcAutomaticUpdateServiceSpec {
             plcAutomaticUpdateService.onToolNumberChange(plcData);
 
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/current-tool", plcDto);
+        }
+
+        @Test @DisplayName("sends new tool over websocket")
+        void sendsNewToolOverOverWebSocket(){
+            Plc plcInDatabase = Plc.builder().build();
+            PlcDto.Response.NewTool plcDto = PlcDto.Response.NewTool.builder().id(1L).newTool(ToolDto.Response.Overview.builder().build()).build();
+
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getToolNumber()).thenReturn(1);
+            when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(mapper.toPlcDtoNewTool(plcInDatabase)).thenReturn(plcDto);
+
+            plcAutomaticUpdateService.onToolNumberChange(plcData);
+
+            verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/new-tool", plcDto);
         }
 
         @Nested @DisplayName("PLC IS IN DATABASE") @Disabled("Needs to be written after PlcData structure changes")

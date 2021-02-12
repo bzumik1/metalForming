@@ -82,6 +82,10 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
                 log.debug("Setting autodetected tool as current tool: {}", autodetectedTool);
                 plcInDb.addTool(autodetectedTool);
                 plcInDb.setCurrentTool(plcData.getToolNumber());
+
+                //Send information over WebSocket
+                log.debug("Sending new tool with number \"{}\" for PLC with IP {} over WebSocket",plcData.getToolNumber(), plcData.getIpAddress());
+                simpMessagingTemplate.convertAndSend("/topic/plcs/new-tool", mapper.toPlcDtoNewTool(plcInDb));
             }
 
             plcRepository.save(plcInDb);
