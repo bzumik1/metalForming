@@ -2,6 +2,7 @@ package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.domain.Curve;
+import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.impl.ReferenceCurveCalculationServiceImpl;
@@ -16,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Optional;
 
@@ -27,18 +29,16 @@ import static org.mockito.Mockito.*;
 @DisplayName("<= REFERENCE CURVE CALCULATION SERVICE SPECIFICATION =>")
 public class ReferenceCurveCalculationServiceSpec {
     ReferenceCurveCalculationService referenceCurveCalculationService;
-    @Mock
-    ToolRepository toolRepository;
-
-    @Mock
-    PlcData plcData;
+    @Mock ToolRepository toolRepository;
+    @Mock SimpMessagingTemplate simpMessagingTemplate;
+    @Mock PlcData plcData;
 
     @Captor
     ArgumentCaptor<Tool> toolCaptor;
 
     @BeforeEach
     void initialize(){
-        referenceCurveCalculationService = new ReferenceCurveCalculationServiceImpl(toolRepository);
+        referenceCurveCalculationService = new ReferenceCurveCalculationServiceImpl(toolRepository, simpMessagingTemplate);
     }
 
     @Test @DisplayName("calculation is interrupted when tool is changed")
@@ -129,5 +129,24 @@ public class ReferenceCurveCalculationServiceSpec {
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
 
         verify(toolRepository, times(0).description("Calculation of reference curve was triggered")).save(any());
+    }
+
+    @Test @DisplayName("calculation status is sent over WebSocket")
+    void calculationStatusIsSentOverWebSocket(){
+        Tool toolInDb = Tool.builder()
+                .id(1L)
+                .toolNumber(1)
+                .calculateReferenceCurve(true)
+                .numberOfReferenceCycles(2)
+                .build();
+
+        when(plcData.getMeasuredCurve()).thenReturn(new TestCurveBuilder().randomPoints(100).build());
+        when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+        when(plcData.getToolNumber()).thenReturn(1);
+        when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1",1)).thenReturn(Optional.of(toolInDb));
+
+        referenceCurveCalculationService.onMeasuredCurveChange(plcData);
+
+        verify(simpMessagingTemplate,times(1)).convertAndSend(any(String.class),any(ToolDto.Response.ReferenceCurveCalculation.class));
     }
 }

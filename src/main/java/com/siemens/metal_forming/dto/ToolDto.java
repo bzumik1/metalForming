@@ -2,8 +2,10 @@ package com.siemens.metal_forming.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.siemens.metal_forming.annotations.MaxOneField;
+import com.siemens.metal_forming.domain.CalculationStatus;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 
@@ -90,8 +92,10 @@ public enum ToolDto {;
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
-        @Value
-        public static class Another{
+        @Value @AllArgsConstructor
+        public static class ReferenceCurveCalculation{
+            Long id;
+            CalculationStatus calculationStatus;
         }
     }
 }

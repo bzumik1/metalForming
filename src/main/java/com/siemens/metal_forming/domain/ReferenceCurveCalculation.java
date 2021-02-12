@@ -16,10 +16,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ReferenceCurveCalculation {
     public final int NUMBER_OF_CYCLES;
+    private final CalculationStatus status;
     final List<Curve> curves = new ArrayList<>();
 
     public ReferenceCurveCalculation(int numberOfCycles) {
         NUMBER_OF_CYCLES = numberOfCycles;
+        status = new CalculationStatus(numberOfCycles);
     }
 
     public Optional<Curve> calculate(Curve curve){
@@ -28,7 +30,8 @@ public class ReferenceCurveCalculation {
                 throw new IncompatibleCurvesException();
             }
             curves.add(curve);
-            log.debug("Calculating reference curve remaining cycles: {}/{}", curves.size(), NUMBER_OF_CYCLES);
+            status.increase();
+            log.debug("Calculating reference curve remaining cycles: {}", status);
         }
         if(curves.size() == NUMBER_OF_CYCLES){
             List<PointOfTorqueAndSpeed> referencePointOfTorqueAndSpeeds = new ArrayList<>();
