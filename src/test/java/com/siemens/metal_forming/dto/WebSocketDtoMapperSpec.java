@@ -46,6 +46,19 @@ class WebSocketDtoMapperSpec {
             softAssertions.assertThat(plcDto.getConnectionStatus()).isEqualTo(ConnectionStatus.CONNECTED);
             softAssertions.assertAll();
         }
+
+        @Test @DisplayName("transforms Plc to PlcDto.Response.CurrentTool correctly")
+        void transformsPlcToPlcDtoResponseCurrentToolCorrectly(){
+            Plc testPlc = Plc.builder().id(1L).currentTool(Tool.builder().toolNumber(1).build()).build();
+
+            PlcDto.Response.CurrentTool plcDto = dtoMapper.toPlcDtoCurrentTool(testPlc);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(plcDto).isNotNull();
+            softAssertions.assertThat(plcDto.getId()).as("id").isEqualTo(testPlc.getId());
+            softAssertions.assertThat(plcDto.getToolNumber()).isEqualTo(1);
+            softAssertions.assertAll();
+        }
     }
 
     @Nested @DisplayName("FROM DTO")

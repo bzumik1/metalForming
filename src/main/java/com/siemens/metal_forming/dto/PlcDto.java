@@ -45,5 +45,11 @@ public enum PlcDto {;
             Long id;
             ConnectionStatus connectionStatus;
         }
+
+        @Value @Builder
+        public static class CurrentTool{
+            Long id;
+            Integer toolNumber;
+        }
     }
 }

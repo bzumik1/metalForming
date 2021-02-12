@@ -85,6 +85,10 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
             }
 
             plcRepository.save(plcInDb);
+
+            //Send information over WebSocket
+            log.debug("Sending current tool number \"{}\" for PLC with IP {} over WebSocket",plcData.getToolNumber(), plcData.getIpAddress());
+            simpMessagingTemplate.convertAndSend("/topic/plcs/current-tool", mapper.toPlcDtoCurrentTool(plcInDb));
         } else {
             log.error("Current tool of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
         }

@@ -12,4 +12,7 @@ public interface WebSocketDtoMapper {
     @Mapping(target = "connectionStatus", source = "connection.status")
     PlcDto.Response.Connection toPlcDtoConnection(Plc plc);
 
+    @Mapping(target = "toolNumber", source = "currentTool.toolNumber")
+    PlcDto.Response.CurrentTool toPlcDtoCurrentTool(Plc plc);
+
 }

@@ -4,6 +4,7 @@ import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.dto.WebSocketDtoMapper;
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
@@ -99,18 +100,24 @@ public class PlcAutomaticUpdateServiceSpec {
 
 
 
-    @Nested @DisplayName("CHANGE CURRENT TOOL") @Disabled("Needs to be written after PlcData structure changes")
+    @Nested @DisplayName("CHANGE CURRENT TOOL")
     class ChangeCurrentTool{
+        @Test @DisplayName("sends updated connection status over websocket")
+        void sendsUpdatedConnectionStatusOverWebSocket(){
+            Plc plcInDatabase = Plc.builder().addTool(Tool.builder().toolNumber(1).build()).build();
+            PlcDto.Response.CurrentTool plcDto = PlcDto.Response.CurrentTool.builder().id(1L).toolNumber(1).build();
 
-        @Test @DisplayName("if plc with given ip address is not found return throws exception")
-        void ifPlcIsNotFoundThrowsException(){
-//            //Mock
-//            when(plcRepository.findByIpAddress(ipOfNotExistentPlc)).thenReturn(Optional.empty());
-//
-//            assertThrows(PlcNotFoundException.class, () -> plcService.changeCurrentTool(ipOfNotExistentPlc, toolNumberOfExistingTool));
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getToolNumber()).thenReturn(1);
+            when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(mapper.toPlcDtoCurrentTool(plcInDatabase)).thenReturn(plcDto);
+
+            plcAutomaticUpdateService.onToolNumberChange(plcData);
+
+            verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/current-tool", plcDto);
         }
 
-        @Nested @DisplayName("PLC IS IN DATABASE")
+        @Nested @DisplayName("PLC IS IN DATABASE") @Disabled("Needs to be written after PlcData structure changes")
         class PlcIsInDatabase{
 
             @Test @DisplayName("when tool exists in plc's tools than it is selected as current tool")
