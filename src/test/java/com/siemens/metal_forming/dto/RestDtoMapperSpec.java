@@ -20,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.sql.Timestamp;
 
 @SpringBootTest(classes = RestDtoMapperImpl.class)
-@DisplayName("<= DTO MAPPER SPECIFICATION =>")
+@DisplayName("<= REST DTO MAPPER SPECIFICATION =>")
 class RestDtoMapperSpec {
     @Autowired
     private RestDtoMapper dtoMapper;
