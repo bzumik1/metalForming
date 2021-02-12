@@ -1,6 +1,8 @@
 package com.siemens.metal_forming.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.siemens.metal_forming.annotations.ValidIpAddress;
+import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import lombok.Builder;
 import lombok.Value;
 
@@ -38,8 +40,10 @@ public enum PlcDto {;
             ConnectionDto connection;
         }
 
-        @Value
-        public static class Another{
+        @Value @Builder @JsonDeserialize(builder = Connection.ConnectionBuilder.class)
+        public static class Connection{
+            Long id;
+            ConnectionStatus connectionStatus;
         }
     }
 }

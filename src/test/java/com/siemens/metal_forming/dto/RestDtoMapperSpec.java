@@ -19,11 +19,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.sql.Timestamp;
 
-@SpringBootTest(classes = DtoMapperImpl.class)
+@SpringBootTest(classes = RestDtoMapperImpl.class)
 @DisplayName("<= DTO MAPPER SPECIFICATION =>")
-class DtoMapperSpec {
+class RestDtoMapperSpec {
     @Autowired
-    private DtoMapper dtoMapper;
+    private RestDtoMapper dtoMapper;
 
 
 

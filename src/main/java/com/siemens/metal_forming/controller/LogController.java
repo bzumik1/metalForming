@@ -1,6 +1,6 @@
 package com.siemens.metal_forming.controller;
 
-import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.RestDtoMapper;
 import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.service.LogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 @RequestMapping(path = "/logs")
 public class LogController {
     private final LogService logService;
-    private final DtoMapper dtoMapper;
+    private final RestDtoMapper dtoMapper;
 
     @Autowired
-    public LogController(LogService logService, DtoMapper dtoMapper) {
+    public LogController(LogService logService, RestDtoMapper dtoMapper) {
         this.logService = logService;
         this.dtoMapper = dtoMapper;
     }

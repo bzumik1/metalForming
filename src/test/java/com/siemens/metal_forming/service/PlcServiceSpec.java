@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcConnector;
-import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.RestDtoMapper;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -32,7 +32,7 @@ class PlcServiceSpec {
     private PlcService plcService;
     @Mock private PlcRepository plcRepository;
     @Mock private PlcConnector plcConnector;
-    @Mock private DtoMapper dtoMapper;
+    @Mock private RestDtoMapper dtoMapper;
 
     @Captor ArgumentCaptor<Plc> plcCaptor;
 

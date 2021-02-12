@@ -1,6 +1,6 @@
 package com.siemens.metal_forming.service.impl;
 
-import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.RestDtoMapper;
 import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
@@ -21,10 +21,10 @@ import java.util.stream.Collectors;
 public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final PlcRepository plcRepository;
-    private final DtoMapper dtoMapper;
+    private final RestDtoMapper dtoMapper;
 
     @Autowired
-    public ToolServiceImpl( ToolRepository toolRepository, PlcRepository plcRepository, DtoMapper dtoMapper) {
+    public ToolServiceImpl( ToolRepository toolRepository, PlcRepository plcRepository, RestDtoMapper dtoMapper) {
         this.toolRepository = toolRepository;
         this.plcRepository = plcRepository;
         this.dtoMapper = dtoMapper;

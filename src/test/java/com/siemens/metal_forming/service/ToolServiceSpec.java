@@ -1,6 +1,6 @@
 package com.siemens.metal_forming.service;
 
-import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.RestDtoMapper;
 import com.siemens.metal_forming.dto.RelativeToleranceDto;
 import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Plc;
@@ -39,7 +39,7 @@ class ToolServiceSpec {
     @Mock
     private PlcRepository plcRepository;
     @Mock
-    private DtoMapper dtoMapper;
+    private RestDtoMapper dtoMapper;
 
     @Captor
     ArgumentCaptor<Plc> plcCaptor;

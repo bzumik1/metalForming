@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.RestDtoMapper;
 import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.entity.log.Log;
 import com.siemens.metal_forming.exception.exceptions.LogNotFoundException;
@@ -38,7 +38,7 @@ public class LogControllerSpec {
     LogService logService;
 
     @MockBean
-    DtoMapper dtoMapper;
+    RestDtoMapper dtoMapper;
 
     @Autowired
     private ObjectMapper objectMapper;

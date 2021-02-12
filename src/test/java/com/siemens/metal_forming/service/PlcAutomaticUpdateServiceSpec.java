@@ -1,6 +1,8 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.dto.PlcDto;
+import com.siemens.metal_forming.dto.WebSocketDtoMapper;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.repository.PlcRepository;
@@ -11,6 +13,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,12 +26,14 @@ public class PlcAutomaticUpdateServiceSpec {
 
     private PlcAutomaticUpdateService plcAutomaticUpdateService;
     @Mock private PlcRepository plcRepository;
+    @Mock private SimpMessagingTemplate simpMessagingTemplate;
+    @Mock private WebSocketDtoMapper mapper;
     @Mock private PlcData plcData;
     @Captor ArgumentCaptor<Plc> plcCaptor;
 
     @BeforeEach
     void initialize(){
-        plcAutomaticUpdateService = new PlcAutomaticUpdateServiceImpl(plcRepository);
+        plcAutomaticUpdateService = new PlcAutomaticUpdateServiceImpl(plcRepository, simpMessagingTemplate, mapper);
     }
 
     @Test @DisplayName("updates firmware number in database")
@@ -58,19 +64,38 @@ public class PlcAutomaticUpdateServiceSpec {
         assertThat(plcCaptor.getValue().getHardwareInformation().getSerialNumber()).isEqualTo("SW-NEW-SERIAL-NUMBER");
     }
 
-    @Test @DisplayName("updates connection status in database")
-    void updatesConnectionStatusInDatabase(){
-        Plc plcInDatabase = new Plc();
+    @Nested @DisplayName("UPDATE CONNECTION STATUS")
+    class UpdateConnectionStatus{
+        @Test @DisplayName("sends updated connection status over websocket")
+        void sendsUpdatedConnectionStatusOverWebSocket(){
+            Plc plcInDatabase = new Plc();
+            PlcDto.Response.Connection plcDto = PlcDto.Response.Connection.builder().id(1L).connectionStatus(ConnectionStatus.CONNECTED).build();
 
-        when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
-        when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(mapper.toPlcDtoConnection(plcInDatabase)).thenReturn(plcDto);
 
-        plcAutomaticUpdateService.onConnectionStatusChange(plcData);
+            plcAutomaticUpdateService.onConnectionStatusChange(plcData);
 
-        verify(plcRepository, times(1)).save(plcCaptor.capture());
-        assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+            verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/connection-status", plcDto);
+        }
+
+        @Test @DisplayName("updates connection status in database")
+        void updatesConnectionStatusInDatabase(){
+            Plc plcInDatabase = new Plc();
+
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+            plcAutomaticUpdateService.onConnectionStatusChange(plcData);
+
+            verify(plcRepository, times(1)).save(plcCaptor.capture());
+            assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+        }
     }
+
 
 
 
