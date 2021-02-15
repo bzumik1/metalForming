@@ -62,6 +62,29 @@ public class ReferenceCurveCalculationServiceSpec {
         verify(toolRepository,never().description("Calculation wasn't interrupted!")).save(any());
     }
 
+    @Test @DisplayName("calculation is interrupted when calculateReferenceCurve is set to false")
+    void calculationIsInterruptedWhenCalculateReferenceCurveIsSetToFalse(){
+        Tool toolInDb = Tool.builder()
+                .id(1L)
+                .toolNumber(1)
+                .calculateReferenceCurve(true)
+                .numberOfReferenceCycles(2)
+                .build();
+
+        when(plcData.getMeasuredCurve()).thenReturn(new TestCurveBuilder().randomPoints(100).build());
+        when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+        when(plcData.getToolNumber()).thenReturn(1);
+        when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1",1)).thenReturn(Optional.of(toolInDb));
+
+        referenceCurveCalculationService.onMeasuredCurveChange(plcData);
+        toolInDb.setCalculateReferenceCurve(false);
+        referenceCurveCalculationService.onMeasuredCurveChange(plcData); // not validated because is false
+        toolInDb.setCalculateReferenceCurve(true);
+        referenceCurveCalculationService.onMeasuredCurveChange(plcData); // starts from beginning
+
+        verify(toolRepository,never().description("Calculation wasn't interrupted!")).save(any());
+    }
+
     @Test @DisplayName("updates tool in database when calculation is finished")
     void updatesToolInDatabaseWhenCalculationIsFinished(){
         Curve measuredCurve = new TestCurveBuilder().randomPoints(100).build();

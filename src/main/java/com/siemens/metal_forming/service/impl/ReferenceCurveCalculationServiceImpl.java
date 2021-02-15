@@ -63,6 +63,9 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
                     log.debug("Reference curve for tool with id {} was successfully calculated",currentTool.getId());
                 }
             }
+            else{
+                calculations.remove(ipAddress);
+            }
         } else {
             log.warn("During reference curve calculation for tool of PLC with IP address {}, the tool wasn't found in database", ipAddress);
         }
