@@ -22,6 +22,7 @@ public interface DtoMapper {
 
     LogDto.Response.Detail toLogDtoDetail(Log log);
 
+    @Mapping(target = "numberOfCollisions", expression = "java(log.getCollisionPoints()!= null ? log.getCollisionPoints().size():0)")
     LogDto.Response.Overview toLogDtoOverview(Log log);
 
 

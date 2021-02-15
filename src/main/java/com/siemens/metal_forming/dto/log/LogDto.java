@@ -24,6 +24,7 @@ public abstract class LogDto {
         public static class Overview{
             Long id;
             Timestamp createdOn;
+            Integer numberOfCollisions;
             PlcInfoDto plcInformation;
             ToolInfoDto toolInformation;
             String comment;

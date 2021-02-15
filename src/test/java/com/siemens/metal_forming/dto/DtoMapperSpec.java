@@ -215,6 +215,7 @@ class DtoMapperSpec {
             softAssertions.assertThat(logDto.getId()).as("id").isEqualTo(1L);
             softAssertions.assertThat(logDto.getCreatedOn()).as("createdOn").isEqualTo(new Timestamp(1));
             softAssertions.assertThat(logDto.getComment()).as("comment").isEqualTo("comment");
+            softAssertions.assertThat(logDto.getNumberOfCollisions()).as("numberOfCollisionPoints").isEqualTo(2);
 
             //ToolInformation
             softAssertions.assertThat(logDto.getToolInformation().getName()).as("toolName").isEqualTo("nameFromPlc");

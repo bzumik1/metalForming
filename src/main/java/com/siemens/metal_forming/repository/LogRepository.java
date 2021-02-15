@@ -13,7 +13,7 @@ import java.util.Set;
 
 @Repository
 public interface LogRepository extends JpaRepository<Log,Long> {
-    @EntityGraph(attributePaths = {"plcInformation", "toolInformation", "toolInformation.tolerance"})
+    @EntityGraph(attributePaths = {"plcInformation", "toolInformation", "toolInformation.tolerance", "collisionPoints"})
     List<Log> findAllByToolInformationToolIdOrderByCreatedOnDesc(Long ToolId);
 
     void deleteAllByIdIn(Iterable<Long> ids);
