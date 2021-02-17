@@ -162,7 +162,6 @@ public class PlcDataOpcua extends PlcData {
             //Connects client and subscribe to given variables
             client.connect().get();
             subscribeAll().get();
-            //Thread.sleep(2000); //ToDo -> solve it somehow, that it would wait till all values were read
         } catch (InterruptedException| ExecutionException e) {
             log.error("There was problem with creation of client: {}",e.getMessage());
         }
