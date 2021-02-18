@@ -2,7 +2,7 @@ package com.siemens.metal_forming.connection.opcua;
 
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfiguration;
-import com.siemens.metal_forming.connection.opcua.structure.HmiTrend;
+import com.siemens.metal_forming.connection.opcua.structure.CurveStructure;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.OpcuaClientException;
@@ -213,16 +213,16 @@ public class PlcDataOpcua extends PlcData {
     private void onHmiTrendChange(DataValue value) {
         Variant variant = value.getValue();
         ExtensionObject xo = (ExtensionObject) variant.getValue();
-        HmiTrend hmiTrend = (HmiTrend) xo.decode(client.getSerializationContext());
-        setMeasuredCurve(new Curve(hmiTrend.getTorque(), hmiTrend.getSpeed()));
+        CurveStructure curveStructure = (CurveStructure) xo.decode(client.getSerializationContext());
+        setMeasuredCurve(new Curve(curveStructure.getTorque(), curveStructure.getSpeed()));
     }
 
     private void registerHmiTrendCodec(OpcUaClient client) {
-        NodeId binaryEncodingId = HmiTrend.BINARY_ENCODING_ID
+        NodeId binaryEncodingId = CurveStructure.BINARY_ENCODING_ID
                 .toNodeId(client.getNamespaceTable())
                 .orElseThrow(() -> new IllegalStateException("namespace not found"));
 
         // Register codec with the client DataTypeManager instance
-        client.getDataTypeManager().registerCodec(binaryEncodingId, new HmiTrend.Codec().asBinaryCodec());
+        client.getDataTypeManager().registerCodec(binaryEncodingId, new CurveStructure.Codec().asBinaryCodec());
     }
 }
