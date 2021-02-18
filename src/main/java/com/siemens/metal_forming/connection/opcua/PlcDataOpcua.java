@@ -118,6 +118,14 @@ public class PlcDataOpcua extends PlcData {
                         setConnectionStatus(ConnectionStatus.DISCONNECTED);
                     }
                 });
+                uaClient.getSubscriptionManager().addSubscriptionListener(new UaSubscriptionManager.SubscriptionListener() {
+                    @Override
+                    public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
+                        log.warn("Subscription transfer for PLC with IP address failed: {}, clearing old subscriptions and resubscribing again", statusCode);
+                        uaClient.getSubscriptionManager().clearSubscriptions();
+                        subscribeAll();
+                    }
+                });
 
                 // Register codecs
                 registerHmiTrendCodec(uaClient);
