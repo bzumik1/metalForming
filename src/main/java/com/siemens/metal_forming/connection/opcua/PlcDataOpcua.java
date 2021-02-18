@@ -1,11 +1,11 @@
 package com.siemens.metal_forming.connection.opcua;
 
-import com.siemens.metal_forming.connection.*;
+import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfiguration;
+import com.siemens.metal_forming.connection.opcua.structure.HmiTrend;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.exception.exceptions.OpcuaClientException;
-import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfiguration;
-import com.siemens.metal_forming.connection.opcua.structure.HmiTrend;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -14,32 +14,22 @@ import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.SessionActivityListener;
 import org.eclipse.milo.opcua.sdk.client.api.UaSession;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
-import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import org.eclipse.milo.opcua.sdk.client.subscriptions.ManagedDataItem;
 import org.eclipse.milo.opcua.sdk.client.subscriptions.ManagedSubscription;
 import org.eclipse.milo.opcua.stack.client.DiscoveryClient;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
-import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.*;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
-import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
-import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -93,9 +83,6 @@ public class PlcDataOpcua extends PlcData {
                 OpcUaClientConfig opcUaConfiguration = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
                         .setApplicationName(LocalizedText.english(configuration.getApplicationName()))
-                        .setRequestTimeout(uint(5_000))
-                        .setKeepAliveFailuresAllowed(uint(0)) //Number of possible failures
-                        .setKeepAliveInterval(uint(5_000)) //Time after which is session (connection) marked as disconnected
                         .build();
 
                 UaStackClient stackClient = UaStackClient.create(opcUaConfiguration);
@@ -108,8 +95,7 @@ public class PlcDataOpcua extends PlcData {
                     @Override
                     public void onSessionActive(UaSession session) {
                         log.info("Connecting PLC with IP address {}",ipAddress);
-                            setConnectionStatus(ConnectionStatus.CONNECTED);
-
+                        setConnectionStatus(ConnectionStatus.CONNECTED);
                     }
 
                     @Override
@@ -118,6 +104,8 @@ public class PlcDataOpcua extends PlcData {
                         setConnectionStatus(ConnectionStatus.DISCONNECTED);
                     }
                 });
+
+                //Adds subscription listener
                 uaClient.getSubscriptionManager().addSubscriptionListener(new UaSubscriptionManager.SubscriptionListener() {
                     @Override
                     public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
@@ -131,20 +119,22 @@ public class PlcDataOpcua extends PlcData {
                 registerHmiTrendCodec(uaClient);
 
                 // Connect client
-                connectClient(uaClient);
+                this.client = uaClient;
+                client.connect().get();
+                subscribeAll().get();
+
                 log.info("PLC with IP address {} was successfully connected over OPC UA", ipAddress);
             } else {
                 throw new OpcuaClientException("Client could not be created, there was no endpoint without security");
             }
         } catch (InterruptedException | ExecutionException e){
-            log.warn("OPC UA connection for PLC with IP {} could not be established: {}",ipAddress, e.getMessage());
+            log.debug("OPC UA connection for PLC with IP {} could not be established: {}",ipAddress, e.getMessage());
             setConnectionStatus(ConnectionStatus.DISCONNECTED);
             if(reconnecting){
                 CompletableFuture.runAsync(this::reconnect);
             }
         } catch (UaException e){
             log.warn("OPC UA client for plc with ip {} could not be created: {}",ipAddress,e.getMessage());
-            e.printStackTrace();
             throw new OpcuaClientException("Client could not be created");
         }
     }
@@ -161,17 +151,6 @@ public class PlcDataOpcua extends PlcData {
             createClient();
         } catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
-        }
-    }
-
-    private void connectClient(OpcUaClient client){
-        try {
-            this.client = client;
-            //Connects client and subscribe to given variables
-            client.connect().get();
-            subscribeAll().get();
-        } catch (InterruptedException| ExecutionException e) {
-            log.error("There was problem with creation of client: {}",e.getMessage());
         }
     }
 
