@@ -1,7 +1,11 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.dto.PlcDto;
+import com.siemens.metal_forming.dto.ToolDto;
+import com.siemens.metal_forming.dto.WebSocketDtoMapper;
 import com.siemens.metal_forming.entity.Plc;
+import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
@@ -11,6 +15,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,12 +28,14 @@ public class PlcAutomaticUpdateServiceSpec {
 
     private PlcAutomaticUpdateService plcAutomaticUpdateService;
     @Mock private PlcRepository plcRepository;
+    @Mock private SimpMessagingTemplate simpMessagingTemplate;
+    @Mock private WebSocketDtoMapper mapper;
     @Mock private PlcData plcData;
     @Captor ArgumentCaptor<Plc> plcCaptor;
 
     @BeforeEach
     void initialize(){
-        plcAutomaticUpdateService = new PlcAutomaticUpdateServiceImpl(plcRepository);
+        plcAutomaticUpdateService = new PlcAutomaticUpdateServiceImpl(plcRepository, simpMessagingTemplate, mapper);
     }
 
     @Test @DisplayName("updates firmware number in database")
@@ -58,34 +66,74 @@ public class PlcAutomaticUpdateServiceSpec {
         assertThat(plcCaptor.getValue().getHardwareInformation().getSerialNumber()).isEqualTo("SW-NEW-SERIAL-NUMBER");
     }
 
-    @Test @DisplayName("updates connection status in database")
-    void updatesConnectionStatusInDatabase(){
-        Plc plcInDatabase = new Plc();
+    @Nested @DisplayName("UPDATE CONNECTION STATUS")
+    class UpdateConnectionStatus{
+        @Test @DisplayName("sends updated connection status over websocket")
+        void sendsUpdatedConnectionStatusOverWebSocket(){
+            Plc plcInDatabase = new Plc();
+            PlcDto.Response.Connection plcDto = PlcDto.Response.Connection.builder().id(1L).connectionStatus(ConnectionStatus.CONNECTED).build();
 
-        when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
-        when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(mapper.toPlcDtoConnection(plcInDatabase)).thenReturn(plcDto);
 
-        plcAutomaticUpdateService.onConnectionStatusChange(plcData);
+            plcAutomaticUpdateService.onConnectionStatusChange(plcData);
 
-        verify(plcRepository, times(1)).save(plcCaptor.capture());
-        assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+            verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/connection-status", plcDto);
+        }
+
+        @Test @DisplayName("updates connection status in database")
+        void updatesConnectionStatusInDatabase(){
+            Plc plcInDatabase = new Plc();
+
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
+            when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+            plcAutomaticUpdateService.onConnectionStatusChange(plcData);
+
+            verify(plcRepository, times(1)).save(plcCaptor.capture());
+            assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
+        }
     }
 
 
 
-    @Nested @DisplayName("CHANGE CURRENT TOOL") @Disabled("Needs to be written after PlcData structure changes")
-    class ChangeCurrentTool{
 
-        @Test @DisplayName("if plc with given ip address is not found return throws exception")
-        void ifPlcIsNotFoundThrowsException(){
-//            //Mock
-//            when(plcRepository.findByIpAddress(ipOfNotExistentPlc)).thenReturn(Optional.empty());
-//
-//            assertThrows(PlcNotFoundException.class, () -> plcService.changeCurrentTool(ipOfNotExistentPlc, toolNumberOfExistingTool));
+    @Nested @DisplayName("CHANGE CURRENT TOOL")
+    class ChangeCurrentTool{
+        @Test @DisplayName("sends current tool number status over websocket")
+        void sendsCurrentToolNumberOverWebSocket(){
+            Plc plcInDatabase = Plc.builder().addTool(Tool.builder().toolNumber(1).build()).build();
+            PlcDto.Response.CurrentTool plcDto = PlcDto.Response.CurrentTool.builder().id(1L).toolNumber(1).build();
+
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getToolNumber()).thenReturn(1);
+            when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(mapper.toPlcDtoCurrentTool(plcInDatabase)).thenReturn(plcDto);
+
+            plcAutomaticUpdateService.onToolNumberChange(plcData);
+
+            verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/current-tool", plcDto);
         }
 
-        @Nested @DisplayName("PLC IS IN DATABASE")
+        @Test @DisplayName("sends new tool over websocket")
+        void sendsNewToolOverOverWebSocket(){
+            Plc plcInDatabase = Plc.builder().build();
+            PlcDto.Response.NewTool plcDto = PlcDto.Response.NewTool.builder().id(1L).newTool(ToolDto.Response.Overview.builder().build()).build();
+
+            when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+            when(plcData.getToolNumber()).thenReturn(1);
+            when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+            when(mapper.toPlcDtoNewTool(plcInDatabase)).thenReturn(plcDto);
+
+            plcAutomaticUpdateService.onToolNumberChange(plcData);
+
+            verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/new-tool", plcDto);
+        }
+
+        @Nested @DisplayName("PLC IS IN DATABASE") @Disabled("Needs to be written after PlcData structure changes")
         class PlcIsInDatabase{
 
             @Test @DisplayName("when tool exists in plc's tools than it is selected as current tool")

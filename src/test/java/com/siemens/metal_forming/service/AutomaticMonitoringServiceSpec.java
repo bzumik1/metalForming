@@ -3,6 +3,8 @@ package com.siemens.metal_forming.service;
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
+import com.siemens.metal_forming.dto.RestDtoMapper;
+import com.siemens.metal_forming.dto.log.LogDto;
 import com.siemens.metal_forming.entity.*;
 import com.siemens.metal_forming.entity.log.LogCreator;
 import com.siemens.metal_forming.enumerated.StopReactionType;
@@ -16,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -30,11 +34,13 @@ public class AutomaticMonitoringServiceSpec {
     @Mock LogCreator logCreator;
     @Mock CurveValidationService curveValidationService;
     @Mock PlcData plcData;
+    @Mock SimpMessagingTemplate simpMessagingTemplate;
+    @Mock RestDtoMapper mapper;
 
 
     @BeforeEach
     void initialize(){
-        automaticMonitoringService = new AutomaticMonitoringServiceImpl(plcRepository, logRepository, logCreator, curveValidationService);
+        automaticMonitoringService = new AutomaticMonitoringServiceImpl(plcRepository, logRepository, logCreator, curveValidationService, simpMessagingTemplate, mapper);
     }
 
 
@@ -59,7 +65,7 @@ public class AutomaticMonitoringServiceSpec {
             verify(curveValidationService, never()).validate(any(), any(), any());
         }
 
-        @Test @DisplayName("creates log and saves it to database and sends feedback to plc when curve wasn't valid")
+        @Test @DisplayName("creates log and saves it to database, sends it over WebSocket and sends feedback to plc when curve wasn't valid")
         void calculatesReferenceCurveWhenNeeded(){
             Plc testPlc = Plc.builder()
                     .currentTool(Tool.builder()
@@ -74,10 +80,12 @@ public class AutomaticMonitoringServiceSpec {
             when(plcData.getIpAddress()).thenReturn("192.168.0.1");
             when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(testPlc));
             when(curveValidationService.validate(any(), any(), any())).thenReturn(Set.of(new PointOfTorqueAndSpeed(1f,1f)));
+            when(mapper.toLogDtoOverview(any())).thenReturn(LogDto.Response.Overview.builder().build());
 
             automaticMonitoringService.onMeasuredCurveChange(plcData);
 
             verify(logRepository, times(1).description("Log wasn't created")).save(any());
+            verify(simpMessagingTemplate, times(1).description("Log wasn't sent over WebSocket")).convertAndSend(anyString(), any(LogDto.Response.Overview.class));
             verify(plcData, times(1).description("Feedback to PLC wasn't send")).immediateStop();
         }
     }

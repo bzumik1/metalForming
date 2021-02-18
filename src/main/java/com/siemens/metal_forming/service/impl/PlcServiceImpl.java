@@ -1,7 +1,7 @@
 package com.siemens.metal_forming.service.impl;
 
 import com.siemens.metal_forming.connection.PlcConnector;
-import com.siemens.metal_forming.dto.DtoMapper;
+import com.siemens.metal_forming.dto.RestDtoMapper;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 public class PlcServiceImpl implements PlcService {
     private final PlcRepository plcRepository;
     private final PlcConnector plcConnector;
-    private final DtoMapper dtoMapper;
+    private final RestDtoMapper dtoMapper;
 
     @Autowired
-    public PlcServiceImpl(PlcRepository plcRepository, PlcConnector plcConnector, DtoMapper dtoMapper) {
+    public PlcServiceImpl(PlcRepository plcRepository, PlcConnector plcConnector, RestDtoMapper dtoMapper) {
         this.plcRepository = plcRepository;
         this.plcConnector = plcConnector;
         this.dtoMapper = dtoMapper;

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("<= REFERENCE CURVE CALCULATION SPECIFICATION =>")
@@ -66,6 +67,26 @@ public class ReferenceCurveCalculationSpec {
                         new PointOfTorqueAndSpeed(20f, 40f),
                         new PointOfTorqueAndSpeed(100f/3f,65f),
                         new PointOfTorqueAndSpeed(42f, 80f));
+        softAssertions.assertAll();
+    }
+
+    @Test @DisplayName("updates calculation status")
+    void updatesCalculationStatus(){
+        ReferenceCurveCalculation referenceCurveCalculation = new ReferenceCurveCalculation(1);
+
+        Curve curve1 = Curve.builder()
+                .points(List.of(
+                        new PointOfTorqueAndSpeed(20f,40f),
+                        new PointOfTorqueAndSpeed(30f,60f),
+                        new PointOfTorqueAndSpeed(40f,80f)))
+                .build();
+
+        SoftAssertions softAssertions = new SoftAssertions();
+
+        softAssertions.assertThat(referenceCurveCalculation.getStatus().getCurrent()).as("Starts at 0").isEqualTo(0);
+        softAssertions.assertThat(referenceCurveCalculation.getStatus().getTotal()).as("Total is set to numberOfCalculations").isEqualTo(1);
+        referenceCurveCalculation.calculate(curve1);
+        softAssertions.assertThat(referenceCurveCalculation.getStatus().getCurrent()).as("Increases current when curve is added").isEqualTo(1);
         softAssertions.assertAll();
     }
 }
