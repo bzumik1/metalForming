@@ -23,7 +23,8 @@ public abstract class OpcuaConfiguration {
     OpcuaNodeConfiguration immediateStopIndicator;
     OpcuaNodeConfiguration topPositionStopIndicator;
 
-    OpcuaNodeConfiguration hmiTrend;
+    OpcuaNodeConfiguration measuredCurve;
+    OpcuaNodeConfiguration motorCurve;
 
 
     @Setter @Getter

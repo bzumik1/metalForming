@@ -4,6 +4,7 @@ import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.fail;
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
+@Disabled("Disabled because we don't use SockJS")
 public class WebSocketSpec {
     @LocalServerPort
     private Integer port;

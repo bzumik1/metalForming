@@ -1,13 +1,12 @@
 package com.siemens.metal_forming.connection;
 
 
-
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.service.AutomaticMonitoringService;
-import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
+import com.siemens.metal_forming.service.PlcAutomaticUpdateService;
 import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,17 +16,17 @@ import java.util.HashMap;
 
 @Component @Slf4j
 public class PlcConnectorImpl implements PlcConnector {
-    @Autowired
-    private PlcAutomaticUpdateServiceImpl plcUpdateService;
-    @Autowired
-    private AutomaticMonitoringService automaticMonitoringService;
-    @Autowired
-    private ReferenceCurveCalculationService referenceCurveCalculationService;
+    private final PlcAutomaticUpdateService plcAutomaticUpdateService;
+    private final AutomaticMonitoringService automaticMonitoringService;
+    private final ReferenceCurveCalculationService referenceCurveCalculationService;
     private final PlcDataProvider plcDataProvider;
     private final HashMap<String, PlcData> plcDataMap = new HashMap<>();
 
-    /** @noinspection SpringJavaInjectionPointsAutowiringInspection*/
-    public PlcConnectorImpl(@Autowired PlcDataProvider plcDataProvider) { //Correct implementation is selected based on application.properties
+    @Autowired
+    public PlcConnectorImpl(PlcAutomaticUpdateService plcAutomaticUpdateService, AutomaticMonitoringService automaticMonitoringService, ReferenceCurveCalculationService referenceCurveCalculationService, PlcDataProvider plcDataProvider) {
+        this.plcAutomaticUpdateService = plcAutomaticUpdateService;
+        this.automaticMonitoringService = automaticMonitoringService;
+        this.referenceCurveCalculationService = referenceCurveCalculationService; //Correct implementation is selected based on application.properties
         this.plcDataProvider = plcDataProvider;
     }
 
@@ -72,6 +71,7 @@ public class PlcConnectorImpl implements PlcConnector {
             plc.markAsConnected();
             plc.getHardwareInformation().setSerialNumber(plcData.getSerialNumber());
             plc.getHardwareInformation().setFirmwareNumber(plcData.getFirmwareNumber());
+            plc.setMotorCurve(plcData.getMotorCurve());
 
             // set current tool
             Integer currentToolNumber = plcData.getToolNumber();
@@ -97,11 +97,11 @@ public class PlcConnectorImpl implements PlcConnector {
     }
 
     private void registerForAutomaticPlcInformationUpdate(PlcData plcData){
-        plcData.registerConnectionStatusObserver(plcUpdateService);
-        plcData.registerFirmwareNumberObserver(plcUpdateService);
-        plcData.registerSerialNumberObserver(plcUpdateService);
-        plcData.registerToolNameObserver(plcUpdateService);
-        plcData.registerToolNumberObserver(plcUpdateService);
+        plcData.registerConnectionStatusObserver(plcAutomaticUpdateService);
+        plcData.registerFirmwareNumberObserver(plcAutomaticUpdateService);
+        plcData.registerSerialNumberObserver(plcAutomaticUpdateService);
+        plcData.registerToolNameObserver(plcAutomaticUpdateService);
+        plcData.registerToolNumberObserver(plcAutomaticUpdateService);
     }
 
     private void registerForCurveValidation(PlcData plcData){

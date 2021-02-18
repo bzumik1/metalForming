@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @SuperBuilder @Slf4j
-public abstract class PlcData implements SerialNumberSource, FirmwareNumberSource, ToolNameSource, ToolNumberSource, MeasuredCurveSource, ConnectionStatusSource {
+public abstract class PlcData implements SerialNumberSource, FirmwareNumberSource, ToolNameSource, ToolNumberSource, MeasuredCurveSource, MotorCurveSource, ConnectionStatusSource {
     @Getter
     protected final String ipAddress;
     @Getter
@@ -27,8 +27,8 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     Integer toolNumber;
     @Getter
     Curve measuredCurve;
-    //@Getter
-    //Curve motorCurve;
+    @Getter
+    Curve motorCurve;
     @Getter
     ConnectionStatus connectionStatus;
 
@@ -40,6 +40,7 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     final List<ToolNameObserver> toolNameObservers = new ArrayList<>();
     final List<ToolNumberObserver> toolNumberObservers = new ArrayList<>();
     final List<MeasuredCurveObserver> measuredCurveObservers = new ArrayList<>();
+    final List<MotorCurveObserver> motorCurveObservers = new ArrayList<>();
     final List<ConnectionStatusObserver> connectionStatusObservers = new ArrayList<>();
 
     protected PlcData(String ipAddress) {
@@ -87,6 +88,14 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
         }
     }
 
+    public void setMotorCurve(Curve motorCurveCurve) {
+        if(motorCurveCurve != null && !motorCurveCurve.equals(this.motorCurve)){
+            log.debug("Motor curve of PLC with IP address {} has changed to:\n\tTorque:{}\n\tSpeed: {}", ipAddress, motorCurveCurve.getTorqueValues(), motorCurveCurve.getSpeedValues());
+            this.motorCurve = motorCurveCurve;
+            notifyMotorCurveObservers();
+        }
+    }
+
     public void setConnectionStatus(ConnectionStatus connectionStatus) {
         if(connectionStatus != null && !connectionStatus.equals(this.connectionStatus)){
             log.debug("Connection status of PLC with IP address {} has changed from \"{}\" to \"{}\"", ipAddress, this.connectionStatus, connectionStatus);
@@ -126,6 +135,23 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     public void notifyMeasuredCurveObservers() {
         for(MeasuredCurveObserver observer : measuredCurveObservers){
             observer.onMeasuredCurveChange(this);
+        }
+    }
+
+    @Override
+    public void registerMotorCurveObserver(MotorCurveObserver motorCurveObserver) {
+        motorCurveObservers.add(motorCurveObserver);
+    }
+
+    @Override
+    public void removeMotorCurveObserver(MotorCurveObserver motorCurveObserver) {
+        motorCurveObservers.remove(motorCurveObserver);
+    }
+
+    @Override
+    public void notifyMotorCurveObservers() {
+        for(MotorCurveObserver observer : motorCurveObservers){
+            observer.onMotorCurveChange(this);
         }
     }
 

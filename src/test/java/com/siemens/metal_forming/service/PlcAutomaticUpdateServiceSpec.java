@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.dto.WebSocketDtoMapper;
@@ -9,6 +10,7 @@ import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
+import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +66,21 @@ public class PlcAutomaticUpdateServiceSpec {
 
         verify(plcRepository, times(1)).save(plcCaptor.capture());
         assertThat(plcCaptor.getValue().getHardwareInformation().getSerialNumber()).isEqualTo("SW-NEW-SERIAL-NUMBER");
+    }
+
+    @Test @DisplayName("updates motor curve in database")
+    void updatesMotorCurveInDatabase(){
+        Plc plcInDatabase = new Plc();
+        Curve motorCurve = new TestCurveBuilder().randomPoints(360).build();
+
+        when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+        when(plcData.getMotorCurve()).thenReturn(motorCurve);
+        when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+        plcAutomaticUpdateService.onMotorCurveChange(plcData);
+
+        verify(plcRepository, times(1)).save(plcCaptor.capture());
+        assertThat(plcCaptor.getValue().getMotorCurve()).isEqualTo(motorCurve);
     }
 
     @Nested @DisplayName("UPDATE CONNECTION STATUS")

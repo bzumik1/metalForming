@@ -181,7 +181,8 @@ public class PlcDataOpcua extends PlcData {
                 subscribe(configuration.getPlcFirmwareNumber().getNode(),1000,this::onFirmwareNumberChange),
                 subscribe(configuration.getToolNumber().getNode(),1,this::onToolNumberChange),
                 subscribe(configuration.getToolName().getNode(),1,this::onToolNameChange),
-                subscribe(configuration.getHmiTrend().getNode(),1,this::onHmiTrendChange));
+                subscribe(configuration.getMeasuredCurve().getNode(),1,this::onMeasuredCurveChange),
+                subscribe(configuration.getMotorCurve().getNode(),1000, this::onMotorCurveChange));
 
                 result.whenComplete((data,ex) -> {
                     if(ex != null){
@@ -210,11 +211,18 @@ public class PlcDataOpcua extends PlcData {
         setToolName((String)value.getValue().getValue());
     }
 
-    private void onHmiTrendChange(DataValue value) {
+    private void onMeasuredCurveChange(DataValue value) {
         Variant variant = value.getValue();
         ExtensionObject xo = (ExtensionObject) variant.getValue();
         CurveStructure curveStructure = (CurveStructure) xo.decode(client.getSerializationContext());
         setMeasuredCurve(new Curve(curveStructure.getTorque(), curveStructure.getSpeed()));
+    }
+
+    private void onMotorCurveChange(DataValue value) {
+        Variant variant = value.getValue();
+        ExtensionObject xo = (ExtensionObject) variant.getValue();
+        CurveStructure curveStructure = (CurveStructure) xo.decode(client.getSerializationContext());
+        setMotorCurve(new Curve(curveStructure.getTorque(), curveStructure.getSpeed()));
     }
 
     private void registerHmiTrendCodec(OpcUaClient client) {
