@@ -17,6 +17,8 @@ import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
+import org.eclipse.milo.opcua.sdk.client.subscriptions.ManagedDataItem;
+import org.eclipse.milo.opcua.sdk.client.subscriptions.ManagedSubscription;
 import org.eclipse.milo.opcua.stack.client.DiscoveryClient;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
@@ -116,6 +118,14 @@ public class PlcDataOpcua extends PlcData {
                         setConnectionStatus(ConnectionStatus.DISCONNECTED);
                     }
                 });
+                uaClient.getSubscriptionManager().addSubscriptionListener(new UaSubscriptionManager.SubscriptionListener() {
+                    @Override
+                    public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
+                        log.warn("Subscription transfer for PLC with IP address failed: {}, clearing old subscriptions and resubscribing again", statusCode);
+                        uaClient.getSubscriptionManager().clearSubscriptions();
+                        subscribeAll();
+                    }
+                });
 
                 // Register codecs
                 registerHmiTrendCodec(uaClient);
@@ -145,7 +155,7 @@ public class PlcDataOpcua extends PlcData {
 
     private void reconnect(){
         reconnectionNumber++;
-        log.debug("Attempt to connect PLC with IP address {} number: {}",ipAddress,reconnectionNumber);
+        log.debug("Attempt to connect PLC with IP address {}: {}s",ipAddress,2*reconnectionNumber);
         try {
             Thread.sleep(2000);
             createClient();
@@ -160,57 +170,41 @@ public class PlcDataOpcua extends PlcData {
             //Connects client and subscribe to given variables
             client.connect().get();
             subscribeAll().get();
-            Thread.sleep(2000); //ToDo -> solve it somehow, that it would wait till all values were read
         } catch (InterruptedException| ExecutionException e) {
             log.error("There was problem with creation of client: {}",e.getMessage());
         }
     }
 
-    private CompletableFuture<Void> subscribe(NodeId nodeToSubscribe, double samplingInterval, Consumer<DataValue> onChangeDo) {
-        Function<UaSubscription, List<MonitoredItemCreateRequest>> createRequests = subscription ->{
-            // what to read
-            ReadValueId readValueId = new ReadValueId(nodeToSubscribe, AttributeId.Value.uid(), null, null);
+    private CompletableFuture<DataValue> subscribe(NodeId nodeToSubscribe, double samplingInterval, Consumer<DataValue> onChangeDo){
+        CompletableFuture<DataValue> result = new CompletableFuture<>();
+        try{
+            //sets parameters of subscription
+            ManagedSubscription subscription = ManagedSubscription.create(client, samplingInterval);
+            subscription.setDefaultSamplingInterval(samplingInterval);
+            subscription.setDefaultQueueSize(uint(10));
 
-            // monitoring parameters
-            UInteger clientHandle = subscription.nextClientHandle();
-            MonitoringParameters parameters = new MonitoringParameters(clientHandle, samplingInterval, null, uint(10), true);
+            //adds "onChange" action
+            ManagedDataItem managedDataItem = subscription.createDataItem(nodeToSubscribe, item -> item.addDataValueListener(onChangeDo));
 
-            // creation request
-            MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(readValueId, MonitoringMode.Reporting, parameters);
+            //wait till first value was read
+            ManagedDataItem.DataValueListener listener = managedDataItem.addDataValueListener(result::complete);
+            result.whenComplete((v,e) -> managedDataItem.removeDataValueListener(listener));
+        } catch (UaException e){
+            result.completeExceptionally(e);
+        }
 
-            return List.of(request);
-        };
-
-        // setting the consumer after the subscription creation
-        BiConsumer<UaMonitoredItem, Integer> onItemCreated = (monitoredItem, id) -> monitoredItem.setValueConsumer(onChangeDo);
-
-
-        UaSubscriptionManager manager = client.getSubscriptionManager();
-        manager.addSubscriptionListener(new UaSubscriptionManager.SubscriptionListener() {
-            // resubscribe when subscription could not be transferred after connection interrupt
-            // (this happens usually when server is restarted)
-            @Override
-            public void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode) {
-                log.debug("Unable to transfer subscription, resubscribing to "+ nodeToSubscribe.toString());
-                subscribe(nodeToSubscribe,samplingInterval,onChangeDo);
-            }
-        });
-
-        return manager
-                .createSubscription(10.0)
-                .thenCompose(subscription -> subscription.createMonitoredItems(TimestampsToReturn.Both, createRequests.apply(subscription),onItemCreated))
-                .thenApply(object -> null);
+        return result;
     }
 
     private CompletableFuture<Void> subscribeAll(){
+        CompletableFuture<Void> result = CompletableFuture.allOf(
+                subscribe(configuration.getPlcSerialNumber().getNode(), 1000,this::onSerialNumberChange),
+                subscribe(configuration.getPlcFirmwareNumber().getNode(),1000,this::onFirmwareNumberChange),
+                subscribe(configuration.getToolNumber().getNode(),1,this::onToolNumberChange),
+                subscribe(configuration.getToolName().getNode(),1,this::onToolNameChange),
+                subscribe(configuration.getHmiTrend().getNode(),1,this::onHmiTrendChange));
 
-        return subscribe(configuration.getPlcSerialNumber().getNode(), 1000,this::onSerialNumberChange)
-                .thenCompose(nothing -> subscribe(configuration.getPlcFirmwareNumber().getNode(),1000,this::onFirmwareNumberChange))
-                .thenCompose(nothing -> subscribe(configuration.getToolNumber().getNode(),1,this::onToolNumberChange))
-                .thenCompose(nothing -> subscribe(configuration.getToolName().getNode(),1,this::onToolNameChange))
-                .thenCompose(nothing -> subscribe(configuration.getHmiTrend().getNode(),1,this::onHmiTrendChange))
-
-                .whenComplete((nothing,ex) -> {
+                result.whenComplete((data,ex) -> {
                     if(ex != null){
                         log.error("Subscription over OPC UA to plc with IP address {} was not successful",ipAddress);
                         throw new RuntimeException("SUBSCRIPTION ERROR"); //TODO create own exception
@@ -218,6 +212,7 @@ public class PlcDataOpcua extends PlcData {
                         log.info("Subscription over OPC UA to plc with IP address {} was successful",ipAddress);
                     }
                 });
+        return result;
     }
 
     private void onSerialNumberChange(DataValue value) {
