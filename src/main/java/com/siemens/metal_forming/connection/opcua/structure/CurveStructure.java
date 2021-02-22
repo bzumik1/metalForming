@@ -13,13 +13,13 @@ import java.util.List;
 
 @Getter @NoArgsConstructor(force = true)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class HmiTrend implements UaStructure {
-    public static final ExpandedNodeId TYPE_ID = ExpandedNodeId.parse("ns=3;s=DT_\"PrServo_typeRuntimeDriveDiagnosticsProcessValuesTrends\".\"hmiTrend\"");
-    public static final ExpandedNodeId BINARY_ENCODING_ID = ExpandedNodeId.parse("ns=3;s=TE_\"PrServo_typeRuntimeDriveDiagnosticsProcessValuesTrends\".\"hmiTrend\"");
+public class CurveStructure implements UaStructure {
+    public static final ExpandedNodeId TYPE_ID = ExpandedNodeId.parse("ns=3;s=DT_\"PrUni_typeTorqueSpeedCharacteristicValues\"");
+    public static final ExpandedNodeId BINARY_ENCODING_ID = ExpandedNodeId.parse("ns=3;s=TE_\"PrUni_typeTorqueSpeedCharacteristicValues\"");
     List<Float> torque;
     List<Float> speed;
 
-    public HmiTrend(Float[] torque, Float[] speed){
+    public CurveStructure(Float[] torque, Float[] speed){
         this.torque = List.of(torque);
         this.speed = List.of(speed);
     }
@@ -40,30 +40,30 @@ public class HmiTrend implements UaStructure {
         return ExpandedNodeId.NULL_VALUE;
     }
 
-    public static class Codec extends GenericDataTypeCodec<HmiTrend> {
+    public static class Codec extends GenericDataTypeCodec<CurveStructure> {
         @Override
-        public Class<HmiTrend> getType() {
-            return HmiTrend.class;
+        public Class<CurveStructure> getType() {
+            return CurveStructure.class;
         }
 
         @Override
-        public HmiTrend decode(
+        public CurveStructure decode(
                 SerializationContext context,
                 UaDecoder decoder) throws UaSerializationException {
 
-            Float[] torqueArray = decoder.readFloatArray("motorTorque");
-            Float[] speedArray = decoder.readFloatArray("motorSpeed");
+            Float[] torqueArray = decoder.readFloatArray("torque");
+            Float[] speedArray = decoder.readFloatArray("speed");
 
-            return new HmiTrend(torqueArray,speedArray);
+            return new CurveStructure(torqueArray,speedArray);
         }
 
         @Override
         public void encode(
                 SerializationContext context,
-                UaEncoder encoder, HmiTrend value) throws UaSerializationException {
+                UaEncoder encoder, CurveStructure value) throws UaSerializationException {
 
-            encoder.writeFloatArray("motorTorque", value.torque.toArray(Float[]::new));
-            encoder.writeFloatArray("motorTorque", value.speed.toArray(Float[]::new));
+            encoder.writeFloatArray("speed", value.torque.toArray(Float[]::new));
+            encoder.writeFloatArray("torque", value.speed.toArray(Float[]::new));
         }
     }
 }

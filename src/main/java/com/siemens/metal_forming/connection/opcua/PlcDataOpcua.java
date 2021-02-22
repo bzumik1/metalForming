@@ -2,9 +2,10 @@ package com.siemens.metal_forming.connection.opcua;
 
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfiguration;
-import com.siemens.metal_forming.connection.opcua.structure.HmiTrend;
+import com.siemens.metal_forming.connection.opcua.structure.CurveStructure;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaClientException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -48,12 +49,7 @@ public class PlcDataOpcua extends PlcData {
     }
 
     @Override
-    public void immediateStop() {
-
-    }
-
-    @Override
-    public void topPositionStop() {
+    public void notifyPlcAboutCollision(StopReactionType stopReactionType) {
 
     }
 
@@ -181,7 +177,8 @@ public class PlcDataOpcua extends PlcData {
                 subscribe(configuration.getPlcFirmwareNumber().getNode(),1000,this::onFirmwareNumberChange),
                 subscribe(configuration.getToolNumber().getNode(),1,this::onToolNumberChange),
                 subscribe(configuration.getToolName().getNode(),1,this::onToolNameChange),
-                subscribe(configuration.getHmiTrend().getNode(),1,this::onHmiTrendChange));
+                subscribe(configuration.getMeasuredCurve().getNode(),1,this::onMeasuredCurveChange),
+                subscribe(configuration.getMotorCurve().getNode(),1000, this::onMotorCurveChange));
 
                 result.whenComplete((data,ex) -> {
                     if(ex != null){
@@ -210,19 +207,26 @@ public class PlcDataOpcua extends PlcData {
         setToolName((String)value.getValue().getValue());
     }
 
-    private void onHmiTrendChange(DataValue value) {
+    private void onMeasuredCurveChange(DataValue value) {
         Variant variant = value.getValue();
         ExtensionObject xo = (ExtensionObject) variant.getValue();
-        HmiTrend hmiTrend = (HmiTrend) xo.decode(client.getSerializationContext());
-        setMeasuredCurve(new Curve(hmiTrend.getTorque(), hmiTrend.getSpeed()));
+        CurveStructure curveStructure = (CurveStructure) xo.decode(client.getSerializationContext());
+        setMeasuredCurve(new Curve(curveStructure.getTorque(), curveStructure.getSpeed()));
+    }
+
+    private void onMotorCurveChange(DataValue value) {
+        Variant variant = value.getValue();
+        ExtensionObject xo = (ExtensionObject) variant.getValue();
+        CurveStructure curveStructure = (CurveStructure) xo.decode(client.getSerializationContext());
+        setMotorCurve(new Curve(curveStructure.getTorque(), curveStructure.getSpeed()));
     }
 
     private void registerHmiTrendCodec(OpcUaClient client) {
-        NodeId binaryEncodingId = HmiTrend.BINARY_ENCODING_ID
+        NodeId binaryEncodingId = CurveStructure.BINARY_ENCODING_ID
                 .toNodeId(client.getNamespaceTable())
                 .orElseThrow(() -> new IllegalStateException("namespace not found"));
 
         // Register codec with the client DataTypeManager instance
-        client.getDataTypeManager().registerCodec(binaryEncodingId, new HmiTrend.Codec().asBinaryCodec());
+        client.getDataTypeManager().registerCodec(binaryEncodingId, new CurveStructure.Codec().asBinaryCodec());
     }
 }

@@ -86,7 +86,7 @@ public class AutomaticMonitoringServiceSpec {
 
             verify(logRepository, times(1).description("Log wasn't created")).save(any());
             verify(simpMessagingTemplate, times(1).description("Log wasn't sent over WebSocket")).convertAndSend(anyString(), any(LogDto.Response.Overview.class));
-            verify(plcData, times(1).description("Feedback to PLC wasn't send")).immediateStop();
+            verify(plcData, times(1).description("Feedback to PLC wasn't send")).notifyPlcAboutCollision(any());
         }
     }
 

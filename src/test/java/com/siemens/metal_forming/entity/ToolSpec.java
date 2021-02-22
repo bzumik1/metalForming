@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.entity;
 
 import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
+import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import lombok.AccessLevel;
@@ -29,7 +30,24 @@ class ToolSpec extends EntitySpec {
         super(Tool.class);
     }
 
-    @Nested @DisplayName("validation")
+    @Nested @DisplayName("AFTER CREATION")
+    class AfterCreation{
+        @Test @DisplayName("tool is created with StopReaction DO_NOTHING (New)")
+        void toolIsCreatedWithDefaultStopReactionNew(){
+            Tool testTool = new Tool();
+
+            assertThat(testTool.getStopReaction()).isEqualTo(StopReactionType.DO_NOTHING);
+        }
+
+        @Test @DisplayName("tool is created with StopReaction DO_NOTHING (Builder)")
+        void toolIsCreatedWithDefaultStopReactionBuilder(){
+            Tool testTool = Tool.builder().build();
+
+            assertThat(testTool.getStopReaction()).isEqualTo(StopReactionType.DO_NOTHING);
+        }
+    }
+
+    @Nested @DisplayName("VALIDATION")
     class validation{
 
         @BeforeEach

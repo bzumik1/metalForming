@@ -1,10 +1,17 @@
 package com.siemens.metal_forming.connection;
 
 import com.siemens.metal_forming.connection.opcua.PlcDataOpcua;
+import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.service.AutomaticMonitoringService;
+import com.siemens.metal_forming.service.PlcAutomaticUpdateService;
+import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
+import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,13 +25,17 @@ import static org.mockito.Mockito.*;
 
 @DisplayName("<= PLC CONNECTOR SPECIFICATION =>")
 @ExtendWith(MockitoExtension.class)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class PlcConnectorSpec {
-    private PlcConnector plcConnector;
-    @Mock private PlcDataProvider plcDataProvider;
+    PlcConnector plcConnector;
+    @Mock PlcDataProvider plcDataProvider;
+    @Mock PlcAutomaticUpdateService plcAutomaticUpdateService;
+    @Mock AutomaticMonitoringService automaticMonitoringService;
+    @Mock ReferenceCurveCalculationService referenceCurveCalculationService;
 
     @BeforeEach
     void initialize(){
-        plcConnector = new PlcConnectorImpl(plcDataProvider);
+        plcConnector = new PlcConnectorImpl(plcAutomaticUpdateService, automaticMonitoringService, referenceCurveCalculationService, plcDataProvider);
     }
 
     @Nested @DisplayName("CONNECT")
@@ -32,6 +43,7 @@ public class PlcConnectorSpec {
         @Test @DisplayName("updates information about PLC and connect it")
         void updatesInformationAboutPlcAndConnectIt(){
             Plc plcToConnect = Plc.builder().name("newPlc").ipAddress("192.168.0.1").build();
+            Curve motorCurve = new TestCurveBuilder().randomPoints(360).build();
             PlcData plcData = PlcDataOpcua.builder()
                     .connectionStatus(ConnectionStatus.CONNECTED)
                     .serialNumber("SN 01")
@@ -39,6 +51,7 @@ public class PlcConnectorSpec {
                     .MaxOperationSpeed(10)
                     .toolName("newTool")
                     .toolNumber(1)
+                    .motorCurve(motorCurve)
                     .build();
 
             when(plcDataProvider.getPlcData("192.168.0.1")).thenReturn(plcData);
@@ -56,6 +69,7 @@ public class PlcConnectorSpec {
             softAssertions.assertThat(updatedPlc.getConnection().getStatus()).as("connection status should be set").isEqualTo(ConnectionStatus.CONNECTED);
             softAssertions.assertThat(updatedPlc.getHardwareInformation().getSerialNumber()).as("serialNumber should be set").isEqualTo("SN 01");
             softAssertions.assertThat(updatedPlc.getHardwareInformation().getFirmwareNumber()).as("firmwareNumber should be set").isEqualTo("FW 01");
+            softAssertions.assertThat(updatedPlc.getMotorCurve()).as("motorCurve").isEqualTo(motorCurve);
 
             //tool
             softAssertions.assertThat(updatedPlc.getTools().size()).as("tool should be added").isEqualTo(1);

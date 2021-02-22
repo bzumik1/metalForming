@@ -115,4 +115,17 @@ public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService 
             log.error("Connection status of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
         }
     }
+
+    @Override
+    public void onMotorCurveChange(PlcData plcData) {
+        Optional<Plc> optionalPlcInDb = plcRepository.findByIpAddress(plcData.getIpAddress());
+        if(optionalPlcInDb.isPresent()){
+            Plc plcInDb = optionalPlcInDb.get();
+            log.info("Updating motor curve of PLC with id {} in database",plcInDb.getId());
+            plcInDb.setMotorCurve(plcData.getMotorCurve());
+            plcRepository.save(plcInDb);
+        } else {
+            log.error("Connection status of PLC with IP address {} should be updated, but this PLC wasn't found in database", plcData.getIpAddress());
+        }
+    }
 }
