@@ -32,7 +32,6 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     Curve motorCurve;
     @Getter
     ConnectionStatus connectionStatus;
-
     @Getter
     int MaxOperationSpeed;
 
