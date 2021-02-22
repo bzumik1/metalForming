@@ -59,15 +59,12 @@ public class AutomaticMonitoringServiceImpl implements AutomaticMonitoringServic
                     //Creates log in database and sends it over WebSocket
                     Log log = logCreator.create(plcInDb, measuredCurve, collisionPoints);
                     logRepository.save(log);
+
+                    //Sends new log over WebSocket
                     simpMessagingTemplate.convertAndSend("/topic/logs/new-log",mapper.toLogDtoOverview(log));
 
                     //Sends signal back to PLC
-                    switch (currentTool.getStopReaction()){ //ToDo switch should be in PlcData
-                        case IMMEDIATE:
-                            plcData.immediateStop();
-                        case TOP_POSITION:
-                            plcData.topPositionStop();
-                    }
+                    plcData.notifyPlcAboutCollision(currentTool.getStopReaction());
                 }
             } else {
                 log.debug("New curve wasn't validated because automatic monitoring for current tool with toolNumber {} is disabled",currentTool.getToolNumber());

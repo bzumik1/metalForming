@@ -5,6 +5,7 @@ import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfigurati
 import com.siemens.metal_forming.connection.opcua.structure.CurveStructure;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.exception.exceptions.OpcuaClientException;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -48,12 +49,7 @@ public class PlcDataOpcua extends PlcData {
     }
 
     @Override
-    public void immediateStop() {
-
-    }
-
-    @Override
-    public void topPositionStop() {
+    public void notifyPlcAboutCollision(StopReactionType stopReactionType) {
 
     }
 

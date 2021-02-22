@@ -3,6 +3,7 @@ package com.siemens.metal_forming.connection;
 import com.siemens.metal_forming.connection.observer.*;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.StopReactionType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -233,7 +234,6 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     }
 
 
-    public abstract void immediateStop();
-    public abstract void topPositionStop();
+    public abstract void notifyPlcAboutCollision(StopReactionType stopReaction);
     public abstract void disconnect();
 }
