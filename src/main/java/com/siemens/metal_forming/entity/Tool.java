@@ -45,7 +45,8 @@ public class Tool{
 
     @Enumerated(EnumType.STRING)
     @Column(name = "stop_reaction")
-    StopReactionType stopReaction;
+    @Builder.Default
+    StopReactionType stopReaction = StopReactionType.DO_NOTHING;
 
     @NotNull
     @Column(name = "automatic_monitoring", nullable = false)
