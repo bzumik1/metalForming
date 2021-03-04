@@ -42,7 +42,7 @@ RUN cp -a /src/metal-forming-fe/dist/metal-forming/. /src/metalForming/src/main/
 
 #PRODUCTION CONTAINER
 FROM adoptopenjdk/openjdk11:debian-slim
-LABEL maintainer jakub.znamenacek@siemens.com
+LABEL maintainer="jakub.znamenacek@siemens.com"
 RUN mkdir app
 RUN ["chmod", "+rwx", "/app"]
 WORKDIR /app
