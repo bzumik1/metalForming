@@ -1,0 +1,36 @@
+version: '2.4'
+services:
+  app:
+    build:
+      context: .
+      args:
+        - SSH_PRIVATE_KEY
+    logging:
+      options:
+        max-size: 10m
+        max-file: '5'
+      driver: json-file
+    environment:
+      - "JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005" #IntelliJ Remote Debugging to container
+    ports:
+      - "3000:3000"
+      - "5005:5005" #IntelliJ Remote Debugging to container
+
+    depends_on:
+      - db
+
+  db:
+    build:
+      context: database
+    logging:
+      options:
+        max-file: '5'
+        max-size: 10m
+      driver: json-file
+    volumes:
+      - '/var/lib/postgresql/data'
+    environment:
+      POSTGRES_PASSWORD: edge
+      POSTGRES_DB: MetalForming
+    ports:
+      - "5432:5432"
