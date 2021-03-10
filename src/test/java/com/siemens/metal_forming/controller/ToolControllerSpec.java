@@ -37,7 +37,7 @@ public class ToolControllerSpec {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private final String path = "/plcs/{plcId}/tools";
+    private final String path = "/api/plcs/{plcId}/tools";
 
     @BeforeEach
     void initialize(){
@@ -46,7 +46,7 @@ public class ToolControllerSpec {
 
     @Nested @DisplayName("FIND ALL TOOLS")
     class FindAllTools{
-        private final static String findAllPath = "/plcs/tools";
+        private final static String findAllPath = "/api/plcs/tools";
         @Test @DisplayName("returns tools in database")
         void returnsToolsInDatabase() throws Exception {
             ToolDto.Response.Overview toolDtoToReturn1 = ToolDto.Response.Overview.builder().id(1L).build();

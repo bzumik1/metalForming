@@ -40,7 +40,7 @@ public class PlcControllerSpec {
     @MockBean
     private PlcService plcService;
 
-    private final String path = "/plcs";
+    private final String path = "/api/plcs";
 
     @BeforeEach
     void initialize(){

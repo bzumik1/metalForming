@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "Logs")
 @RestController
-@RequestMapping(path = "/logs")
+@RequestMapping(path = "/api/logs")
 public class LogController {
     private final LogService logService;
     private final RestDtoMapper dtoMapper;

@@ -13,7 +13,7 @@ import java.util.List;
 
 @Tag(name = "Tools")
 @RestController
-@RequestMapping(path = "/plcs")
+@RequestMapping(path = "/api/plcs")
 public class ToolController {
     private final ToolService toolService;
 

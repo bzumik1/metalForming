@@ -46,6 +46,8 @@ public class LogControllerSpec {
     @Captor
     ArgumentCaptor<Set<Long>> idsCaptor;
 
+    final String path = "/api/logs";
+
     @BeforeEach
     void initialize(){
         Mockito.reset(dtoMapper, logService);
@@ -56,7 +58,7 @@ public class LogControllerSpec {
 
         @Test @DisplayName("returns 200 Ok when everything is ok")
         void returnsOkWhenEverythingIsOk() throws Exception {
-            mvc.perform(get("/logs")
+            mvc.perform(get(path)
                     .param("tool-id", "1"))
                     .andExpect(status().isOk());
         }
@@ -72,7 +74,7 @@ public class LogControllerSpec {
             when(dtoMapper.toLogDtoOverview(log1)).thenReturn(logDto1);
             when(dtoMapper.toLogDtoOverview(log2)).thenReturn(logDto2);
 
-            MvcResult mvcResult = mvc.perform(get("/logs")
+            MvcResult mvcResult = mvc.perform(get(path)
                     .param("tool-id","1")).andReturn();
 
             assertThat(mvcResult.getResponse().getContentAsString())
@@ -84,7 +86,7 @@ public class LogControllerSpec {
         @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
         @DisplayName("allows CORS from all origins")
         void allowsCorsFromAllOrigins(String origin) throws Exception {
-            mvc.perform(options("/logs")
+            mvc.perform(options(path)
                     .header("Access-Control-Request-Method", "GET")
                     .header("Origin", origin))
                     .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
@@ -96,7 +98,7 @@ public class LogControllerSpec {
 
         @Test @DisplayName("returns 200 Ok when everything is ok")
         void returnsOkWhenEverythingIsOk() throws Exception {
-            mvc.perform(get("/logs/{id}",1L))
+            mvc.perform(get(path +"/{id}",1L))
                     .andExpect(status().isOk());
         }
 
@@ -108,7 +110,7 @@ public class LogControllerSpec {
             when(logService.findById(1L)).thenReturn(log1);
             when(dtoMapper.toLogDtoDetail(log1)).thenReturn(logDto1);
 
-            MvcResult mvcResult = mvc.perform(get("/logs/{id}",1L))
+            MvcResult mvcResult = mvc.perform(get(path + "/{id}",1L))
                     .andReturn();
 
             assertThat(mvcResult.getResponse().getContentAsString())
@@ -119,7 +121,7 @@ public class LogControllerSpec {
         void returnsNotFoundWhenLogDoesNotExist() throws Exception {
             Mockito.when(logService.findById(1L)).thenThrow(new LogNotFoundException(1L));
 
-            mvc.perform(get("/logs/{id}",1L))
+            mvc.perform(get(path + "/{id}",1L))
                     .andExpect(status().isNotFound());
         }
 
@@ -127,7 +129,7 @@ public class LogControllerSpec {
         void returnsCorrectBodyWhenLogWasNotFound() throws Exception {
             Mockito.when(logService.findById(1L)).thenThrow(new LogNotFoundException(1L));
 
-            MvcResult mvcResult = mvc.perform(get("/logs/{id}",1L))
+            MvcResult mvcResult = mvc.perform(get(path + "/{id}",1L))
                     .andReturn();
 
             assertThat(mvcResult.getResponse().getContentAsString())
@@ -139,7 +141,7 @@ public class LogControllerSpec {
         @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
         @DisplayName("allows CORS from all origins")
         void allowsCorsFromAllOrigins(String origin) throws Exception {
-            mvc.perform(options("/logs/{id}",1L)
+            mvc.perform(options(path + "/{id}",1L)
                     .header("Access-Control-Request-Method", "GET")
                     .header("Origin", origin))
                     .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
@@ -153,7 +155,7 @@ public class LogControllerSpec {
             Set<Long> idsToDelete = Set.of(1L, 2L, 3L);
             String idsToDeleteJson = objectMapper.writeValueAsString(idsToDelete);
 
-            mvc.perform(delete("/logs")
+            mvc.perform(delete(path)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(idsToDeleteJson))
                     .andExpect(status().isOk());
@@ -166,7 +168,7 @@ public class LogControllerSpec {
             Set<Long> idsToDelete = Set.of(1L, 2L, 3L);
             String idsToDeleteJson = objectMapper.writeValueAsString(idsToDelete);
 
-            mvc.perform(delete("/logs")
+            mvc.perform(delete(path)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(idsToDeleteJson))
                     .andExpect(status().isOk());
@@ -179,7 +181,7 @@ public class LogControllerSpec {
 
             doThrow(new LogNotFoundException(Set.of(1L, 3L))).when(logService).delete(idsToDelete);
 
-            mvc.perform(delete("/logs")
+            mvc.perform(delete(path)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(idsToDeleteJson))
                     .andExpect(status().isNotFound());
@@ -192,7 +194,7 @@ public class LogControllerSpec {
 
             doThrow(new LogNotFoundException(Set.of(1L, 3L))).when(logService).delete(idsToDelete);
 
-            MvcResult mvcResult = mvc.perform(delete("/logs")
+            MvcResult mvcResult = mvc.perform(delete(path)
                                                     .contentType(MediaType.APPLICATION_JSON)
                                                     .content(idsToDeleteJson))
                                         .andReturn();
@@ -202,7 +204,7 @@ public class LogControllerSpec {
 
         @Test @DisplayName("ignores duplicate ids")
         void ignoresDuplicateIds() throws Exception {
-            mvc.perform(delete("/logs")
+            mvc.perform(delete(path)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("[1,2,3,3,2,4]"))
                     .andExpect(status().isOk());
@@ -216,7 +218,7 @@ public class LogControllerSpec {
         @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
         @DisplayName("allows CORS from all origins")
         void allowsCorsFromAllOrigins(String origin) throws Exception {
-            mvc.perform(options("/logs")
+            mvc.perform(options(path)
                     .header("Access-Control-Request-Method", "DELETE")
                     .header("Origin", origin))
                     .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
@@ -230,7 +232,7 @@ public class LogControllerSpec {
             LogDto.Request.Update logDto = LogDto.Request.Update.builder().comment("new comment").build();
             String logDtoJson = objectMapper.writeValueAsString(logDto);
 
-            mvc.perform(put("/logs/{id}",1L)
+            mvc.perform(put(path + "/{id}",1L)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(logDtoJson));
 
@@ -243,11 +245,10 @@ public class LogControllerSpec {
             LogDto.Request.Update logDto = LogDto.Request.Update.builder().comment("new comment").build();
             String logDtoJson = objectMapper.writeValueAsString(logDto);
 
-            MvcResult mvcResult = mvc.perform(put("/logs/{id}",1L)
+            mvc.perform(put(path + "/{id}",1L)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(logDtoJson))
-                    .andReturn();
-            System.out.println();
+                    .andExpect(status().isOk());
         }
 
 
@@ -258,7 +259,7 @@ public class LogControllerSpec {
 
             Mockito.when(logService.updateComment(1L,"new comment")).thenThrow(new LogNotFoundException(1L));
 
-            mvc.perform(put("/logs/{id}",1L)
+            mvc.perform(put(path + "/{id}",1L)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(logDtoJson))
                     .andExpect(status().isNotFound());
@@ -271,7 +272,7 @@ public class LogControllerSpec {
 
             Mockito.when(logService.updateComment(1L,"new comment")).thenThrow(new LogNotFoundException(1L));
 
-            MvcResult mvcResult = mvc.perform(put("/logs/{id}",1L)
+            MvcResult mvcResult = mvc.perform(put(path + "/{id}",1L)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(logDtoJson))
                     .andReturn();
@@ -291,7 +292,7 @@ public class LogControllerSpec {
             when(logService.updateComment(1L,"new comment")).thenReturn(logAfterUpdating);
             when(dtoMapper.toLogDtoOverview(logAfterUpdating)).thenReturn(logDtoWhichShouldBeReturned);
 
-            MvcResult mvcResult = mvc.perform(put("/logs/{id}", 1L)
+            MvcResult mvcResult = mvc.perform(put(path + "/{id}", 1L)
                                                     .contentType(MediaType.APPLICATION_JSON)
                                                     .content(logDtoJson))
                                         .andReturn();
@@ -304,7 +305,7 @@ public class LogControllerSpec {
         @ValueSource(strings = {"http://localhost:4200", "http://localhost:4201","http://random-page.com"})
         @DisplayName("allows CORS from all origins")
         void allowsCorsFromAllOrigins(String origin) throws Exception {
-            mvc.perform(options("/logs/{id}",1L)
+            mvc.perform(options(path + "/{id}",1L)
                     .header("Access-Control-Request-Method", "PUT")
                     .header("Origin", origin))
                     .andExpect(status().isOk()); //when cors doesn't work returns 403 Forbidden
