@@ -29,7 +29,7 @@ RUN git clone git@github.com:bzumik1/metalForming.git
 # builds front-end
 WORKDIR /src/metal-forming-fe
 RUN npm ci
-RUN ng build
+RUN ng build --prod
 
 # builds back-end with front-end in static folder
 WORKDIR /src/metalForming
