@@ -25,10 +25,10 @@ git checkout $branch
 
 #build FE
 print_with_color "BUILDING ...\n"
-pushd ./tmp
+pushd ./tmps || { printf "CAN NOT FIND TMP FOLDER"; exit;}
 npm install
 ng build --prod
-popd
+popd || { printf "RETURN TO ROOT FOLDER FAILED"; exit;}
 
 
 print_with_color "COPYING ...\n"
