@@ -62,8 +62,8 @@ public class CurveStructure implements UaStructure {
                 SerializationContext context,
                 UaEncoder encoder, CurveStructure value) throws UaSerializationException {
 
-            encoder.writeFloatArray("speed", value.speed.toArray(Float[]::new));
             encoder.writeFloatArray("torque", value.torque.toArray(Float[]::new));
+            encoder.writeFloatArray("speed", value.speed.toArray(Float[]::new));
         }
     }
 }

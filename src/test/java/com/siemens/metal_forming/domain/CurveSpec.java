@@ -1,4 +1,4 @@
-package com.siemens.metal_forming.entity;
+package com.siemens.metal_forming.domain;
 
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
@@ -53,11 +53,11 @@ class CurveSpec  extends EntitySpec {
         @Test @DisplayName("creates curve with correct points")
         void createsCurveWithCorrectPoints(){
             List<Float> torque = List.of(1f, 2f);
-            List<Float> speed = List.of(1f, 2f);
+            List<Float> speed = List.of(3f, 4f);
 
             Curve curve = new Curve(torque, speed);
 
-            assertThat(curve.getPoints()).containsExactly(new PointOfTorqueAndSpeed(1f, 1f), new PointOfTorqueAndSpeed(2f, 2f));
+            assertThat(curve.getPoints()).containsExactly(new PointOfTorqueAndSpeed(1f, 3f), new PointOfTorqueAndSpeed(2f, 4f));
         }
     }
 

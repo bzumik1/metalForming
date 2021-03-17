@@ -1,4 +1,4 @@
-package com.siemens.metal_forming.entity;
+package com.siemens.metal_forming.domain;
 
 import org.junit.jupiter.api.DisplayName;
 
