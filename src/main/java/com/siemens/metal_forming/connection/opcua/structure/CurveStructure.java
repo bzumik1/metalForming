@@ -51,8 +51,9 @@ public class CurveStructure implements UaStructure {
                 SerializationContext context,
                 UaDecoder decoder) throws UaSerializationException {
 
-            Float[] torqueArray = decoder.readFloatArray("torque");
+            //The order of those is important!!
             Float[] speedArray = decoder.readFloatArray("speed");
+            Float[] torqueArray = decoder.readFloatArray("torque");
 
             return new CurveStructure(torqueArray,speedArray);
         }
@@ -62,8 +63,9 @@ public class CurveStructure implements UaStructure {
                 SerializationContext context,
                 UaEncoder encoder, CurveStructure value) throws UaSerializationException {
 
-            encoder.writeFloatArray("torque", value.torque.toArray(Float[]::new));
+            //The order of those is important!!
             encoder.writeFloatArray("speed", value.speed.toArray(Float[]::new));
+            encoder.writeFloatArray("torque", value.torque.toArray(Float[]::new));
         }
     }
 }
