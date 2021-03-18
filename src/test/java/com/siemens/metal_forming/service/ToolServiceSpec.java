@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -53,21 +54,26 @@ class ToolServiceSpec {
     class FindAllByPlcId{
         @Nested @DisplayName("PLC IS IN DATABASE")
         class PlcIsInDatabase{
+
             @Test @DisplayName("returns what was found in database")
             void returnsWhatWasFoundInDatabase(){
-                List<Tool> toolsInDatabase = List.of(
-                        Tool.builder().nickName("tool1").build(),
-                        Tool.builder().nickName("tool2").build()
-                );
+                Plc plcInDb = Plc.builder()
+                        .id(1L)
+                        .addTool(Tool.builder().toolNumber(1).id(1L).nickName("tool1").build())
+                        .addTool(Tool.builder().toolNumber(2).id(2L).nickName("tool2").build())
+                        .build();
+
+                plcInDb.setCurrentTool(2);
+
+
                 List<ToolDto.Response.Overview> toolsToReturn = List.of(
                         ToolDto.Response.Overview.builder().name("tool1").build(),
-                        ToolDto.Response.Overview.builder().name("tool2").build()
+                        ToolDto.Response.Overview.builder().name("tool2").isActive(true).build()
                 );
 
-                when(plcRepository.existsById(1L)).thenReturn(true);
-                when(toolRepository.findAllByPlcId(1L)).thenReturn(toolsInDatabase);
-                when(dtoMapper.toToolDtoOverview(toolsInDatabase.get(0))).thenReturn(toolsToReturn.get(0));
-                when(dtoMapper.toToolDtoOverview(toolsInDatabase.get(1))).thenReturn(toolsToReturn.get(1));
+
+                when(plcRepository.findByIdFetchTools(1L)).thenReturn(Optional.of(plcInDb));
+                when(dtoMapper.toToolDtoOverview(plcInDb.getTools(),Set.of(2L))).thenReturn(toolsToReturn);
 
                 assertThat(toolService.findAll(1L)).containsExactlyElementsOf(toolsToReturn);
             }
@@ -77,8 +83,6 @@ class ToolServiceSpec {
         class PlcIsNotInDatabase{
             @Test @DisplayName("throws PlcNotFoundException when PLC with given ID was not found in database")
             void throwsExceptionWhenPlcDoesNotExistInDatabase(){
-                when(plcRepository.existsById(1L)).thenReturn(false);
-
                 assertThrows(PlcNotFoundException.class,() -> toolService.findAll(1L));
             }
         }
@@ -94,12 +98,12 @@ class ToolServiceSpec {
             );
             List<ToolDto.Response.Overview> toolsToReturn = List.of(
                     ToolDto.Response.Overview.builder().name("tool1").build(),
-                    ToolDto.Response.Overview.builder().name("tool2").build()
+                    ToolDto.Response.Overview.builder().name("tool2").isActive(true).build()
             );
 
             when(toolRepository.findAll()).thenReturn(toolsInDatabase);
-            when(dtoMapper.toToolDtoOverview(toolsInDatabase.get(0))).thenReturn(toolsToReturn.get(0));
-            when(dtoMapper.toToolDtoOverview(toolsInDatabase.get(1))).thenReturn(toolsToReturn.get(1));
+            when(toolRepository.getIdsOfUsedTools()).thenReturn(Set.of(2L));
+            when(dtoMapper.toToolDtoOverview(toolsInDatabase,Set.of(2L))).thenReturn(toolsToReturn);
 
             assertThat(toolService.findAll()).containsExactlyElementsOf(toolsToReturn);
         }
