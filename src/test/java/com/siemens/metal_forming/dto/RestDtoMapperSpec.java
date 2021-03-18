@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.Set;
 
 @SpringBootTest(classes = RestDtoMapperImpl.class)
 @DisplayName("<= REST DTO MAPPER SPECIFICATION =>")
@@ -81,6 +83,56 @@ class RestDtoMapperSpec {
             softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
             softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
             softAssertions.assertThat(toolDto.getToolStatus()).as("toolStatus").isEqualTo(toolWithAllAttributes.getToolStatus());
+            softAssertions.assertThat(toolDto.getIsActive()).as("isActive").isEqualTo(null);
+            softAssertions.assertAll();
+        }
+
+        @Test @DisplayName("transforms Tool to ToolDto.Response.Overview correctly with isActive")
+        void transformsToolToToolDtoResponseOverviewCorrectlyWithIsActive(){
+            Tool toolWithAllAttributes = Tool.builder()
+                    .id(1L)
+                    .plc(Plc.builder().id(1L).build())
+                    .toolNumber(1)
+                    .nickName("nickName")
+                    .toolStatus(ToolStatusType.AUTODETECTED)
+                    .automaticMonitoring(true)
+                    .maxSpeedOperation(10)
+                    .numberOfReferenceCycles(10)
+                    .calculateReferenceCurve(true)
+                    .tolerance(new AbsoluteTolerance(1,1))
+                    .referenceCurve(null)
+                    .stopReaction(StopReactionType.IMMEDIATE)
+                    .build();
+
+            ToolDto.Response.Overview toolDto = dtoMapper.toToolDtoOverview(toolWithAllAttributes,true);
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(toolDto.getId()).as("id").isEqualTo(toolWithAllAttributes.getId());
+            softAssertions.assertThat(toolDto.getPlcId()).as("plcId").isEqualTo(toolWithAllAttributes.getPlc().getId());
+            softAssertions.assertThat(toolDto.getToolNumber()).as("toolNumber").isEqualTo(toolWithAllAttributes.getToolNumber());
+            softAssertions.assertThat(toolDto.getName()).as("name").isEqualTo(toolWithAllAttributes.getNickName());
+            softAssertions.assertThat(toolDto.getNumberOfReferenceCycles()).as("numberOfReferenceCycles").isEqualTo(toolWithAllAttributes.getNumberOfReferenceCycles());
+            softAssertions.assertThat(toolDto.getCalculateReferenceCurve()).as("calculateReferenceCurve").isEqualTo(toolWithAllAttributes.getCalculateReferenceCurve());
+            softAssertions.assertThat(toolDto.getTolerance()).as("tolerance").isEqualTo(new AbsoluteToleranceDto(1,1));
+            softAssertions.assertThat(toolDto.getStopReaction()).as("stopReaction").isEqualTo(toolWithAllAttributes.getStopReaction());
+            softAssertions.assertThat(toolDto.getAutomaticMonitoring()).as("automaticMonitoring").isEqualTo(toolWithAllAttributes.getAutomaticMonitoring());
+            softAssertions.assertThat(toolDto.getReferenceCurveIsCalculated()).as("referenceCurveIsCalculated").isEqualTo(toolWithAllAttributes.getReferenceCurve()!=null);
+            softAssertions.assertThat(toolDto.getToolStatus()).as("toolStatus").isEqualTo(toolWithAllAttributes.getToolStatus());
+            softAssertions.assertThat(toolDto.getIsActive()).as("isActive").isEqualTo(true);
+            softAssertions.assertAll();
+        }
+
+        @Test @DisplayName("transforms List<Tool> to List<ToolDto.Response.Overview> correctly with isActive")
+        void transformsListOfToolToListOfToolDtoResponseOverviewCorrectlyWithIsActive(){
+            Tool tool1 = Tool.builder().id(1L).build();
+
+            Tool tool2 = Tool.builder().id(2L).build();
+
+            var dtos = dtoMapper.toToolDtoOverview(List.of(tool1,tool2), Set.of(2L));
+
+            SoftAssertions softAssertions = new SoftAssertions();
+            softAssertions.assertThat(dtos.get(0).getIsActive()).as("tool1").isEqualTo(false);
+            softAssertions.assertThat(dtos.get(1).getIsActive()).as("tool2").isEqualTo(true);
             softAssertions.assertAll();
         }
 

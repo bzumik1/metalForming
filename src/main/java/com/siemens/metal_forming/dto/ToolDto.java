@@ -89,6 +89,7 @@ public enum ToolDto {;
             Boolean referenceCurveIsCalculated;
             Boolean automaticMonitoring;
             ToolStatusType toolStatus;
+            Boolean isActive;
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)

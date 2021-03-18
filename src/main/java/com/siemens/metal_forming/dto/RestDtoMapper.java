@@ -10,15 +10,35 @@ import com.siemens.metal_forming.entity.log.ToolInfo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Mapper(componentModel = "spring")
 public interface RestDtoMapper {
 
     PlcDto.Response.Overview toPlcDtoOverview(Plc plc);
 
+    @Mapping(target = "isActive", ignore = true)
     @Mapping(target = "name", expression = "java(tool.getNickName() != null  ? tool.getNickName() : tool.getNameFromPlc())")
     @Mapping(target = "plcId", source = "tool.plc.id")
     @Mapping(target = "referenceCurveIsCalculated", source = "tool.referenceCurve")
     ToolDto.Response.Overview toToolDtoOverview(Tool tool);
+
+    @Mapping(target = "name", expression = "java(tool.getNickName() != null  ? tool.getNickName() : tool.getNameFromPlc())")
+    @Mapping(target = "plcId", source = "tool.plc.id")
+    @Mapping(target = "referenceCurveIsCalculated", source = "tool.referenceCurve")
+    ToolDto.Response.Overview toToolDtoOverview(Tool tool, boolean isActive);
+
+    default List<ToolDto.Response.Overview> toToolDtoOverview(List<Tool> tools, Set<Long> idsOfActiveTools){
+        return tools.stream().map(tool -> {
+            if (idsOfActiveTools.contains(tool.getId())){
+                return toToolDtoOverview(tool, true);
+            } else {
+                return toToolDtoOverview(tool,false);
+            }
+        }).collect(Collectors.toList());
+    }
 
     LogDto.Response.Detail toLogDtoDetail(Log log);
 
