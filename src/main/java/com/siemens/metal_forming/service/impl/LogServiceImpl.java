@@ -41,13 +41,12 @@ public class LogServiceImpl implements LogService {
 
     @Transactional
     @Override
-    public void delete(Iterable<Long> ids) {
-        final Set<Long> idsToDelete = StreamSupport.stream(ids.spliterator(), false).collect(Collectors.toSet());
-        final Set<Long> idsInDb = logRepository.findIdsByIdsIn(idsToDelete);
+    public void delete(Set<Long> ids) {
+        final Set<Long> idsInDb = logRepository.findIdsByIdsIn(ids);
 
         logRepository.deleteAllByIdIn(idsInDb); // delete all logs which are in DB
 
-        final Set<Long> missingIds = new HashSet<>(idsToDelete);
+        final Set<Long> missingIds = new HashSet<>(ids);
         missingIds.removeAll(idsInDb);
         if(!missingIds.isEmpty()){
             throw new LogNotFoundException(missingIds);
