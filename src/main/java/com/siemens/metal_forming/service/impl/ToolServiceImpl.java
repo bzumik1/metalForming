@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,9 @@ public class ToolServiceImpl implements ToolService {
     public List<ToolDto.Response.Overview> findAll(Long plcId) {
         Plc plcInDb = plcRepository.findByIdFetchTools(plcId).orElseThrow(() -> new PlcNotFoundException(plcId));
 
-        return dtoMapper.toToolDtoOverview(plcInDb.getTools(), Set.of(plcInDb.getCurrentTool().getId()));
+        Set<Long> setOfIdsOfCurrentTool = plcInDb.getCurrentTool()== null? Set.of():Set.of(plcInDb.getCurrentTool().getId());
+
+        return dtoMapper.toToolDtoOverview(plcInDb.getTools(), setOfIdsOfCurrentTool);
     }
 
     @Override @Transactional

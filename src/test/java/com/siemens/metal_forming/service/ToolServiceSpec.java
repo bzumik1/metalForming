@@ -67,13 +67,34 @@ class ToolServiceSpec {
 
 
                 List<ToolDto.Response.Overview> toolsToReturn = List.of(
-                        ToolDto.Response.Overview.builder().name("tool1").build(),
+                        ToolDto.Response.Overview.builder().name("tool1").isActive(false).build(),
                         ToolDto.Response.Overview.builder().name("tool2").isActive(true).build()
                 );
 
 
                 when(plcRepository.findByIdFetchTools(1L)).thenReturn(Optional.of(plcInDb));
                 when(dtoMapper.toToolDtoOverview(plcInDb.getTools(),Set.of(2L))).thenReturn(toolsToReturn);
+
+                assertThat(toolService.findAll(1L)).containsExactlyElementsOf(toolsToReturn);
+            }
+
+            @Test @DisplayName("for plc without current tool sets all tools inactive")
+            void forPlcWithoutCurrentToolSetsAllToolsInactive(){
+                Plc plcInDb = Plc.builder()
+                        .id(1L)
+                        .addTool(Tool.builder().toolNumber(1).id(1L).nickName("tool1").build())
+                        .addTool(Tool.builder().toolNumber(2).id(2L).nickName("tool2").build())
+                        .build();
+
+
+                List<ToolDto.Response.Overview> toolsToReturn = List.of(
+                        ToolDto.Response.Overview.builder().name("tool1").isActive(false).build(),
+                        ToolDto.Response.Overview.builder().name("tool2").isActive(false).build()
+                );
+
+
+                when(plcRepository.findByIdFetchTools(1L)).thenReturn(Optional.of(plcInDb));
+                when(dtoMapper.toToolDtoOverview(plcInDb.getTools(),Set.of())).thenReturn(toolsToReturn);
 
                 assertThat(toolService.findAll(1L)).containsExactlyElementsOf(toolsToReturn);
             }
