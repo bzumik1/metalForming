@@ -67,7 +67,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiException,apiException.getStatus());
     }
 
-    @ExceptionHandler({PlcUniqueConstrainException.class, ToolUniqueConstrainException.class})
+    @ExceptionHandler({PlcUniqueConstrainException.class, ToolUniqueConstrainException.class, CurrentToolCanNotBeDeletedException.class})
     protected ResponseEntity<Object> handleUniqueConstrainException(RuntimeException ex){
         ApiException apiException = ApiException.builder().message(ex.getMessage()).status(HttpStatus.CONFLICT).build();
 
