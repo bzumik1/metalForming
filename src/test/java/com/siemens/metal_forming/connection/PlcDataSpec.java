@@ -1,15 +1,12 @@
 package com.siemens.metal_forming.connection;
 
 import com.siemens.metal_forming.connection.observer.*;
-import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,16 +36,14 @@ public class PlcDataSpec {
     void removesAllObservers(){
         SerialNumberObserver serialNumberObserver = mock(SerialNumberObserver.class);
         FirmwareNumberObserver firmwareNumberObserver = mock(FirmwareNumberObserver.class);
-        ToolNameObserver toolNameObserver = mock(ToolNameObserver.class);
-        ToolNumberObserver toolNumberObserver = mock(ToolNumberObserver.class);
+        ToolDataObserver toolDataObserver = mock(ToolDataObserver.class);
         MeasuredCurveObserver measuredCurveObserver = mock(MeasuredCurveObserver.class);
         MotorCurveObserver motorCurveObserver = mock(MotorCurveObserver.class);
         ConnectionStatusObserver connectionStatusObserver = mock(ConnectionStatusObserver.class);
 
         plcData.registerSerialNumberObserver(serialNumberObserver);
         plcData.registerFirmwareNumberObserver(firmwareNumberObserver);
-        plcData.registerToolNameObserver(toolNameObserver);
-        plcData.registerToolNumberObserver(toolNumberObserver);
+        plcData.registerToolDataObserver(toolDataObserver);
         plcData.registerMeasuredCurveObserver(measuredCurveObserver);
         plcData.registerMotorCurveObserver(motorCurveObserver);
         plcData.registerConnectionStatusObserver(connectionStatusObserver);
@@ -57,16 +52,14 @@ public class PlcDataSpec {
 
         plcData.notifySerialNumberObservers();
         plcData.notifyFirmwareNumberObservers();
-        plcData.notifyToolNameObservers();
-        plcData.notifyToolNumberObservers();
+        plcData.notifyToolDataObservers();
         plcData.notifyMeasuredCurveObservers();
         plcData.notifyMotorCurveObservers();
         plcData.notifyConnectionStatusObservers();
 
         verify(serialNumberObserver, never().description("serialNumberObserver wasn't removed")).onSerialNumberChange(plcData);
         verify(firmwareNumberObserver, never().description("firmwareNumberObserver wasn't removed")).onFirmwareNumberChange(plcData);
-        verify(toolNameObserver, never().description("toolNameObserver wasn't removed")).onToolNameChange(plcData);
-        verify(toolNumberObserver, never().description("toolNumberObserver wasn't removed")).onToolNumberChange(plcData);
+        verify(toolDataObserver, never().description("toolDataObserver wasn't removed")).onToolDataChange(plcData);
         verify(measuredCurveObserver, never().description("measuredCurveObserver wasn't removed")).onMeasuredCurveChange(plcData);
         verify(motorCurveObserver, never().description("motorCurveObserver wasn't removed")).onMotorCurveChange(plcData);
         verify(connectionStatusObserver, never().description("connectionStatusObserver wasn't removed")).onConnectionStatusChange(plcData);
@@ -122,53 +115,30 @@ public class PlcDataSpec {
             }
         }
 
-        @Nested @DisplayName("TOOL NAME SOURCE")
-        class ToolNameSource{
+        @Nested @DisplayName("TOOL DATA SOURCE")
+        class ToolDataSource {
             @Test @DisplayName("adds observer")
             void addsObserver(){
-                ToolNameObserver toolNameObserver = Mockito.mock(ToolNameObserver.class);
+                ToolDataObserver toolDataObserver = Mockito.mock(ToolDataObserver.class);
 
-                plcData.registerToolNameObserver(toolNameObserver);
-                plcData.notifyToolNameObservers();
+                plcData.registerToolDataObserver(toolDataObserver);
+                plcData.notifyToolDataObservers();
 
-                verify(toolNameObserver, times(1)).onToolNameChange(plcData);
+                verify(toolDataObserver, times(1)).onToolDataChange(plcData);
             }
 
             @Test @DisplayName("removes observer")
             void removesObserver(){
-                ToolNameObserver toolNameObserver = Mockito.mock(ToolNameObserver.class);
+                ToolDataObserver toolDataObserver = Mockito.mock(ToolDataObserver.class);
 
-                plcData.registerToolNameObserver(toolNameObserver);
-                plcData.removeToolNameObserver(toolNameObserver);
-                plcData.notifyToolNameObservers();
+                plcData.registerToolDataObserver(toolDataObserver);
+                plcData.removeToolDataObserver(toolDataObserver);
+                plcData.notifyToolDataObservers();
 
-                verify(toolNameObserver, never()).onToolNameChange(plcData);
+                verify(toolDataObserver, never()).onToolDataChange(plcData);
             }
         }
 
-        @Nested @DisplayName("TOOL NUMBER SOURCE")
-        class ToolNumberSource{
-            @Test @DisplayName("adds observer")
-            void addsObserver(){
-                ToolNumberObserver toolNumberObserver = Mockito.mock(ToolNumberObserver.class);
-
-                plcData.registerToolNumberObserver(toolNumberObserver);
-                plcData.notifyToolNumberObservers();
-
-                verify(toolNumberObserver, times(1)).onToolNumberChange(plcData);
-            }
-
-            @Test @DisplayName("removes observer")
-            void removesObserver(){
-                ToolNumberObserver toolNumberObserver = Mockito.mock(ToolNumberObserver.class);
-
-                plcData.registerToolNumberObserver(toolNumberObserver);
-                plcData.removeToolNumberObserver(toolNumberObserver);
-                plcData.notifyToolNumberObservers();
-
-                verify(toolNumberObserver, never()).onToolNumberChange(plcData);
-            }
-        }
 
         @Nested @DisplayName("MEASURED CURVE SOURCE")
         class MeasuredCurveSource{

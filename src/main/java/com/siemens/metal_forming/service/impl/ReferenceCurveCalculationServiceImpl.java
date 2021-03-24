@@ -36,7 +36,7 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
         final String ipAddress = plcData.getIpAddress();
         final Curve measuredCurve = plcData.getMeasuredCurve();
 
-        Optional<Tool> toolInDb = toolRepository.findByPlcIpAddressAndToolNumber(ipAddress, plcData.getToolNumber());
+        Optional<Tool> toolInDb = toolRepository.findByPlcIpAddressAndToolNumber(ipAddress, plcData.getToolData().getToolNumber());
         if(toolInDb.isPresent()){
             Tool currentTool = toolInDb.get();
 
@@ -52,7 +52,7 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
                 Optional<Curve> referenceCurve = calculation.calculate(measuredCurve);
 
                 //Send information over WebSocket
-                log.debug("Sending new tool with number \"{}\" for PLC with IP {} over WebSocket",plcData.getToolNumber(), plcData.getIpAddress());
+                log.debug("Sending new tool with number \"{}\" for PLC with IP {} over WebSocket",plcData.getToolData().getToolNumber(), plcData.getIpAddress());
                 simpMessagingTemplate.convertAndSend("/topic/tools/calculation-status", new ToolDto.Response.ReferenceCurveCalculation(currentTool.getId(),calculation.getStatus()));
 
                 if(referenceCurve.isPresent()){
@@ -72,7 +72,7 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
     }
 
     @Override
-    public void onToolNumberChange(PlcData plcData) {
+    public void onToolDataChange(PlcData plcData) {
         final String ipAddress = plcData.getIpAddress();
 
         if(calculations.containsKey(ipAddress)){

@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.connection;
 
 import com.siemens.metal_forming.connection.opcua.PlcDataOpcua;
+import com.siemens.metal_forming.connection.opcua.ToolData;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
@@ -48,9 +49,8 @@ public class PlcConnectorSpec {
                     .connectionStatus(ConnectionStatus.CONNECTED)
                     .serialNumber("SN 01")
                     .firmwareNumber("FW 01")
-                    .MaxOperationSpeed(10)
-                    .toolName("newTool")
-                    .toolNumber(1)
+                    //.MaxOperationSpeed(10)
+                    .toolData(new ToolData(1, "newTool"))
                     .motorCurve(motorCurve)
                     .build();
 
@@ -76,7 +76,7 @@ public class PlcConnectorSpec {
             softAssertions.assertThat(updatedTool).as("tool should be selected as current tool").isNotNull();
             softAssertions.assertThat(updatedTool.getToolNumber()).as("tool should be created with correct number").isEqualTo(1);
             softAssertions.assertThat(updatedTool.getNameFromPlc()).as("tool should be created with correct name").isEqualTo("newTool");
-            softAssertions.assertThat(updatedTool.getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(10);
+            //softAssertions.assertThat(updatedTool.getMaxSpeedOperation()).as("tool should be created with correct maxSpeedOperation").isEqualTo(10);
             softAssertions.assertThat(updatedTool.getToolStatus()).as("tool should be marked as autodetected").isEqualTo(ToolStatusType.AUTODETECTED);
             softAssertions.assertThat(updatedTool.getAutomaticMonitoring()).as("tool is created with automaticMonitoring false").isFalse();
             softAssertions.assertThat(updatedTool.getCalculateReferenceCurve()).as("tool should be created with calculationReferenceCurve false").isFalse();

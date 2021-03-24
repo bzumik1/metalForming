@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.connection.opcua.ToolData;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.dto.PlcDto;
 import com.siemens.metal_forming.dto.ToolDto;
@@ -124,13 +125,14 @@ public class PlcAutomaticUpdateServiceSpec {
         void sendsCurrentToolNumberOverWebSocket(){
             Plc plcInDatabase = Plc.builder().addTool(Tool.builder().toolNumber(1).build()).build();
             PlcDto.Response.CurrentTool plcDto = PlcDto.Response.CurrentTool.builder().id(1L).toolNumber(1).build();
+            ToolData toolData = new ToolData(1, "toolName");
 
             when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-            when(plcData.getToolNumber()).thenReturn(1);
+            when(plcData.getToolData()).thenReturn(toolData);
             when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
             when(mapper.toPlcDtoCurrentTool(plcInDatabase)).thenReturn(plcDto);
 
-            plcAutomaticUpdateService.onToolNumberChange(plcData);
+            plcAutomaticUpdateService.onToolDataChange(plcData);
 
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/current-tool", plcDto);
         }
@@ -139,13 +141,14 @@ public class PlcAutomaticUpdateServiceSpec {
         void sendsNewToolOverOverWebSocket(){
             Plc plcInDatabase = Plc.builder().build();
             PlcDto.Response.NewTool plcDto = PlcDto.Response.NewTool.builder().id(1L).newTool(ToolDto.Response.Overview.builder().build()).build();
+            ToolData toolData = new ToolData(1,"toolName");
 
             when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-            when(plcData.getToolNumber()).thenReturn(1);
+            when(plcData.getToolData()).thenReturn(toolData);
             when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
             when(mapper.toPlcDtoNewTool(plcInDatabase)).thenReturn(plcDto);
 
-            plcAutomaticUpdateService.onToolNumberChange(plcData);
+            plcAutomaticUpdateService.onToolDataChange(plcData);
 
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/new-tool", plcDto);
         }

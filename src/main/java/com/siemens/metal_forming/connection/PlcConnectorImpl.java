@@ -74,12 +74,12 @@ public class PlcConnectorImpl implements PlcConnector {
             plc.setMotorCurve(plcData.getMotorCurve());
 
             // set current tool
-            Integer currentToolNumber = plcData.getToolNumber();
+            Integer currentToolNumber = plcData.getToolData().getToolNumber();
             if(plc.getCurrentTool() == null){
                 Tool newTool = Tool.builder()
                         .toolNumber(currentToolNumber)
-                        .nameFromPlc(plcData.getToolName())
-                        .maxSpeedOperation(plcData.getMaxOperationSpeed())
+                        .nameFromPlc(plcData.getToolData().getToolName())
+                        //.maxSpeedOperation(plcData.getMaxOperationSpeed())
                         .toolStatus(ToolStatusType.AUTODETECTED)
                         .automaticMonitoring(false)
                         .calculateReferenceCurve(false)
@@ -100,8 +100,7 @@ public class PlcConnectorImpl implements PlcConnector {
         plcData.registerConnectionStatusObserver(plcAutomaticUpdateService);
         plcData.registerFirmwareNumberObserver(plcAutomaticUpdateService);
         plcData.registerSerialNumberObserver(plcAutomaticUpdateService);
-        plcData.registerToolNameObserver(plcAutomaticUpdateService);
-        plcData.registerToolNumberObserver(plcAutomaticUpdateService);
+        plcData.registerToolDataObserver(plcAutomaticUpdateService);
     }
 
     private void registerForCurveValidation(PlcData plcData){

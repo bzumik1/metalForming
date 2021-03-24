@@ -16,9 +16,7 @@ public abstract class OpcuaConfiguration {
     OpcuaNodeConfiguration plcSerialNumber;
     OpcuaNodeConfiguration plcFirmwareNumber;
 
-    OpcuaNodeConfiguration toolName;
-    OpcuaNodeConfiguration toolNumber;
-    OpcuaNodeConfiguration toolMaxSpeedOperation;
+    OpcuaNodeConfiguration toolData;
 
     OpcuaNodeConfiguration immediateStopIndicator;
     OpcuaNodeConfiguration topPositionStopIndicator;
