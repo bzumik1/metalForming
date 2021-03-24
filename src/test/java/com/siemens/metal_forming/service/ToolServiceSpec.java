@@ -8,10 +8,7 @@ import com.siemens.metal_forming.entity.RelativeTolerance;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
-import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolNotFoundException;
-import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
-import com.siemens.metal_forming.exception.exceptions.ToolUniqueConstrainException;
+import com.siemens.metal_forming.exception.exceptions.*;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.impl.ToolServiceImpl;
@@ -157,6 +154,16 @@ class ToolServiceSpec {
                 when(plcRepository.findByIdFetchTools(1L)).thenReturn(Optional.of(plcInDb));
 
                 assertThrows(ToolNotFoundException.class, () -> toolService.delete(1L,1L));
+            }
+
+            @Test @DisplayName("throws CurrentToolCanNotBeDeletedException when currentTool should be deleted")
+            void throwsExceptionWhenCurrentToolShouldBeDeleted(){
+                Plc plcInDb = Plc.builder().addTool(Tool.builder().toolNumber(1).id(1L).build()).build();
+                plcInDb.setCurrentTool(1);
+
+                when(plcRepository.findByIdFetchTools(1L)).thenReturn(Optional.of(plcInDb));
+
+                assertThrows(CurrentToolCanNotBeDeletedException.class, () -> toolService.delete(1L,1L));
             }
         }
 

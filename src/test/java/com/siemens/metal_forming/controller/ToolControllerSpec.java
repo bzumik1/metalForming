@@ -131,6 +131,13 @@ public class ToolControllerSpec {
             mvc.perform(delete(deletePath,1L,1L)).andExpect(status().isNotFound());
         }
 
+        @Test @DisplayName("returns 409 Conflict when current tool should be deleted")
+        void returnsConflictWhenCurrentToolShouldBeDeleted() throws Exception {
+            doThrow(new CurrentToolCanNotBeDeletedException(1L)).when(toolService).delete(1L,1L);
+
+            mvc.perform(delete(deletePath,1L,1L)).andExpect(status().isConflict());
+        }
+
         @Test @DisplayName("triggers toolService.deleteByPlcIdAndToolId")
         void triggersToolService() throws Exception {
             mvc.perform(delete(deletePath,1L,1L));

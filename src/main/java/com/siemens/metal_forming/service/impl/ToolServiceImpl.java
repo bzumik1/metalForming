@@ -5,6 +5,7 @@ import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
+import com.siemens.metal_forming.exception.exceptions.CurrentToolCanNotBeDeletedException;
 import com.siemens.metal_forming.exception.exceptions.PlcNotFoundException;
 import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import com.siemens.metal_forming.repository.PlcRepository;
@@ -15,9 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class ToolServiceImpl implements ToolService {
@@ -49,6 +48,10 @@ public class ToolServiceImpl implements ToolService {
     @Override
     public void delete(Long plcId, Long toolId){
         Plc plcInDb = plcRepository.findByIdFetchTools(plcId).orElseThrow(() -> new PlcNotFoundException(plcId));
+
+        if(plcInDb.getCurrentTool() != null && plcInDb.getCurrentTool().getId().equals(toolId)){
+            throw new CurrentToolCanNotBeDeletedException(toolId);
+        }
 
         Tool toolToBeRemoved = plcInDb.getToolById(toolId);
         plcInDb.removeTool(toolToBeRemoved);
