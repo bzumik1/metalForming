@@ -3,6 +3,7 @@ package com.siemens.metal_forming.connection.opcua;
 import com.siemens.metal_forming.connection.PlcData;
 import com.siemens.metal_forming.connection.opcua.configuration.OpcuaConfiguration;
 import com.siemens.metal_forming.connection.opcua.structure.CurveStructure;
+import com.siemens.metal_forming.connection.opcua.structure.ToolDataStructure;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.StopReactionType;
@@ -112,7 +113,7 @@ public class PlcDataOpcua extends PlcData {
                 });
 
                 // Register codecs
-                registerHmiTrendCodec(uaClient);
+                registerCustomCodecs(uaClient);
 
                 // Connect client
                 this.client = uaClient;
@@ -175,8 +176,7 @@ public class PlcDataOpcua extends PlcData {
         CompletableFuture<Void> result = CompletableFuture.allOf(
                 subscribe(configuration.getPlcSerialNumber().getNode(), 1000,this::onSerialNumberChange),
                 subscribe(configuration.getPlcFirmwareNumber().getNode(),1000,this::onFirmwareNumberChange),
-                subscribe(configuration.getToolNumber().getNode(),1,this::onToolNumberChange),
-                subscribe(configuration.getToolName().getNode(),1,this::onToolNameChange),
+                subscribe(configuration.getToolData().getNode(),1,this::onToolDataChange),
                 subscribe(configuration.getMeasuredCurve().getNode(),1,this::onMeasuredCurveChange),
                 subscribe(configuration.getMotorCurve().getNode(),1000, this::onMotorCurveChange));
 
@@ -199,12 +199,11 @@ public class PlcDataOpcua extends PlcData {
         setFirmwareNumber((String)value.getValue().getValue());
     }
 
-    private void onToolNumberChange(DataValue value) {
-        setToolNumber((int)value.getValue().getValue());
-    }
-
-    private void onToolNameChange(DataValue value) {
-        setToolName((String)value.getValue().getValue());
+    private void onToolDataChange(DataValue value) {
+        Variant variant = value.getValue();
+        ExtensionObject xo = (ExtensionObject) variant.getValue();
+        ToolDataStructure toolDataStructure = (ToolDataStructure) xo.decode(client.getSerializationContext());
+        setToolData(new ToolData(toolDataStructure.getToolNumber(), toolDataStructure.getToolName()));
     }
 
     private void onMeasuredCurveChange(DataValue value) {
@@ -221,12 +220,17 @@ public class PlcDataOpcua extends PlcData {
         setMotorCurve(new Curve(curveStructure.getTorque(), curveStructure.getSpeed()));
     }
 
-    private void registerHmiTrendCodec(OpcUaClient client) {
-        NodeId binaryEncodingId = CurveStructure.BINARY_ENCODING_ID
+    private void registerCustomCodecs(OpcUaClient client) {
+        NodeId curveBinaryEncodingId = CurveStructure.BINARY_ENCODING_ID
+                .toNodeId(client.getNamespaceTable())
+                .orElseThrow(() -> new IllegalStateException("namespace not found"));
+
+        NodeId toolBinaryEncodingId = ToolDataStructure.BINARY_ENCODING_ID
                 .toNodeId(client.getNamespaceTable())
                 .orElseThrow(() -> new IllegalStateException("namespace not found"));
 
         // Register codec with the client DataTypeManager instance
-        client.getDataTypeManager().registerCodec(binaryEncodingId, new CurveStructure.Codec().asBinaryCodec());
+        client.getDataTypeManager().registerCodec(curveBinaryEncodingId, new CurveStructure.Codec().asBinaryCodec());
+        client.getDataTypeManager().registerCodec(toolBinaryEncodingId, new ToolDataStructure.Codec().asBinaryCodec());
     }
 }

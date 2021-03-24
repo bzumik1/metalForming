@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.connection;
 
 import com.siemens.metal_forming.connection.observer.*;
+import com.siemens.metal_forming.connection.opcua.ToolData;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.StopReactionType;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Setter @FieldDefaults(level = AccessLevel.PRIVATE) @SuperBuilder @Slf4j
-public abstract class PlcData implements SerialNumberSource, FirmwareNumberSource, ToolNameSource, ToolNumberSource, MeasuredCurveSource, MotorCurveSource, ConnectionStatusSource {
+public abstract class PlcData implements SerialNumberSource, FirmwareNumberSource, ToolDataSource, MeasuredCurveSource, MotorCurveSource, ConnectionStatusSource {
     @Getter
     protected final String ipAddress;
     @Getter
@@ -23,22 +24,17 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     @Getter
     String firmwareNumber;
     @Getter
-    String toolName;
-    @Getter
-    Integer toolNumber;
+    ToolData toolData;
     @Getter
     Curve measuredCurve;
     @Getter
     Curve motorCurve;
     @Getter
     ConnectionStatus connectionStatus;
-    @Getter
-    int MaxOperationSpeed;
 
     final List<SerialNumberObserver> serialNumberObservers = new ArrayList<>();
     final List<FirmwareNumberObserver> firmwareNumberObservers = new ArrayList<>();
-    final List<ToolNameObserver> toolNameObservers = new ArrayList<>();
-    final List<ToolNumberObserver> toolNumberObservers = new ArrayList<>();
+    final List<ToolDataObserver> toolDataObservers = new ArrayList<>();
     final List<MeasuredCurveObserver> measuredCurveObservers = new ArrayList<>();
     final List<MotorCurveObserver> motorCurveObservers = new ArrayList<>();
     final List<ConnectionStatusObserver> connectionStatusObservers = new ArrayList<>();
@@ -64,19 +60,11 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
         }
     }
 
-    public void setToolName(String toolName) {
-        if(toolName != null && !toolName.equals(this.toolName)){
-            log.debug("Tool name of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress,this.toolName, toolName);
-            this.toolName = toolName;
-            notifyToolNameObservers();
-        }
-    }
-
-    public void setToolNumber(Integer toolNumber) {
-        if(toolNumber != null && !toolNumber.equals(this.toolNumber)){
-            log.debug("Tool number of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress, this.toolNumber, toolNumber);
-            this.toolNumber = toolNumber;
-            notifyToolNumberObservers();
+    public void setToolData(ToolData toolData) {
+        if(toolData != null && !toolData.equals(this.toolData)){
+            log.debug("Tool name of PLC with IP address {} has changed from \"{}\" to \"{}\"",ipAddress,this.toolData, toolData);
+            this.toolData = toolData;
+            notifyToolDataObservers();
         }
     }
 
@@ -173,36 +161,19 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     }
 
     @Override
-    public void registerToolNameObserver(ToolNameObserver toolNameObserver) {
-        toolNameObservers.add(toolNameObserver);
+    public void registerToolDataObserver(ToolDataObserver toolDataObserver) {
+        toolDataObservers.add(toolDataObserver);
     }
 
     @Override
-    public void removeToolNameObserver(ToolNameObserver toolNameObserver) {
-        toolNameObservers.remove(toolNameObserver);
+    public void removeToolDataObserver(ToolDataObserver toolDataObserver) {
+        toolDataObservers.remove(toolDataObserver);
     }
 
     @Override
-    public void notifyToolNameObservers() {
-        for(ToolNameObserver observer:toolNameObservers){
-            observer.onToolNameChange(this);
-        }
-    }
-
-    @Override
-    public void registerToolNumberObserver(ToolNumberObserver toolNumberObserver) {
-        toolNumberObservers.add(toolNumberObserver);
-    }
-
-    @Override
-    public void removeToolNumberObserver(ToolNumberObserver toolNumberObserver) {
-        toolNumberObservers.remove(toolNumberObserver);
-    }
-
-    @Override
-    public void notifyToolNumberObservers() {
-        for(ToolNumberObserver observer: toolNumberObservers){
-            observer.onToolNumberChange(this);
+    public void notifyToolDataObservers() {
+        for(ToolDataObserver observer: toolDataObservers){
+            observer.onToolDataChange(this);
         }
     }
 
@@ -226,8 +197,7 @@ public abstract class PlcData implements SerialNumberSource, FirmwareNumberSourc
     protected void removeAllObservers(){
         serialNumberObservers.clear();
         firmwareNumberObservers.clear();
-        toolNameObservers.clear();
-        toolNumberObservers.clear();
+        toolDataObservers.clear();
         measuredCurveObservers.clear();
         motorCurveObservers.clear();
         connectionStatusObservers.clear();

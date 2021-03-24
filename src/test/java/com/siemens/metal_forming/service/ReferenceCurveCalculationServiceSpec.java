@@ -1,6 +1,7 @@
 package com.siemens.metal_forming.service;
 
 import com.siemens.metal_forming.connection.PlcData;
+import com.siemens.metal_forming.connection.opcua.ToolData;
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.dto.ToolDto;
 import com.siemens.metal_forming.entity.Tool;
@@ -49,14 +50,15 @@ public class ReferenceCurveCalculationServiceSpec {
                 .calculateReferenceCurve(true)
                 .numberOfReferenceCycles(2)
                 .build();
+        ToolData toolData = new ToolData(1, "toolName");
 
         when(plcData.getMeasuredCurve()).thenReturn(new TestCurveBuilder().randomPoints(100).build());
         when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getToolNumber()).thenReturn(1);
+        when(plcData.getToolData()).thenReturn(toolData);
         when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1",1)).thenReturn(Optional.of(toolInDb));
 
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
-        referenceCurveCalculationService.onToolNumberChange(plcData);
+        referenceCurveCalculationService.onToolDataChange(plcData);
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
 
         verify(toolRepository,never().description("Calculation wasn't interrupted!")).save(any());
@@ -70,10 +72,11 @@ public class ReferenceCurveCalculationServiceSpec {
                 .calculateReferenceCurve(true)
                 .numberOfReferenceCycles(2)
                 .build();
+        ToolData toolData = new ToolData(1, "toolName");
 
         when(plcData.getMeasuredCurve()).thenReturn(new TestCurveBuilder().randomPoints(100).build());
         when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getToolNumber()).thenReturn(1);
+        when(plcData.getToolData()).thenReturn(toolData);
         when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1",1)).thenReturn(Optional.of(toolInDb));
 
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
@@ -94,10 +97,11 @@ public class ReferenceCurveCalculationServiceSpec {
                 .calculateReferenceCurve(true)
                 .numberOfReferenceCycles(1)
                 .build();
+        ToolData toolData = new ToolData(1, "toolName");
 
         when(plcData.getMeasuredCurve()).thenReturn(measuredCurve);
         when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getToolNumber()).thenReturn(1);
+        when(plcData.getToolData()).thenReturn(toolData);
         when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1",1)).thenReturn(Optional.of(toolInDb));
 
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
@@ -119,10 +123,11 @@ public class ReferenceCurveCalculationServiceSpec {
                 .calculateReferenceCurve(true)
                 .numberOfReferenceCycles(1)
                 .build();
+        ToolData toolData = new ToolData(1, "toolName");
 
         when(plcData.getMeasuredCurve()).thenReturn(measuredCurve1,measuredCurve2);
         when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getToolNumber()).thenReturn(1);
+        when(plcData.getToolData()).thenReturn(toolData);
         when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1", 1)).thenReturn(Optional.of(toolInDb));
 
         referenceCurveCalculationService.onMeasuredCurveChange(plcData); // first calculation cycle
@@ -143,10 +148,11 @@ public class ReferenceCurveCalculationServiceSpec {
                 .calculateReferenceCurve(false)
                 .numberOfReferenceCycles(1)
                 .build();
+        ToolData toolData = new ToolData(1, "toolName");
 
         when(plcData.getMeasuredCurve()).thenReturn(measuredCurve1);
         when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getToolNumber()).thenReturn(1);
+        when(plcData.getToolData()).thenReturn(toolData);
         when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1", 1)).thenReturn(Optional.of(toolInDb));
 
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
@@ -163,9 +169,11 @@ public class ReferenceCurveCalculationServiceSpec {
                 .numberOfReferenceCycles(2)
                 .build();
 
+        ToolData toolData = new ToolData(1, "toolName");
+
         when(plcData.getMeasuredCurve()).thenReturn(new TestCurveBuilder().randomPoints(100).build());
         when(plcData.getIpAddress()).thenReturn("192.168.0.1");
-        when(plcData.getToolNumber()).thenReturn(1);
+        when(plcData.getToolData()).thenReturn(toolData);
         when(toolRepository.findByPlcIpAddressAndToolNumber("192.168.0.1",1)).thenReturn(Optional.of(toolInDb));
 
         referenceCurveCalculationService.onMeasuredCurveChange(plcData);
