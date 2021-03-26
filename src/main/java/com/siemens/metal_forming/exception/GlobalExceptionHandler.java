@@ -67,14 +67,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiException,apiException.getStatus());
     }
 
-    @ExceptionHandler({PlcUniqueConstrainException.class, ToolUniqueConstrainException.class, CurrentToolCanNotBeDeletedException.class})
+    @ExceptionHandler({PlcUniqueConstrainException.class, ToolUniqueConstrainException.class})
     protected ResponseEntity<Object> handleUniqueConstrainException(RuntimeException ex){
         ApiException apiException = ApiException.builder().message(ex.getMessage()).status(HttpStatus.CONFLICT).build();
 
         return new ResponseEntity<>(apiException,apiException.getStatus());
     }
 
-    @ExceptionHandler({ToolNumberUpdateException.class})
+    @ExceptionHandler({ToolNumberUpdateException.class, CurrentToolCanNotBeDeletedException.class})
     protected ResponseEntity<Object> handleToolNumberUpdateException(RuntimeException ex){
         ApiException apiException = ApiException.builder().message(ex.getMessage()).status(HttpStatus.FORBIDDEN).build();
 
