@@ -6,7 +6,7 @@ import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.repository.PlcRepository;
-import com.siemens.metal_forming.service.PlcAutomaticUpdateService;
+import com.siemens.metal_forming.service.AutomaticUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,13 +16,13 @@ import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service @Slf4j
-public class PlcAutomaticUpdateServiceImpl implements PlcAutomaticUpdateService {
+public class AutomaticUpdateServiceImpl implements AutomaticUpdateService {
     private final PlcRepository plcRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WebSocketDtoMapper mapper;
 
     @Autowired
-    public PlcAutomaticUpdateServiceImpl(PlcRepository plcRepository, SimpMessagingTemplate simpMessagingTemplate, WebSocketDtoMapper mapper) {
+    public AutomaticUpdateServiceImpl(PlcRepository plcRepository, SimpMessagingTemplate simpMessagingTemplate, WebSocketDtoMapper mapper) {
         this.plcRepository = plcRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.mapper = mapper;

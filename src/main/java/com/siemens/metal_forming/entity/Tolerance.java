@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type")
-@Table(name = "Tolerance")
+@Table(name = "tolerances")
 public abstract class Tolerance {
     @EqualsAndHashCode.Exclude
     @Id

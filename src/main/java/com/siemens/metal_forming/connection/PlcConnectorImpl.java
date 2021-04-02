@@ -6,7 +6,7 @@ import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.service.AutomaticMonitoringService;
-import com.siemens.metal_forming.service.PlcAutomaticUpdateService;
+import com.siemens.metal_forming.service.AutomaticUpdateService;
 import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +16,15 @@ import java.util.HashMap;
 
 @Component @Slf4j
 public class PlcConnectorImpl implements PlcConnector {
-    private final PlcAutomaticUpdateService plcAutomaticUpdateService;
+    private final AutomaticUpdateService automaticUpdateService;
     private final AutomaticMonitoringService automaticMonitoringService;
     private final ReferenceCurveCalculationService referenceCurveCalculationService;
     private final PlcDataProvider plcDataProvider;
     private final HashMap<String, PlcData> plcDataMap = new HashMap<>();
 
     @Autowired
-    public PlcConnectorImpl(PlcAutomaticUpdateService plcAutomaticUpdateService, AutomaticMonitoringService automaticMonitoringService, ReferenceCurveCalculationService referenceCurveCalculationService, PlcDataProvider plcDataProvider) {
-        this.plcAutomaticUpdateService = plcAutomaticUpdateService;
+    public PlcConnectorImpl(AutomaticUpdateService automaticUpdateService, AutomaticMonitoringService automaticMonitoringService, ReferenceCurveCalculationService referenceCurveCalculationService, PlcDataProvider plcDataProvider) {
+        this.automaticUpdateService = automaticUpdateService;
         this.automaticMonitoringService = automaticMonitoringService;
         this.referenceCurveCalculationService = referenceCurveCalculationService; //Correct implementation is selected based on application.properties
         this.plcDataProvider = plcDataProvider;
@@ -97,10 +97,10 @@ public class PlcConnectorImpl implements PlcConnector {
     }
 
     private void registerForAutomaticPlcInformationUpdate(PlcData plcData){
-        plcData.registerConnectionStatusObserver(plcAutomaticUpdateService);
-        plcData.registerFirmwareNumberObserver(plcAutomaticUpdateService);
-        plcData.registerSerialNumberObserver(plcAutomaticUpdateService);
-        plcData.registerToolDataObserver(plcAutomaticUpdateService);
+        plcData.registerConnectionStatusObserver(automaticUpdateService);
+        plcData.registerFirmwareNumberObserver(automaticUpdateService);
+        plcData.registerSerialNumberObserver(automaticUpdateService);
+        plcData.registerToolDataObserver(automaticUpdateService);
     }
 
     private void registerForCurveValidation(PlcData plcData){

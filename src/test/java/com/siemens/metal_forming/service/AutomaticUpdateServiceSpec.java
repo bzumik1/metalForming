@@ -10,7 +10,7 @@ import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.repository.PlcRepository;
-import com.siemens.metal_forming.service.impl.PlcAutomaticUpdateServiceImpl;
+import com.siemens.metal_forming.service.impl.AutomaticUpdateServiceImpl;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,9 +27,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("<= PLC AUTOMATIC UPDATE SERVICE =>")
-public class PlcAutomaticUpdateServiceSpec {
+public class AutomaticUpdateServiceSpec {
 
-    private PlcAutomaticUpdateService plcAutomaticUpdateService;
+    private AutomaticUpdateService automaticUpdateService;
     @Mock private PlcRepository plcRepository;
     @Mock private SimpMessagingTemplate simpMessagingTemplate;
     @Mock private WebSocketDtoMapper mapper;
@@ -38,7 +38,7 @@ public class PlcAutomaticUpdateServiceSpec {
 
     @BeforeEach
     void initialize(){
-        plcAutomaticUpdateService = new PlcAutomaticUpdateServiceImpl(plcRepository, simpMessagingTemplate, mapper);
+        automaticUpdateService = new AutomaticUpdateServiceImpl(plcRepository, simpMessagingTemplate, mapper);
     }
 
     @Test @DisplayName("updates firmware number in database")
@@ -49,7 +49,7 @@ public class PlcAutomaticUpdateServiceSpec {
         when(plcData.getFirmwareNumber()).thenReturn("FW-NEW-FIRMWARE-NUMBER");
         when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
 
-        plcAutomaticUpdateService.onFirmwareNumberChange(plcData);
+        automaticUpdateService.onFirmwareNumberChange(plcData);
 
         verify(plcRepository, times(1)).save(plcCaptor.capture());
         assertThat(plcCaptor.getValue().getHardwareInformation().getFirmwareNumber()).isEqualTo("FW-NEW-FIRMWARE-NUMBER");
@@ -63,7 +63,7 @@ public class PlcAutomaticUpdateServiceSpec {
         when(plcData.getSerialNumber()).thenReturn("SW-NEW-SERIAL-NUMBER");
         when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
 
-        plcAutomaticUpdateService.onSerialNumberChange(plcData);
+        automaticUpdateService.onSerialNumberChange(plcData);
 
         verify(plcRepository, times(1)).save(plcCaptor.capture());
         assertThat(plcCaptor.getValue().getHardwareInformation().getSerialNumber()).isEqualTo("SW-NEW-SERIAL-NUMBER");
@@ -78,7 +78,7 @@ public class PlcAutomaticUpdateServiceSpec {
         when(plcData.getMotorCurve()).thenReturn(motorCurve);
         when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
 
-        plcAutomaticUpdateService.onMotorCurveChange(plcData);
+        automaticUpdateService.onMotorCurveChange(plcData);
 
         verify(plcRepository, times(1)).save(plcCaptor.capture());
         assertThat(plcCaptor.getValue().getMotorCurve()).isEqualTo(motorCurve);
@@ -96,7 +96,7 @@ public class PlcAutomaticUpdateServiceSpec {
             when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
             when(mapper.toPlcDtoConnection(plcInDatabase)).thenReturn(plcDto);
 
-            plcAutomaticUpdateService.onConnectionStatusChange(plcData);
+            automaticUpdateService.onConnectionStatusChange(plcData);
 
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/connection-status", plcDto);
         }
@@ -109,7 +109,7 @@ public class PlcAutomaticUpdateServiceSpec {
             when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.DISCONNECTED);
             when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
 
-            plcAutomaticUpdateService.onConnectionStatusChange(plcData);
+            automaticUpdateService.onConnectionStatusChange(plcData);
 
             verify(plcRepository, times(1)).save(plcCaptor.capture());
             assertThat(plcCaptor.getValue().getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
@@ -132,7 +132,7 @@ public class PlcAutomaticUpdateServiceSpec {
             when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
             when(mapper.toPlcDtoCurrentTool(plcInDatabase)).thenReturn(plcDto);
 
-            plcAutomaticUpdateService.onToolDataChange(plcData);
+            automaticUpdateService.onToolDataChange(plcData);
 
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/current-tool", plcDto);
         }
@@ -148,7 +148,7 @@ public class PlcAutomaticUpdateServiceSpec {
             when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
             when(mapper.toPlcDtoNewTool(plcInDatabase)).thenReturn(plcDto);
 
-            plcAutomaticUpdateService.onToolDataChange(plcData);
+            automaticUpdateService.onToolDataChange(plcData);
 
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/new-tool", plcDto);
         }

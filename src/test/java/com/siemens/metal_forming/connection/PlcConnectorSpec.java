@@ -8,7 +8,7 @@ import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
 import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.service.AutomaticMonitoringService;
-import com.siemens.metal_forming.service.PlcAutomaticUpdateService;
+import com.siemens.metal_forming.service.AutomaticUpdateService;
 import com.siemens.metal_forming.service.ReferenceCurveCalculationService;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
 import lombok.AccessLevel;
@@ -30,13 +30,14 @@ import static org.mockito.Mockito.*;
 public class PlcConnectorSpec {
     PlcConnector plcConnector;
     @Mock PlcDataProvider plcDataProvider;
-    @Mock PlcAutomaticUpdateService plcAutomaticUpdateService;
+    @Mock
+    AutomaticUpdateService automaticUpdateService;
     @Mock AutomaticMonitoringService automaticMonitoringService;
     @Mock ReferenceCurveCalculationService referenceCurveCalculationService;
 
     @BeforeEach
     void initialize(){
-        plcConnector = new PlcConnectorImpl(plcAutomaticUpdateService, automaticMonitoringService, referenceCurveCalculationService, plcDataProvider);
+        plcConnector = new PlcConnectorImpl(automaticUpdateService, automaticMonitoringService, referenceCurveCalculationService, plcDataProvider);
     }
 
     @Nested @DisplayName("CONNECT")
