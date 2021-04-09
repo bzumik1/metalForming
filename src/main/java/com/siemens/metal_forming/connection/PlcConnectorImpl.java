@@ -81,8 +81,6 @@ public class PlcConnectorImpl implements PlcConnector {
                         .nameFromPlc(plcData.getToolData().getToolName())
                         //.maxSpeedOperation(plcData.getMaxOperationSpeed())
                         .toolStatus(ToolStatusType.AUTODETECTED)
-                        .automaticMonitoring(false)
-                        .calculateReferenceCurve(false)
                         .build();
                 plc.addTool(newTool);
             }

@@ -35,8 +35,9 @@ public class Tool{
     @Column(name = "number_of_reference_cycles")
     Integer numberOfReferenceCycles;
 
-    @Column(name = "calculate_reference_curve")
-    Boolean calculateReferenceCurve;
+    @Column(name = "calculate_reference_curve", nullable = false)
+    @Builder.Default
+    Boolean calculateReferenceCurve = false;
 
     @Valid
     @OneToOne(cascade = CascadeType.ALL)
@@ -44,12 +45,13 @@ public class Tool{
     Tolerance tolerance;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "stop_reaction")
+    @Column(name = "stop_reaction", nullable = false)
     @Builder.Default
     StopReactionType stopReaction = StopReactionType.DO_NOTHING;
 
     @NotNull
     @Column(name = "automatic_monitoring", nullable = false)
+    @Builder.Default
     Boolean automaticMonitoring = false;
 
     @Column(name = "max_speed_operation")

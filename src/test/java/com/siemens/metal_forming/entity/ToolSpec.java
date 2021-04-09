@@ -32,7 +32,7 @@ class ToolSpec extends EntitySpec {
 
     @Nested @DisplayName("AFTER CREATION")
     class AfterCreation{
-        @Test @DisplayName("tool is created with StopReaction DO_NOTHING (New)")
+        @Test @DisplayName("tool is created with StopReaction DO_NOTHING (Constructor)")
         void toolIsCreatedWithDefaultStopReactionNew(){
             Tool testTool = new Tool();
 
@@ -44,6 +44,34 @@ class ToolSpec extends EntitySpec {
             Tool testTool = Tool.builder().build();
 
             assertThat(testTool.getStopReaction()).isEqualTo(StopReactionType.DO_NOTHING);
+        }
+
+        @Test @DisplayName("tool is created with automaticMonitoring set to false (Constructor)")
+        void toolIsCreatedWithAutomaticMonitoringSetToFalseConstructor(){
+            Tool testTool = new Tool();
+
+            assertThat(testTool.getAutomaticMonitoring()).isFalse();
+        }
+
+        @Test @DisplayName("tool is created with automaticMonitoring set to false (Builder)")
+        void toolIsCreatedWithAutomaticMonitoringSetToFalseBuilder(){
+            Tool testTool = Tool.builder().build();
+
+            assertThat(testTool.getAutomaticMonitoring()).isFalse();
+        }
+
+        @Test @DisplayName("tool is created with calculateReferenceCurve set to false (Constructor)")
+        void toolIsCreatedWithCalculateReferenceCycleSetToFalseConstructor(){
+            Tool testTool = new Tool();
+
+            assertThat(testTool.getCalculateReferenceCurve()).isFalse();
+        }
+
+        @Test @DisplayName("tool is created with calculateReferenceCurve set to false (Builder)")
+        void toolIsCreatedWithCalculateReferenceCycleSetToFalseBuilder(){
+            Tool testTool = Tool.builder().build();
+
+            assertThat(testTool.getCalculateReferenceCurve()).isFalse();
         }
     }
 

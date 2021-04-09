@@ -72,8 +72,6 @@ public class AutomaticUpdateServiceImpl implements AutomaticUpdateService {
                         .nameFromPlc(plcData.getToolData().getToolName())
                         //.maxSpeedOperation(plcData.getToolData().)
                         .toolStatus(ToolStatusType.AUTODETECTED)
-                        .automaticMonitoring(false)
-                        .calculateReferenceCurve(false)
                         .build();
                 plcInDb.addTool(autodetectedTool);
                 plcInDb.setCurrentTool(plcData.getToolData().getToolNumber());
