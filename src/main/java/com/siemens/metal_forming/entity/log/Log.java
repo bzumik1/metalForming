@@ -6,14 +6,13 @@ import com.siemens.metal_forming.entity.converter.CollisionPointsConverter;
 import com.siemens.metal_forming.entity.converter.CurveConverter;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 import java.util.Set;
 
-@Getter @Setter @FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor @Builder(toBuilder = true)
 @EqualsAndHashCode
 @Entity
@@ -29,25 +28,25 @@ public final class Log {
     final Timestamp createdOn = new Timestamp(System.currentTimeMillis());
 
     @NotNull
-    @Column(name = "measured_curve", length = 10000)
+    @Column(name = "measured_curve", length = 10000, nullable = false, updatable = false)
     @Basic(fetch = FetchType.LAZY)
     @Convert(converter = CurveConverter.class)
     Curve measuredCurve;
 
     //@NotNull //ToDo uncomment when implemented and also set nullable to true
-    @Column(name = "motor_curve", length = 10000)
+    @Column(name = "motor_curve", length = 10000, nullable = false, updatable = false)
     @Basic(fetch = FetchType.LAZY)
     @Convert(converter = CurveConverter.class)
     Curve motorCurve;
 
     @NotNull
-    @Column(name = "reference_curve", length = 10000)
+    @Column(name = "reference_curve", length = 10000, nullable = false, updatable = false)
     @Basic(fetch = FetchType.LAZY)
     @Convert(converter = CurveConverter.class)
     Curve referenceCurve;
 
     @NotNull
-    @Column(name = "collision_points", length = 10000)
+    @Column(name = "collision_points", length = 10000, nullable = false, updatable = false)
     @Basic(fetch = FetchType.LAZY)
     @Convert(converter = CollisionPointsConverter.class)
     Set<PointOfTorqueAndSpeed> collisionPoints;
@@ -62,7 +61,7 @@ public final class Log {
     @JoinColumn(name = "tool_information_id", nullable = false, updatable = false)
     ToolInfo toolInformation;
 
-    @NonFinal
+    @Setter
     @Column(name = "comment", length = 1000)
     String comment;
 }

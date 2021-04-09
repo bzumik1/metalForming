@@ -29,16 +29,31 @@ class LogSpec extends ImmutableEntitySpec {
         testLogBuilder = new TestLogBuilder();
     }
 
-    @Test @DisplayName("is created with current timestamp")
-    void isCreatedWithCurrentTimestamp(){
-        Log testLog = Log.builder().build();
-        long acceptedTimeDifferenceInMillis = 1000;
+    @Nested @DisplayName("AFTER CREATION")
+    class AfterCreation{
+        @Test @DisplayName("is created with current timestamp (Constructor)")
+        void isCreatedWithCurrentTimestampConstructor(){
+            Log testLog = new Log();
+            long acceptedTimeDifferenceInMillis = 1000;
 
-        long connectionMillis = testLog.getCreatedOn().getTime();
-        long currentMillis = System.currentTimeMillis();
+            long connectionMillis = testLog.getCreatedOn().getTime();
+            long currentMillis = System.currentTimeMillis();
 
-        assertThat(Math.abs((connectionMillis-currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+            assertThat(Math.abs((connectionMillis-currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+        }
+
+        @Test @DisplayName("is created with current timestamp (Builder)")
+        void isCreatedWithCurrentTimestampBuilder(){
+            Log testLog = Log.builder().build();
+            long acceptedTimeDifferenceInMillis = 1000;
+
+            long connectionMillis = testLog.getCreatedOn().getTime();
+            long currentMillis = System.currentTimeMillis();
+
+            assertThat(Math.abs((connectionMillis-currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
+        }
     }
+
 
     @Nested @DisplayName("EQUALS")
     class Equals{
