@@ -182,10 +182,10 @@ public class PlcDataOpcua extends PlcData {
 
                 result.whenComplete((data,ex) -> {
                     if(ex != null){
-                        log.error("Subscription over OPC UA to plc with IP address {} was not successful",ipAddress);
+                        log.error("Subscription over OPC UA to plc with IP address {} was not successful: {}",ipAddress,ex.getMessage());
                         throw new RuntimeException("SUBSCRIPTION ERROR"); //TODO create own exception
                     } else {
-                        log.info("Subscription over OPC UA to plc with IP address {} was successful",ipAddress);
+                        log.debug("Subscription over OPC UA to plc with IP address {} was successful",ipAddress);
                     }
                 });
         return result;

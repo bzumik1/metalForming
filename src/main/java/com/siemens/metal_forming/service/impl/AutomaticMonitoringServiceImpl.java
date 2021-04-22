@@ -56,6 +56,7 @@ public class AutomaticMonitoringServiceImpl implements AutomaticMonitoringServic
                 Set<PointOfTorqueAndSpeed> collisionPoints = curveValidationService.validate(currentTool.getTolerance(), currentTool.getReferenceCurve(),measuredCurve);
 
                 if(!collisionPoints.isEmpty()){
+                    log.info("Measured curve for tool with id {} wasn't valid and included {} problems",currentTool.getId(),collisionPoints.size());
                     //Creates log in database and sends it over WebSocket
                     Log log = logCreator.create(plcInDb, measuredCurve, collisionPoints);
                     logRepository.save(log);

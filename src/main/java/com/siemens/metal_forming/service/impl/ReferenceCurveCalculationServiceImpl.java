@@ -42,10 +42,12 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
 
             if(currentTool.getCalculateReferenceCurve()){
                 ReferenceCurveCalculation calculation = calculations.get(ipAddress);
+
                 if(calculation==null){
-                    log.debug("Starting working on calculation of reference curve with {} cycles for tool with id: {}", currentTool.getNumberOfReferenceCycles(), currentTool.getId());
+                    log.info("Starting reference curve calculation for tool with id {}", currentTool.getId());
                     calculation = new ReferenceCurveCalculation(currentTool.getNumberOfReferenceCycles());
                     calculations.put(ipAddress, calculation);
+                    log.debug("Reference calculation status for tool with id {} is: {}", currentTool.getId(), calculation.getStatus());
                 }
 
 
@@ -60,11 +62,12 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
                     currentTool.setCalculateReferenceCurve(false);
                     toolRepository.save(currentTool);
                     calculations.remove(ipAddress);
-                    log.debug("Reference curve for tool with id {} was successfully calculated",currentTool.getId());
+                    log.info("Reference curve for tool with id {} was successfully calculated",currentTool.getId());
                 }
-            }
-            else{
-                calculations.remove(ipAddress);
+            } else{
+                if(calculations.remove(ipAddress) != null){
+                    log.info("Canceling reference curve calculation for tool with id {}", currentTool.getId());
+                }
             }
         } else {
             log.warn("During reference curve calculation for tool of PLC with IP address {}, the tool wasn't found in database", ipAddress);
@@ -76,7 +79,7 @@ public class ReferenceCurveCalculationServiceImpl implements ReferenceCurveCalcu
         final String ipAddress = plcData.getIpAddress();
 
         if(calculations.containsKey(ipAddress)){
-            log.debug("Tool changed during reference curve calculation so calculation of reference curve for tool of PLC with ip: {} was canceled.", ipAddress);
+            log.warn("Tool changed during reference curve calculation so calculation of reference curve for tool of PLC with IP address {} was canceled.", ipAddress);
             calculations.remove(ipAddress);
         }
     }

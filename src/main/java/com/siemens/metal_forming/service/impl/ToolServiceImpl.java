@@ -11,6 +11,7 @@ import com.siemens.metal_forming.exception.exceptions.ToolNumberUpdateException;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.repository.ToolRepository;
 import com.siemens.metal_forming.service.ToolService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 
-@Service
+@Service @Slf4j
 public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final PlcRepository plcRepository;
@@ -94,7 +95,7 @@ public class ToolServiceImpl implements ToolService {
         }
         plcInDb.addTool(toolToUpdate);
 
-
+        log.info("Updating tool from PLC with id {} to: {}", plcId, toolToUpdate);
         return dtoMapper.toToolDtoOverview(plcRepository.save(plcInDb).getToolById(toolId));
     }
 }

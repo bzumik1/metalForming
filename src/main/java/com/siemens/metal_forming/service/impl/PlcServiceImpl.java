@@ -40,6 +40,7 @@ public class PlcServiceImpl implements PlcService {
 
     @Override
     public PlcDto.Response.Overview createPlc(PlcDto.Request.Create plcDto) {
+        log.info("Creating PLC based on: {}", plcDto);
         Plc plcToBeCreated = dtoMapper.toPlc(plcDto);
         validateUniquenessOfPlc(plcToBeCreated);
         return dtoMapper.toPlcDtoOverview(plcRepository.save(plcConnector.connect(plcToBeCreated)));
@@ -47,6 +48,7 @@ public class PlcServiceImpl implements PlcService {
 
     @Override
     public void delete(Long id) {
+        log.info("Deleting PLC with id {}",id);
         Plc oldPlc = plcRepository.findById(id).orElseThrow(() -> new PlcNotFoundException(id));
         plcConnector.disconnect(oldPlc.getIpAddress());
         plcRepository.deleteById(id);
@@ -54,6 +56,7 @@ public class PlcServiceImpl implements PlcService {
 
     @Override
     public PlcDto.Response.Overview update(Long id, PlcDto.Request.Update plcDto) {
+        log.info("Updating PLC based on: {}", plcDto);
         Plc plcContainingUpdatedAttributes = Plc.builder().id(id).name(plcDto.getName()).ipAddress(plcDto.getIpAddress()).build();
 
         //checks if updated plc doesnt collide with plc in database

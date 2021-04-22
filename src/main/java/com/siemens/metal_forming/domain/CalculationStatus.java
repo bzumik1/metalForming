@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ToString
 public class CalculationStatus {
     int current = 0;
     final int total;

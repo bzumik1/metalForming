@@ -60,6 +60,7 @@ public class Tool{
     @Column(name = "tool_status", nullable = false) @Enumerated(EnumType.STRING)
     ToolStatusType toolStatus;
 
+    @ToString.Exclude
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "reference_curve", length = 10000)
     @Convert(converter = CurveConverter.class)

@@ -17,7 +17,7 @@ public class CurveValidationServiceImpl implements CurveValidationService {
 
     @Override
     public Set<PointOfTorqueAndSpeed> validate(Tolerance tolerance, Curve referenceCurve, Curve measuredCurve) {
-        log.info("starting curve validation");
+        log.debug("Starting curve validation");
         if(referenceCurve.getPoints().size() != measuredCurve.getPoints().size()) throw new IncompatibleCurvesException();
 
         Set<PointOfTorqueAndSpeed> collisionPoints =  IntStream.range(0,referenceCurve.getPoints().size())
@@ -28,7 +28,7 @@ public class CurveValidationServiceImpl implements CurveValidationService {
         if(collisionPoints.isEmpty())
             log.debug("No collision points were found during validation");
         else
-            log.info("Curve is not valid, it contains {} collision points",collisionPoints.size());
+            log.debug("Curve was not valid, it contains {} collision points",collisionPoints.size());
 
         return collisionPoints;
     }

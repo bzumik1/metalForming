@@ -60,11 +60,10 @@ public class AutomaticUpdateServiceImpl implements AutomaticUpdateService {
         Optional<Plc> optionalPlcInDb = plcRepository.findByIpAddressFetchTools(plcData.getIpAddress());
         if(optionalPlcInDb.isPresent()){
             Plc plcInDb = optionalPlcInDb.get();
-            log.info("Updating current tool of PLC with id {} in database",plcInDb.getId());
 
             if(plcInDb.hasToolByToolNumber(plcData.getToolData().getToolNumber())){
                 plcInDb.setCurrentTool(plcData.getToolData().getToolNumber());
-                log.debug("Setting current tool: {}", plcInDb.getCurrentTool());
+                log.info("Changing current tool for PLC with IP address {} to: {}", plcData.getIpAddress(), plcInDb.getCurrentTool());
                 plcRepository.save(plcInDb);
             } else {
                 Tool autodetectedTool = Tool.builder()
@@ -77,7 +76,7 @@ public class AutomaticUpdateServiceImpl implements AutomaticUpdateService {
                         .build();
                 plcInDb.addTool(autodetectedTool);
                 plcInDb.setCurrentTool(plcData.getToolData().getToolNumber());
-                log.debug("Setting autodetected tool as current tool: {}", autodetectedTool);
+                log.info("New tool for PLC with IP address {} was detected, changing current tool to: {}",plcData.getIpAddress(), autodetectedTool);
                 plcRepository.save(plcInDb);
 
                 //Send information over WebSocket

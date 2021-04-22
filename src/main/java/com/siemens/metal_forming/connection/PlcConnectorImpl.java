@@ -90,6 +90,7 @@ public class PlcConnectorImpl implements PlcConnector {
 
         } else {
             plc.markAsDisconnected();
+            log.warn("It wasn't possible to connect PLC with IP address {}",plc.getIpAddress());
         }
         log.info("Information about PLC with IP address {} were updated to: {}",plc.getIpAddress(),plc.toString());
         return plc;
