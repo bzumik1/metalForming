@@ -10,12 +10,13 @@ import java.sql.Timestamp;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "connections")
+@ToString
 public class Connection {
 
     public Connection(ConnectionStatus connectionStatus){
         status = connectionStatus;
     }
-
+    @ToString.Exclude
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 

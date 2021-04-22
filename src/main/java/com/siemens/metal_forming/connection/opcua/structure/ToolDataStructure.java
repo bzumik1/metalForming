@@ -54,8 +54,14 @@ public class ToolDataStructure implements UaStructure {
                 UaDecoder decoder) throws UaSerializationException {
 
             //The order of those is important!!
-            Integer dieNumber = decoder.readInt32("dieNumber");
+            int masterSyncPositionSelected = decoder.readInt16("masterSyncPositionSelected");
+            int maxSpeedOperation = decoder.readInt16("maxSpeedOperation");
+            int maxSpeedSetup = decoder.readInt16("maxSpeedSetup");
+            int startUpPunchingSpeed = decoder.readInt16("startupPunchingSpeed");
+            int dieNumber = decoder.readInt32("dieNumber");
             String dieName = decoder.readString("dieName");
+            double slaveSyncPosition = decoder.readDouble("slaveSyncPosition");
+            Float[] masterSyncPosition = decoder.readFloatArray("masterSyncPosition");
 
             return new ToolDataStructure(dieNumber, dieName);
         }
@@ -66,8 +72,8 @@ public class ToolDataStructure implements UaStructure {
                 UaEncoder encoder, ToolDataStructure value) throws UaSerializationException {
 
             //The order of those is important!!
-            encoder.writeInt32("dieNumber", value.toolNumber);
-            encoder.writeString("dieName", value.toolName);
+            //encoder.writeInt32("dieNumber", value.toolNumber);
+            //encoder.writeString("dieName", value.toolName);
         }
     }
 }
