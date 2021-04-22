@@ -19,6 +19,7 @@ public class Tool{
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "plc_id", nullable = false)
     Plc plc;

@@ -21,6 +21,7 @@ import java.util.Set;
 @Getter @Setter
 @Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "plcs")
+@ToString
 public class Plc {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private
@@ -46,6 +47,7 @@ public class Plc {
     @JoinColumn(name = "connection_id", nullable = false)
     private final Connection connection = new Connection();
 
+    @ToString.Exclude
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "motor_curve", length = 10000)
     @Convert(converter = CurveConverter.class)

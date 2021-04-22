@@ -87,12 +87,11 @@ public class PlcConnectorImpl implements PlcConnector {
                 plc.addTool(newTool);
             }
             plc.setCurrentTool(currentToolNumber);
-            log.debug("All information about plc were successfully read");
 
         } else {
             plc.markAsDisconnected();
         }
-
+        log.info("Information about PLC with IP address {} were updated to: {}",plc.getIpAddress(),plc.toString());
         return plc;
     }
 

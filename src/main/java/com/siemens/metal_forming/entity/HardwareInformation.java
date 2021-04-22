@@ -9,7 +9,9 @@ import javax.persistence.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity @Table(name = "hardware_info")
+@ToString
 public class HardwareInformation {
+    @ToString.Exclude
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
