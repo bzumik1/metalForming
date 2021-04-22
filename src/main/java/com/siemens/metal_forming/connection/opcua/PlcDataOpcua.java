@@ -51,7 +51,17 @@ public class PlcDataOpcua extends PlcData {
 
     @Override
     public void notifyPlcAboutCollision(StopReactionType stopReactionType) {
-
+        if(client != null){
+            CompletableFuture<StatusCode> statusCode = client.writeValue(configuration.getStopReactionIndicator().getNode(),
+                                                                DataValue.valueOnly(new Variant(stopReactionType.toCode())));
+            statusCode.whenComplete((sc,ex) -> {
+                        if(ex == null && sc.isGood()){
+                            log.info("PLC with IP address {} was successfully notified with stopReaction: {}",ipAddress, stopReactionType);
+                        } else {
+                            log.warn("PLC with IP address could not be notified about problem");
+                        }
+            });
+        }
     }
 
     @Override

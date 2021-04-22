@@ -18,8 +18,7 @@ public abstract class OpcuaConfiguration {
 
     OpcuaNodeConfiguration toolData;
 
-    OpcuaNodeConfiguration immediateStopIndicator;
-    OpcuaNodeConfiguration topPositionStopIndicator;
+    OpcuaNodeConfiguration stopReactionIndicator;
 
     OpcuaNodeConfiguration measuredCurve;
     OpcuaNodeConfiguration motorCurve;
