@@ -2,9 +2,9 @@ package com.siemens.metal_forming.enumerated;
 
 
 public enum StopReactionType {
-    DO_NOTHING((short)0),
-    TOP_POSITION((short)1),
-    IMMEDIATE((short)2);
+    DO_NOTHING((short)1),
+    TOP_POSITION((short)2),
+    IMMEDIATE((short)3);
 
     private final short code;
 
