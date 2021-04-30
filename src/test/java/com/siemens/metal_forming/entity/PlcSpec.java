@@ -100,10 +100,6 @@ public class PlcSpec extends EntitySpec {
                 assertThat(testPlc.getConnection().getStatus()).isEqualTo(ConnectionStatus.DISCONNECTED);
                 assertThat(Math.abs((connectionMillis - currentMillis))).isLessThan(acceptedTimeDifferenceInMillis);
             }
-
-            @Test @DisplayName("sets plc for all tools added in builder") @Disabled("not implemented yet")
-            void setsPlcForAllToolsAddedInBuilder(){
-            }
         }
     }
 

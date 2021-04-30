@@ -9,6 +9,7 @@ import com.siemens.metal_forming.dto.WebSocketDtoMapper;
 import com.siemens.metal_forming.entity.Plc;
 import com.siemens.metal_forming.entity.Tool;
 import com.siemens.metal_forming.enumerated.ConnectionStatus;
+import com.siemens.metal_forming.enumerated.ToolStatusType;
 import com.siemens.metal_forming.repository.PlcRepository;
 import com.siemens.metal_forming.service.impl.AutomaticUpdateServiceImpl;
 import com.siemens.metal_forming.testBuilders.TestCurveBuilder;
@@ -153,60 +154,92 @@ public class AutomaticUpdateServiceSpec {
             verify(simpMessagingTemplate, times(1)).convertAndSend("/topic/plcs/new-tool", plcDto);
         }
 
-        @Nested @DisplayName("PLC IS IN DATABASE") @Disabled("Needs to be written after PlcData structure changes")
+        @Nested @DisplayName("PLC IS IN DATABASE")
         class PlcIsInDatabase{
 
             @Test @DisplayName("when tool exists in plc's tools than it is selected as current tool")
             void whenToolExistsInPlcsToolsThanItIsSelectedAsCurrentTool(){
-//                Mockito.reset(plcInDb);
-//                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
-//
-//                verify(plcInDb, times(1)).setCurrentTool(toolNumberOfExistingTool);
-            }
+                Tool toolInDatabase = Tool.builder().toolNumber(1).build();
+                Plc plcInDatabase = Plc.builder().addTool(toolInDatabase).build();
 
-            @Test @DisplayName("calculation of reference curve of old tool is canceled if it was running")
-            void cancelsReferenceCurveCalculationIfItWasRunning(){
-//                Mockito.reset(plcInDb);
-//                plcInDb.getCurrentTool().setCalculateReferenceCurve(true);
-//
-//                when(referenceCurveCalculationService.getReferenceCurveCalculation(toolNumberOfExistingTool))
-//                        .thenReturn(Optional.of(new ReferenceCurveCalculation(2)));
-//
-//                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
-//
-//                verify(referenceCurveCalculationService, times(1)).removeCalculation(toolNumberOfExistingTool);
+                when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+                when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+                when(plcData.getToolData()).thenReturn(new ToolData(1,"testTool"));
+
+                automaticUpdateService.onToolDataChange(plcData);
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+
+                assertThat(plcCaptor.getValue().getCurrentTool()).isEqualTo(toolInDatabase);
             }
 
             @Test @DisplayName("when tool does not exist in plc's tools then new is created")
             void whenToolDoesNotExistInPlcsToolsThenNewIsCreated(){
-//                Tool newAutodetectedTool = Tool.builder()
-//                        .plc(plcInDb)
-//                        .toolNumber(2)
-//                        .nameFromPlc("newTool")
-//                        .maxSpeedOperation(10)
-//                        .toolStatus(ToolStatusType.AUTODETECTED)
-//                        .automaticMonitoring(false)
-//                        .calculateReferenceCurve(false)
-//                        .build();
-//
-//
-//                PlcData plcData = Mockito.mock(PlcData.class);
-//                when(plcData.getToolNumber()).thenReturn(2);
-//                when(plcData.getToolName()).thenReturn("newTool");
-//                when(plcData.getMaxOperationSpeed()).thenReturn(10);
-//                when(plcConnector.getPlcData(any())).thenReturn(plcData);
-//
-//                plcService.changeCurrentTool(ipOfExistingPlc,2);
-//
-//                verify(plcRepository, times(1)).save(plcCaptor.capture());
-//                assertThat(plcCaptor.getValue().getCurrentTool()).isEqualTo(newAutodetectedTool);
+                Tool newAutodetectedTool = Tool.builder()
+                        .toolNumber(2)
+                        .nameFromPlc("newTool")
+                        .toolStatus(ToolStatusType.AUTODETECTED)
+                        .automaticMonitoring(false)
+                        .calculateReferenceCurve(false)
+                        .build();
+                Plc plcInDatabase = Plc.builder().addTool(newAutodetectedTool).build();
+
+
+                when(plcData.getToolData()).thenReturn(new ToolData(2, "newTool"));
+                when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+                when(plcRepository.findByIpAddressFetchTools("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+                automaticUpdateService.onToolDataChange(plcData);
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+
+                assertThat(plcCaptor.getValue().getCurrentTool()).isEqualTo(newAutodetectedTool);
             }
 
-            @Test @DisplayName("updates plc in database")
-            void updatesPlcInDatabase(){
-//                plcService.changeCurrentTool(ipOfExistingPlc, toolNumberOfExistingTool);
-//
-//                verify(plcRepository,Mockito.times(1)).save(plcInDb);
+            @Test @DisplayName("updates serial number of plc in database")
+            void updatesSerilaNumberOfPlcInDatabase(){
+                Plc plcInDatabase = Plc.builder().build();
+                plcInDatabase.getHardwareInformation().setSerialNumber("OldSerialNumber");
+
+                when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+                when(plcData.getSerialNumber()).thenReturn("NewSerialNumber");
+                when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+
+                automaticUpdateService.onSerialNumberChange(plcData);
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+
+                assertThat(plcCaptor.getValue().getHardwareInformation().getSerialNumber()).isEqualTo("NewSerialNumber");
+            }
+
+            @Test @DisplayName("updates firmware number of plc in database")
+            void updatesFirmwareNumberOfPlcInDatabase(){
+                Plc plcInDatabase = Plc.builder().build();
+                plcInDatabase.getHardwareInformation().setFirmwareNumber("OldFirmwareNumber");
+
+                when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+                when(plcData.getFirmwareNumber()).thenReturn("NewFirmwareNumber");
+                when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+
+                automaticUpdateService.onFirmwareNumberChange(plcData);
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+
+                assertThat(plcCaptor.getValue().getHardwareInformation().getFirmwareNumber()).isEqualTo("NewFirmwareNumber");
+            }
+
+            @Test @DisplayName("updates connectionStatus of plc in database")
+            void updatesConnectionStatusOfPlcInDatabase(){
+                Plc plcInDatabase = Plc.builder().build();
+                plcInDatabase.markAsDisconnected();
+
+                when(plcData.getIpAddress()).thenReturn("192.168.0.1");
+                when(plcData.getConnectionStatus()).thenReturn(ConnectionStatus.CONNECTED);
+                when(plcRepository.findByIpAddress("192.168.0.1")).thenReturn(Optional.of(plcInDatabase));
+
+
+                automaticUpdateService.onConnectionStatusChange(plcData);
+                verify(plcRepository, times(1)).save(plcCaptor.capture());
+
+                assertThat(plcCaptor.getValue().isConnected()).isTrue();
             }
         }
     }

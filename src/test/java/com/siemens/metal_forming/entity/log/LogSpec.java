@@ -2,7 +2,7 @@ package com.siemens.metal_forming.entity.log;
 
 import com.siemens.metal_forming.domain.Curve;
 import com.siemens.metal_forming.domain.PointOfTorqueAndSpeed;
-import com.siemens.metal_forming.entity.abstractSpec.ImmutableEntitySpec;
+import com.siemens.metal_forming.entity.abstractSpec.EntitySpec;
 import com.siemens.metal_forming.enumerated.StopReactionType;
 import com.siemens.metal_forming.testBuilders.TestLogBuilder;
 import lombok.AccessLevel;
@@ -17,7 +17,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @DisplayName("<= LOG SPECIFICATION =>")
-class LogSpec extends ImmutableEntitySpec {
+class LogSpec extends EntitySpec {
     TestLogBuilder testLogBuilder;
 
     public LogSpec() {
@@ -122,7 +122,7 @@ class LogSpec extends ImmutableEntitySpec {
                     .findFirst()).isNotEmpty();
         }
 
-        @Test @DisplayName("is invalid when motor curve is null") @Disabled("Disabled until motor curve will be sent over opc ua")
+        @Test @DisplayName("is invalid when motor curve is null") //@Disabled("Disabled until motor curve will be sent over opc ua")
         void isInvalidWhenMotorCurveIsNull(){
             Log invalidLog = testLogBuilder.motorCurve(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);
@@ -133,7 +133,7 @@ class LogSpec extends ImmutableEntitySpec {
                     .findFirst()).isNotEmpty();
         }
 
-        @Test @DisplayName("is invalid when reference curve is null") @Disabled("Disabled just for testing")
+        @Test @DisplayName("is invalid when reference curve is null") //@Disabled("Disabled just for testing")
         void isInvalidWhenReferenceCurveIsNull(){
             Log invalidLog = testLogBuilder.referenceCurve(null).build();
             Set<ConstraintViolation<Log>> violations = validator.validate(invalidLog);

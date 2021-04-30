@@ -34,7 +34,7 @@ RUN ng build --prod
 # builds back-end with front-end in static folder
 WORKDIR /src/metalForming
 RUN cp -a /src/metal-forming-fe/dist/metal-forming/. /src/metalForming/src/main/resources/static \
-&& mvn -P prod install -DskipTests=true
+&& mvn -P prod install
 
 
 

@@ -34,7 +34,7 @@ public final class Log {
     @Convert(converter = CurveConverter.class)
     Curve measuredCurve;
 
-    //@NotNull //ToDo uncomment when implemented and also set nullable to true
+    @NotNull
     @Column(name = "motor_curve", length = 10000)
     @Basic(fetch = FetchType.LAZY)
     @Convert(converter = CurveConverter.class)
